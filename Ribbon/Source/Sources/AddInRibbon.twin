@@ -146,7 +146,7 @@ Class AddInRibbon
 				On Error Resume Next
 				With applicationObject
 					.DoCmd.Hourglass True
-					.Run strAddInPath & "!DummyFunction"
+					.Run strAddInPath & "!DummyFunction"  ' Why don't call a API runner (factory) instance? => RunInAddIn in accda not required
 					.DoCmd.Hourglass False
 				End With
 				On Error GoTo 0
