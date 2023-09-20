@@ -381,7 +381,7 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Function GetAddInFileName() As String
-    GetAddInFileName = FSO.BuildPath(GetInstallSettings.strInstallFolder, CodeProject.Name)
+    GetAddInFileName = FSO.BuildPath(GetInstallSettings.strInstallFolder, ADDIN_FILE_NAME_EXT)
 End Function
 
 

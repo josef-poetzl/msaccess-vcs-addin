@@ -1,6 +1,12 @@
 
 Class AddInRibbon
 
+    Private Const AddInFileName As String = "msaccess-vcs"
+	' don't use "Version Control" 
+	'     * FileName without " " is simple to use for Applaction.Run
+	'     * "Version Control" has little significance as to what kind of file this is
+    Private Const AddInFileNameWithExt As String = AddInFileName & ".accda"
+
 	Implements IDTExtensibility2
 
 	/*
@@ -115,7 +121,7 @@ Class AddInRibbon
 		Dim strTempDbPath As String = App.Path & "Temp.accdb"
 		
 		' Get relative path to Access add-in (Should be in same folder as this dll)
-		strAddInPath = App.Path & "\Version Control.accda"
+		strAddInPath = AddInFile
 	
 		' See if add-in project is already loaded.
 		For Each proj In applicationObject.VBE.VBProjects
@@ -143,10 +149,12 @@ Class AddInRibbon
 				' The following lines will load the add-in at the application level,
 				' but will not actually call the function. Ignore the error of function not found.
 				' https://stackoverflow.com/questions/62270088/how-can-i-launch-an-access-add-in-not-com-add-in-from-vba-code
+				'
+				' not required if call methods with full add-in name
 				On Error Resume Next
 				With applicationObject
 					.DoCmd.Hourglass True
-					.Run strAddInPath & "!DummyFunction"  ' Why don't call a API runner (factory) instance? => RunInAddIn in accda not required
+					.Run AddInCallPath & ".DummyFunction"
 					.DoCmd.Hourglass False
 				End With
 				On Error GoTo 0
@@ -169,7 +177,14 @@ Class AddInRibbon
 
 	End Function
 	
+	Private Property Get AddInFile() As String
+        AddInFile = App.Path & "\" & AddInFileNameWithExt
+	End Property
 	
+    Private Property Get AddInCallPath() As String
+    	AddInCallPath = App.Path & "\" & AddInFileName
+    End Property
+
 	/*
 		Wrapper for the file system object
 	*/
@@ -186,7 +201,9 @@ Class AddInRibbon
 	Public Sub OnActionButton(control As IRibbonControl)
 		If VerifyAccessAddinProject Then
 			' Pass the control ID to the handler function
-			applicationObject.Run "MSAccessVCS.HandleRibbonCommand", control.Id
+			' applicationObject.Run "MSAccessVCS.HandleRibbonCommand", control.Id
+			' run with add-in-file:
+      		applicationObject.Run AddInCallPath & ".HandleRibbonCommand", control.Id
 		End If
 	End Sub
 	

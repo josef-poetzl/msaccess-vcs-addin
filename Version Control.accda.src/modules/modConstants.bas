@@ -13,6 +13,9 @@ Option Explicit
 ' VBE Project Name for this Add-In
 Public Const PROJECT_NAME As String = "MSAccessVCS"
 
+Public Const ADDIN_FILE_NAME As String = "msaccess-vcs"
+Public Const ADDIN_FILE_NAME_EXT As String = ADDIN_FILE_NAME & ".accda"
+
 ' Read/write chunks of text, rather than the whole thing at once for massive
 ' performance gains when reading large files.
 ' See https://docs.microsoft.com/is-is/sql/ado/reference/ado-api/readtext-method
