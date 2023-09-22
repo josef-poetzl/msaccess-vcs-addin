@@ -1511,7 +1511,11 @@ Public Sub InitializeForms(cContainers As Dictionary)
 
                         ' Open each form in design view
                         Perf.OperationStart "Initialize Forms"
-                        DoCmd.OpenForm frm.Name, acDesign, , , , acHidden
+                        If frm.Name Like "frmVCS*" Then
+                           CurrentVBProject.VBComponents("Form_" & frm.Name).Activate
+                        Else
+                           DoCmd.OpenForm frm.Name, acDesign, , , , acHidden
+                        End If
                         DoEvents
                         DoCmd.Close acForm, frm.Name, acSaveNo
                         Perf.OperationEnd
@@ -1519,7 +1523,7 @@ Public Sub InitializeForms(cContainers As Dictionary)
                     Log.Increment
 
                     ' Log any errors
-                    CatchAny eelError, "Error while initializing form " & frm.Name, ModuleName & ".InitializeForms"
+                    CatchAny eelError, "Error " & Err.Number & " while initializing form " & frm.Name, VBE.ActiveVBProject.FileName & "." & ModuleName & ".InitializeForms"
 
                     ' Update the index, since the save date has changed, but reuse the code hash
                     ' since we just calculated it after importing the form.
