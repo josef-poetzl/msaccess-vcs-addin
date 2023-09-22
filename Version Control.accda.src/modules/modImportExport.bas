@@ -1523,7 +1523,7 @@ Public Sub InitializeForms(cContainers As Dictionary)
                     Log.Increment
 
                     ' Log any errors
-                    CatchAny eelError, "Error " & Err.Number & " while initializing form " & frm.Name, VBE.ActiveVBProject.FileName & "." & ModuleName & ".InitializeForms"
+                    CatchAny eelError, "Error while initializing form " & frm.Name, ModuleName & ".InitializeForms"
 
                     ' Update the index, since the save date has changed, but reuse the code hash
                     ' since we just calculated it after importing the form.
