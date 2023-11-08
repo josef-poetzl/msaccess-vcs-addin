@@ -20,6 +20,7 @@ Attribute VB_Exposed = False
 '           : microsecond level. For additional details, see the following link:
 '           : http://www.mendipdatasystems.co.uk/timer-comparison-tests/4594552971
 '---------------------------------------------------------------------------------------
+
 Option Compare Database
 Option Explicit
 
@@ -97,6 +98,18 @@ End Property
 
 
 '---------------------------------------------------------------------------------------
+' Procedure : CurrentCategoryName
+' Author    : hecon5
+' Date      : 10/3/2023
+' Purpose   : Return the current category name.
+'---------------------------------------------------------------------------------------
+'
+Public Property Get CurrentCategoryName() As String
+    CurrentCategoryName = this.CategoryName
+End Property
+
+
+'---------------------------------------------------------------------------------------
 ' Procedure : CategoryStart
 ' Author    : Adam Waller
 ' Date      : 11/3/2020
@@ -105,15 +118,15 @@ End Property
 '
 Public Sub CategoryStart(strName As String)
     If Not Me.Enabled Then Exit Sub
-    If this.CategoryName <> vbNullString Then CategoryEnd
     If this.Categories Is Nothing Then Set this.Categories = New Dictionary
+    If this.CategoryName <> vbNullString Then CategoryEnd
     StartTimer this.Categories, strName
     this.CategoryName = strName
 End Sub
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : ComponentEnd
+' Procedure : CategoryEnd
 ' Author    : Adam Waller
 ' Date      : 11/3/2020
 ' Purpose   : End the timing of the active component
@@ -199,10 +212,24 @@ Public Sub OperationEnd(Optional lngCount As Long = 1)
                     this.OperationName = vbNullString
                 End If
             End With
+        Else
+            this.OperationName = vbNullString
         End If
     End If
 
 End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : CurrentOperationName
+' Author    : hecon5
+' Date      : 10/3/2023
+' Purpose   : Return the current operation's name.
+'---------------------------------------------------------------------------------------
+'
+Public Property Get CurrentOperationName() As String
+    CurrentOperationName = this.OperationName
+End Property
 
 
 '---------------------------------------------------------------------------------------
@@ -260,7 +287,9 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Private Sub StartTimer(dItems As Dictionary, strName As String)
+
     Dim cItem As clsPerformanceItem
+
     If Not dItems.Exists(strName) Then
         Set cItem = New clsPerformanceItem
         dItems.Add strName, cItem
@@ -330,6 +359,9 @@ Public Sub ResumeTiming()
 
     ' Resume current operation
     If this.OperationName <> vbNullString Then StartTimer this.Operations, this.OperationName
+
+    ' Resume current Category
+    If this.CategoryName <> vbNullString Then StartTimer this.Categories, this.CategoryName
 
 End Sub
 
@@ -474,15 +506,51 @@ End Function
 ' Author    : Adam Waller
 ' Date      : 11/3/2020
 ' Purpose   : List the result of a test in a fixed width format. The result strings
-'           : are positioned at the number of characters specified.
+'           : are positioned at the number of characters specified. If the heading size
+'           : exceeds the width of the column, the text will be wrapped.
 '           : I.e:
 '           : MyFancyTest      23     2.45
+'           : My very long nam
+'           : e that I probabl
+'           : y should condens
+'           : e                12     3.23
 '---------------------------------------------------------------------------------------
 '
-Private Function ListResult(strHeading As String, strResult1 As String, strResult2 As String, _
-    lngCol() As Long) As String
-    ListResult = PadRight(strHeading, lngCol(0)) & _
-        PadRight(strResult1, lngCol(1)) & strResult2
+Private Function ListResult(strHeading As String, _
+                            strResult1 As String, _
+                            strResult2 As String, _
+                            lngCol() As Long) As String
+
+    Dim strRowHeading As String
+    Dim lngPos As Long
+    Dim intMax As Integer
+
+    ' Wrap at one character less than the column width
+    intMax = lngCol(0) - 1
+
+    ' Use concatenation class in case we need to deal with line wrapping
+    With New clsConcat
+
+        ' Check for size overflow on heading. (Wrap on multiple lines)
+        strRowHeading = strHeading
+        If Len(strRowHeading) > intMax Then
+            lngPos = 1
+            Do While lngPos + intMax <= Len(strHeading)
+                ' Add segment and linebreak
+                .Add Mid$(strHeading, lngPos, intMax), " ", vbCrLf
+                lngPos = lngPos + intMax
+            Loop
+            ' Get last heading line to use with results
+            strRowHeading = Mid$(strHeading, lngPos)
+        End If
+
+        ' Display heading and amounts
+        .Add PadRight(strRowHeading, lngCol(0))
+        .Add PadRight(strResult1, lngCol(1))
+        .Add strResult2
+        ListResult = .GetStr
+    End With
+
 End Function
 
 
@@ -493,7 +561,9 @@ End Function
 ' Purpose   : Pads a string
 '---------------------------------------------------------------------------------------
 '
-Private Function PadRight(strText As String, lngLen As Long, Optional lngMinTrailingSpaces As Long = 1) As String
+Private Function PadRight(strText As String, _
+                        lngLen As Long, _
+                        Optional lngMinTrailingSpaces As Long = 1) As String
 
     Dim strResult As String
     Dim strTrimmed As String
@@ -538,7 +608,7 @@ Private Function SortItemsByTime(dItems As Dictionary) As Dictionary
     ' Build our list of records
     For Each varKey In dItems.Keys
         ' Create a record like this: "00062840.170000|Export Form Objects       ..."
-        strRecord = Format(dItems(varKey).Total, "00000000.000000") & "|" & PadRight(CStr(varKey), 100)
+        strRecord = Format(dItems(varKey).Total, "00000000.000000") & "|" & PadRight(CStr(varKey), 255)
         ' Add to array.
         varItems(lngCnt) = strRecord
         ' Increment counter for array

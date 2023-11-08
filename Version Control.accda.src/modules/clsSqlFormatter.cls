@@ -82,7 +82,7 @@ Private m_varWordCache(1 To 2) As Variant
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : Format
+' Procedure : FormatSQL
 ' Author    : Adam Waller
 ' Date      : 4/1/2020
 ' Purpose   : This is the main function used outside the class for SQL formatting.
@@ -720,7 +720,9 @@ End Function
 ' Procedure : GetQuotedString
 ' Author    : Adam Waller
 ' Date      : 8/12/2023
-' Purpose   : Return a quoted string (Applies four possible rules)
+' Purpose   : Return a quoted string (dialect-specific)
+'           : https://stackoverflow.com/q/10573922/4121863
+'           : https://stackoverflow.com/q/9719869/4121863
 '---------------------------------------------------------------------------------------
 '
 Private Function GetQuotedString(Optional lngStartOffset As Long = 0) As String
@@ -1229,6 +1231,12 @@ End Function
 '
 Private Function GetNextTokenID(lngCurrentToken As Long, Optional intExceptType As eTokenTypes) As Long
     Dim intToken As Integer
+
+    If lngCurrentToken + 1 > m_colTokens.Count Then
+        GetNextTokenID = lngCurrentToken + 1
+        Exit Function
+    End If
+
     For intToken = lngCurrentToken + 1 To m_colTokens.Count
         If m_colTokens(intToken)(0) <> intExceptType Then
             GetNextTokenID = intToken
