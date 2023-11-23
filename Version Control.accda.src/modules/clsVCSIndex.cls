@@ -59,6 +59,7 @@ Public Sub LoadFromFile(Optional strFile As String)
     Dim dFile As Dictionary
     Dim dItem As Dictionary
     Dim varKey As Variant
+    Dim blnSavedValue As Boolean
 
     ' Exit if we have disabled the index functionality
     If Me.Disabled Then Exit Sub
@@ -70,7 +71,11 @@ Public Sub LoadFromFile(Optional strFile As String)
     m_strFile = strFile
     If m_strFile = vbNullString Then m_strFile = DefaultFilePath
     If FSO.FileExists(m_strFile) Then
+        ' Convert dates back to local time for processing
+        blnSavedValue = JsonOptions.ConvertDateToIso
+        JsonOptions.ConvertDateToIso = True
         Set dFile = ReadJsonFile(m_strFile)
+        JsonOptions.ConvertDateToIso = blnSavedValue
         If Not dFile Is Nothing Then
             If dFile.Exists("Items") Then
                 ' Load properties from class
@@ -106,6 +111,7 @@ Public Sub Save(Optional strInFolder As String)
     Dim varKey As Variant
     Dim varValue As Variant
     Dim strFile As String
+    Dim blnSavedValue As Boolean
 
     ' Exit if we have disabled the index functionality
     If Me.Disabled Then Exit Sub
@@ -118,7 +124,7 @@ Public Sub Save(Optional strInFolder As String)
                 varValue = CallByName(Me, CStr(varKey), VbGet)
                 ' Save blank dates as null
                 If Right(varKey, 4) = "Date" Then
-                    m_dIndex(varKey) = ZNDate(CStr(varValue))
+                    m_dIndex(varKey) = ZNDate(varValue)
                 Else
                     m_dIndex(varKey) = CStr(varValue)
                 End If
@@ -139,10 +145,17 @@ Public Sub Save(Optional strInFolder As String)
         strFile = StripSlash(strInFolder) & PathSep & cstrFileName
     End If
 
+    ' Turn on ISO date conversion to save index dates in UTC
+    blnSavedValue = JsonOptions.ConvertDateToIso
+    JsonOptions.ConvertDateToIso = True
+
     ' Save index to file
     If m_strFile <> vbNullString Then
         WriteFile BuildJsonFile(TypeName(Me), m_dIndex, "Version Control System Index"), strFile
     End If
+
+    ' Restore previous setting
+    JsonOptions.ConvertDateToIso = blnSavedValue
 
 End Sub
 
@@ -222,14 +235,14 @@ Public Function Update(cItem As IDbComponent, intAction As eIndexOperationType, 
         If dteDateTime = 0 Then dteDateTime = Now
         Select Case intAction
             Case eatExport, eatAltExport
-                .Item("ExportDate") = CStr(dteDateTime)
+                .Item("ExportDate") = dteDateTime
             Case eatImport
-                .Item("ImportDate") = CStr(dteDateTime)
+                .Item("ImportDate") = dteDateTime
         End Select
 
         ' Save timestamp of exported source file.
         dteDateTime = GetLastModifiedDate(cItem.SourceFile)
-        .Item("SourceModified") = ZNDate(CStr(dteDateTime))
+        .Item("SourceModified") = ZNDate(dteDateTime)
 
         ' Save hash of file properties
         .Item("FilePropertiesHash") = GetFilePropertyHash(cItem.SourceFile)
@@ -494,7 +507,7 @@ Public Function GetModifiedSourceFiles(cCategory As IDbComponent) As Dictionary
                     strPath = Join(Array("Components", cCategory.Category, FSO.GetFileName(strFile), "SourceModified"), PathSep)
                     ' Compare modified date of file with modified date in index.
                     ' File is considered not modified if the index date matches the file modification date.
-                    blnModified = Not (dNZ(m_dIndex, strPath) = CStr(GetLastModifiedDate(strFile)))
+                    blnModified = Not (dNZ(m_dIndex, strPath) = GetLastModifiedDate(strFile))
                 End If
                 ' Add modified files to collection
                 If blnModified Then .Add strFile, vbNullString
@@ -776,7 +789,8 @@ End Property
 Public Sub ClearTempExportFolder()
     If m_strTempExportFolderPath <> vbNullString Then
         If FSO.FolderExists(m_strTempExportFolderPath) Then
-            If DebugMode(True) Then On Error Resume Next Else On Error Resume Next
+            LogUnhandledErrors
+            On Error Resume Next
             ' Use FSO to delete the folder and contents
             FSO.DeleteFolder m_strTempExportFolderPath, True
             CatchAny eelWarning, "Unable to delete temp folder: '" & m_strTempExportFolderPath & _
