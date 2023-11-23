@@ -115,11 +115,8 @@ Public Function FormatSQL(Optional strSql As String, Optional intDialect As eSql
     Perf.CategoryStart "Format SQL"
     Perf.OperationStart "Formating"
 
-    ' Set SQL dialect
-    m_intDialect = intDialect
-
     ' Tokenize the string, if provided
-    If strSql <> vbNullString Then Tokenize strSql
+    If strSql <> vbNullString Then Tokenize strSql, intDialect
 
     ' Set up collection to hold types of indents
     Set colIndents = New Collection
@@ -362,7 +359,9 @@ Public Function FormatSQL(Optional strSql As String, Optional intDialect As eSql
         ' If the token shouldn't have a space before it
         If strTokenValue = "." _
             Or strTokenValue = "," _
-            Or strTokenValue = ";" Then
+            Or strTokenValue = ";" _
+            Or (strTokenValue = "!" And m_intDialect = esdAccess) _
+            Or (strTokenValue = ":" And m_intDialect = esdAccess) Then
             ' Trim any whitespace
             cReturn.RTrim
         End If
@@ -371,7 +370,10 @@ Public Function FormatSQL(Optional strSql As String, Optional intDialect As eSql
         cReturn.Add strTokenValue, " "
 
         ' If the token shouldn't have a space after it
-        If strTokenValue = "(" Or strTokenValue = "." Then
+        If strTokenValue = "(" _
+            Or strTokenValue = "." _
+            Or (strTokenValue = "!" And m_intDialect = esdAccess) _
+            Or (strTokenValue = ":" And m_intDialect = esdAccess) Then
             cReturn.RTrim
         End If
 
@@ -437,7 +439,7 @@ End Function
 '           : Each token is an array with type(0) and value(1).
 '---------------------------------------------------------------------------------------
 '
-Private Sub Tokenize(strSql As String)
+Private Sub Tokenize(strSql As String, intDialect As eSqlDialect)
 
     Const cstrBreakAfter As String = "LIMIT" & ";;;;"
 
@@ -450,6 +452,9 @@ Private Sub Tokenize(strSql As String)
     m_lngPos = 1
     m_varWordCache(1) = Empty
     m_varWordCache(2) = Empty
+
+    ' Set SQL dialect
+    m_intDialect = intDialect
 
     Perf.CategoryStart "Tokenize SQL"
 
@@ -487,7 +492,8 @@ Private Sub Tokenize(strSql As String)
             AddToken ttQuote, GetQuotedString
 
         ' User defined variable
-        ElseIf (NextChar("@") Or NextChar(":")) And (RemainingChars > 1) Then
+        ElseIf (NextChar("@") Or NextChar(":")) _
+            And (RemainingChars > 1) And (m_intDialect <> esdAccess) Then
 
             ' Check for quoted variable name
             If PeekChar(1, """") Or PeekChar(1, "`") Or PeekChar(1, "'") Then
@@ -512,7 +518,9 @@ Private Sub Tokenize(strSql As String)
 
         ' A reserved word cannot be preceded by a "."
         ' This makes it so in "mytable.from", "from" is not considered a reserved word
-        ElseIf PeekChar(-1, ".") Then
+        ElseIf PeekChar(-1, ".") _
+            Or (PeekChar(-1, "!") And m_intDialect = esdAccess) _
+            Or (PeekChar(-1, ":") And m_intDialect = esdAccess) Then
 
             ' Likely an object name
             If HasMatches("^(.*?)($|\s|[""\'`]|" & RegExBoundaries & ")", strMatch) Then
@@ -1314,16 +1322,13 @@ Public Sub SelfTest()
 
     Dim strActual As String
 
-    ' Test performance
-    TestPerformance
-
     ' Test GetNextWords
-    Tokenize "  LEFT " & vbTab & vbCrLf & " JOIN test on 1=2"
+    Tokenize "  LEFT " & vbTab & vbCrLf & " JOIN test on 1=2", esdAccess
     Debug.Assert GetNextWords(2) = "LEFT JOIN"
     Debug.Assert GetNextWords(1) = "LEFT"
 
     ' Test simple query with a few features
-    Tokenize "SELECT  5 AS `TEST`"
+    Tokenize "SELECT  5 AS `TEST`", esdMySQL
 
     ' Verify tokens
     Debug.Assert m_colTokens.Count = 7
@@ -1348,7 +1353,7 @@ Public Sub SelfTest()
 
 
     ' Test Access date literal with MySQL inline comment
-    Tokenize "SELECT (#1/1/2000#) AS SampleDate # MySQL inline ## comment"
+    Tokenize "SELECT (#1/1/2000#) AS SampleDate # MySQL inline ## comment", esdAccess
 
     ' Verify tokens
     Debug.Assert m_colTokens.Count = 11
@@ -1379,7 +1384,7 @@ Public Sub SelfTest()
     ' Example query from https://github.com/doctrine/sql-formatter
     Tokenize "SELECT count(*),`Column1`,`Testing`, `Testing Three` FROM `Table1`" & _
             " WHERE Column1 = 'testing' AND ( (`Column2` = `Column3` OR Column4 >= NOW()) )" & _
-            " GROUP BY Column1 ORDER BY Column3 DESC LIMIT 5,10"
+            " GROUP BY Column1 ORDER BY Column3 DESC LIMIT 5,10", esdMySQL
 
     ' Verify tokens
     Debug.Assert m_colTokens.Count = 66
@@ -1481,9 +1486,111 @@ Public Sub SelfTest()
     If (strActual <> FormatSQL) Then Diff.Strings strActual, FormatSQL
 
 
-    'PrintTokens
-    'BuildTestFromTokens
-    'Diff.Strings strActual, FormatSQL
+    ' Test multi-part names
+    Tokenize "SELECT [dbo].[field] FROM [server].[schema].[table];", esdMSSQL
+
+    ' Verify tokens
+    Debug.Assert m_colTokens.Count = 13
+    Debug.Assert VerifyToken(1, ttReservedTopLevel, "SELECT")
+    Debug.Assert VerifyToken(2, ttWhitespace, " ")
+    Debug.Assert VerifyToken(3, ttQuote, "[dbo]")
+    Debug.Assert VerifyToken(4, ttBoundary, ".")
+    Debug.Assert VerifyToken(5, ttQuote, "[field]")
+    Debug.Assert VerifyToken(6, ttWhitespace, " ")
+    Debug.Assert VerifyToken(7, ttReservedTopLevel, "FROM")
+    Debug.Assert VerifyToken(8, ttWhitespace, " ")
+    Debug.Assert VerifyToken(9, ttQuote, "[server]")
+    Debug.Assert VerifyToken(10, ttBoundary, ".")
+    Debug.Assert VerifyToken(11, ttQuote, "[schema]")
+    Debug.Assert VerifyToken(12, ttBoundary, ".")
+    Debug.Assert VerifyToken(13, ttQuote, "[table]")
+
+    ' Verify result
+    With New clsConcat
+        .AppendOnAdd = vbCrLf
+        .Add "SELECT"
+        .Add "  [dbo].[field]"
+        .Add "FROM"
+        .Add "  [server].[schema].[table]"
+        .Remove 2
+        strActual = .GetStr
+    End With
+    Debug.Assert (strActual = FormatSQL)
+    If (strActual <> FormatSQL) Then Diff.Strings strActual, FormatSQL
+
+
+    ' Test parameter expression
+    Tokenize "SELECT [Forms]![frmColors]![Text18];", esdAccess
+
+    ' Verify tokens
+    Debug.Assert m_colTokens.Count = 7
+    Debug.Assert VerifyToken(1, ttReservedTopLevel, "SELECT")
+    Debug.Assert VerifyToken(2, ttWhitespace, " ")
+    Debug.Assert VerifyToken(3, ttQuote, "[Forms]")
+    Debug.Assert VerifyToken(4, ttBoundary, "!")
+    Debug.Assert VerifyToken(5, ttQuote, "[frmColors]")
+    Debug.Assert VerifyToken(6, ttBoundary, "!")
+    Debug.Assert VerifyToken(7, ttQuote, "[Text18]")
+
+    ' Verify result
+    With New clsConcat
+        .AppendOnAdd = vbCrLf
+        .Add "SELECT"
+        .Add "  [Forms]![frmColors]![Text18]"
+        .Remove 2
+        strActual = .GetStr
+    End With
+    Debug.Assert (strActual = FormatSQL)
+    If (strActual <> FormatSQL) Then Diff.Strings strActual, FormatSQL
+
+
+    ' Test unquoted path (See issue #447)
+    Tokenize "SELECT foo.* INTO (C:\path\to\bar.accdb) fizz FROM bazz;", esdAccess
+
+    ' Verify tokens
+    Debug.Assert m_colTokens.Count = 21
+    Debug.Assert VerifyToken(1, ttReservedTopLevel, "SELECT")
+    Debug.Assert VerifyToken(2, ttWhitespace, " ")
+    Debug.Assert VerifyToken(3, ttWord, "foo")
+    Debug.Assert VerifyToken(4, ttBoundary, ".")
+    Debug.Assert VerifyToken(5, ttBoundary, "*")
+    Debug.Assert VerifyToken(6, ttWhitespace, " ")
+    Debug.Assert VerifyToken(7, ttReserved, "INTO")
+    Debug.Assert VerifyToken(8, ttWhitespace, " ")
+    Debug.Assert VerifyToken(9, ttBoundary, "(")
+    Debug.Assert VerifyToken(10, ttWord, "C")
+    Debug.Assert VerifyToken(11, ttBoundary, ":")
+    Debug.Assert VerifyToken(12, ttWord, "\path\to\bar")
+    Debug.Assert VerifyToken(13, ttBoundary, ".")
+    Debug.Assert VerifyToken(14, ttWord, "accdb")
+    Debug.Assert VerifyToken(15, ttBoundary, ")")
+    Debug.Assert VerifyToken(16, ttWhitespace, " ")
+    Debug.Assert VerifyToken(17, ttWord, "fizz")
+    Debug.Assert VerifyToken(18, ttWhitespace, " ")
+    Debug.Assert VerifyToken(19, ttReservedTopLevel, "FROM")
+    Debug.Assert VerifyToken(20, ttWhitespace, " ")
+    Debug.Assert VerifyToken(21, ttWord, "bazz")
+
+    ' Verify result
+    With New clsConcat
+        .AppendOnAdd = vbCrLf
+        .Add "SELECT"
+        .Add "  foo.* INTO (C:\path\to\bar.accdb) fizz"
+        .Add "FROM"
+        .Add "  bazz"
+        .Remove 2
+        strActual = .GetStr
+    End With
+    Debug.Assert (strActual = FormatSQL)
+    If (strActual <> FormatSQL) Then Diff.Strings strActual, FormatSQL
+
+
+'    PrintTokens
+'    BuildTestFromTokens
+'    Diff.Strings strActual, FormatSQL
+
+    ' Test performance
+    TestPerformance
 
 End Sub
 
@@ -1539,7 +1646,7 @@ Private Function BuildTestFromTokens()
     Dim intLine As Integer
 
     Debug.Print vbCrLf & vbCrLf & "    ' Verify tokens"
-    Debug.Print vbCrLf & "    Debug.Assert m_colTokens.Count = " & m_colTokens.Count
+    Debug.Print "    Debug.Assert m_colTokens.Count = " & m_colTokens.Count
 
     ' Loop through tokens
     For intToken = 1 To m_colTokens.Count
@@ -1567,6 +1674,7 @@ Private Function BuildTestFromTokens()
     Debug.Print "        strActual = .GetStr"
     Debug.Print "    End With"
     Debug.Print "    Debug.Assert (strActual = FormatSQL)"
+    Debug.Print "    If (strActual <> FormatSQL) Then Diff.Strings strActual, FormatSQL"
 
 End Function
 
@@ -1645,6 +1753,7 @@ End Function
 ' Author    : Adam Waller
 ' Date      : 8/18/2023
 ' Purpose   : Print out AscW indexes of each character in the string.
+'           : (Use this when building case statements)
 '---------------------------------------------------------------------------------------
 '
 Private Function GetAscWFromString(strText As String) As String
@@ -1677,7 +1786,7 @@ Private Function TestPerformance()
     For lngCnt = 1 To lngMax
         Tokenize "SELECT count(*),`Column1`,`Testing`, `Testing Three` FROM `Table1`" & _
                 " WHERE Column1 = 'testing' AND ( (`Column2` = `Column3` OR Column4 >= NOW()) )" & _
-                " GROUP BY Column1 ORDER BY Column3 DESC LIMIT 5,10"
+                " GROUP BY Column1 ORDER BY Column3 DESC LIMIT 5,10", esdMySQL
     Next lngCnt
 
     ' Test performance of formatting SQL
