@@ -17,8 +17,6 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 
-Private Const FormatVersion As Double = 1.1
-
 Private m_Items(True To False) As Dictionary
 Private m_dItems As Dictionary
 
@@ -78,7 +76,6 @@ Private Sub IDbComponent_Import(strFile As String)
 
         ' Upgrade from any previous formats
         Set m_dItems = dFile
-        IDbComponent_Upgrade
 
         ' Remove any existing custom groups (Some may be automatically created with a new database)
         ClearExistingNavGroups
@@ -210,7 +207,7 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Function GetSource() As String
-    GetSource = BuildJsonFile(TypeName(Me), GetDictionary, "Navigation Pane Custom Groups", FormatVersion)
+    GetSource = BuildJsonFile(TypeName(Me), GetDictionary, "Navigation Pane Custom Groups")
 End Function
 
 
@@ -438,31 +435,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedSourceFiles
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Remove any source files for objects not in the current database.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_ClearOrphanedSourceFiles()
-    If IDbComponent_GetAllFromDB.Count = 0 Then
-        If FSO.FileExists(IDbComponent_SourceFile) Then DeleteFile IDbComponent_SourceFile, True
-    End If
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedDatabaseObjects
-' Author    : Adam Waller
-' Date      : 11/3/2021
-' Purpose   : Remove database objects that are not represented by existing source files.
-'---------------------------------------------------------------------------------------
-'
-Public Sub IDbComponent_ClearOrphanedDatabaseObjects()
-End Sub
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : IsModified
 ' Author    : Adam Waller
 ' Date      : 11/21/2020
@@ -490,21 +462,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : SourceModified
-' Author    : Adam Waller
-' Date      : 4/27/2020
-' Purpose   : The date/time the source object was modified. In most cases, this would
-'           : be the date/time of the source file, but it some cases like SQL objects
-'           : the date can be determined through other means, so this function
-'           : allows either approach to be taken.
-'---------------------------------------------------------------------------------------
-'
-Private Function IDbComponent_SourceModified() As Date
-    If FSO.FileExists(IDbComponent_SourceFile) Then IDbComponent_SourceModified = GetLastModifiedDate(IDbComponent_SourceFile)
-End Function
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : Category
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -524,6 +481,20 @@ End Property
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
     IDbComponent_BaseFolder = Options.GetExportFolder
+End Property
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : FileExtensions
+' Author    : Adam Waller
+' Date      : 12/1/2023
+' Purpose   : A collection of the file extensions used in source files for this
+'           : component type.
+'---------------------------------------------------------------------------------------
+'
+Private Property Get IDbComponent_FileExtensions() As Collection
+    Set IDbComponent_FileExtensions = New Collection
+    IDbComponent_FileExtensions.Add "json"
 End Property
 
 
@@ -588,58 +559,6 @@ End Property
 Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
     IDbComponent_ComponentType = edbNavPaneGroup
 End Property
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : Upgrade
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Run any version specific upgrade processes before importing.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_Upgrade()
-
-    Dim dNew As Dictionary
-    Dim dNew2 As Dictionary
-    Dim colNew As Collection
-    Dim dblVersion As Double
-
-    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
-
-    ' Get version
-    If Not m_dItems Is Nothing Then
-        If m_dItems("Info").Exists("Export File Format") Then
-            dblVersion = CDbl(m_dItems("Info")("Export File Format"))
-        End If
-    End If
-
-    ' Add Category section (2/22/2021)
-    If dblVersion < 1.1 Then
-        Set dNew = New Dictionary
-        Set colNew = New Collection
-        ' Build generic Custom category
-        dNew.Add "Name", "Custom"
-        dNew.Add "Flags", 0
-        dNew.Add "Position", 2
-        dNew.Add "Groups", m_dItems("Items")("Groups")
-        colNew.Add dNew
-        Set dNew2 = New Dictionary
-        dNew2.Add "Categories", colNew
-        Set m_dItems = New Dictionary
-        m_dItems.Add "Items", dNew2
-    End If
-
-    ' Check for newer export file that this add-in version doesn't support
-    If dblVersion > FormatVersion Then
-        Log.Error eelError, "Format " & dblVersion & " of " & IDbComponent_SourceFile & _
-            " not supported by this version of the add-in. Please update the add-in to import this file.", _
-            ModuleName(Me) & ".Upgrade"
-    End If
-
-    ' Report any errors during upgrade process
-    CatchAny eelError, "Error upgrading navigation pane groups.", ModuleName(Me) & ".Export", True, True
-
-End Sub
 
 
 '---------------------------------------------------------------------------------------

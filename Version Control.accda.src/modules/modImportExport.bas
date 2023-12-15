@@ -59,8 +59,12 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     Options.LoadProjectOptions
     Log.Clear
     Log.OperationType = eotExport
+    Log.SourcePath = Options.GetExportFolder
     Log.Active = True
     Perf.StartTiming
+
+    ' Check error handling mode after loading project options
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' If options (or VCS version) have changed, a full export will be required
     If (VCSIndex.OptionsHash <> Options.GetHash) Then blnFullExport = True
@@ -78,6 +82,25 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         ' Save the log file path
         If Not frmMain Is Nothing Then frmMain.strLastLogFilePath = .LogFilePath
     End With
+
+    ' Check project VCS version
+    Select Case Options.CompareLoadedVersion
+        Case evcNewerVersion
+            Log.Flush
+            If MsgBox2("Newer VCS Version Detected", _
+                "This project uses VCS version " & Options.GetLoadedVersion & _
+                ", but version " & GetVCSVersion & " is currently installed." & vbCrLf & "Would you like to continue anyway?", _
+                "Click YES to continue this operation, or NO to cancel.", _
+                vbExclamation + vbYesNo + vbDefaultButton2) <> vbYes Then
+                    Log.Spacer
+                    Log.Add "Export Canceled", , , "Red", True
+                    Log.Flush
+                    Log.ErrorLevel = eelCritical
+                    Exit Sub
+            End If
+        Case evcOlderVersion
+            Log.Add "Updated VCS (" & Options.GetLoadedVersion & " -> " & GetVCSVersion & ")", , , "blue"
+    End Select
 
     ' Run any custom sub before export
     If Options.RunBeforeExport <> vbNullString Then
@@ -104,7 +127,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
 
     ' Scan database objects for changes
     Set dCategories = New Dictionary
-    VCSIndex.Conflicts.Initialize dCategories
+    VCSIndex.Conflicts.Initialize dCategories, eatExport
     Perf.OperationStart "Scan DB Objects"
     For Each cCategory In colCategories
         Perf.CategoryStart cCategory.Category
@@ -120,7 +143,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         dCategories.Add cCategory.Category, dCategory
         VCSIndex.CheckExportConflicts dObjects
         ' Clear any orphaned files in this category
-        cCategory.ClearOrphanedSourceFiles
+        ClearOrphanedSourceFiles cCategory
         Perf.CategoryEnd 0
         ' Handle critical error or cancel during scan
         If Log.ErrorLevel = eelCritical Then
@@ -139,7 +162,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
             .ShowDialog
             If .ApproveResolutions Then
                 Log.Add "Resolving source conflicts", False
-                .Resolve dCategories
+                .Resolve
             Else
                 ' Cancel export
                 Log.Spacer
@@ -294,8 +317,12 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
     Options.LoadProjectOptions
     Log.Clear
     Log.OperationType = eotExport
+    Log.SourcePath = Options.GetExportFolder
     Log.Active = True
     Perf.StartTiming
+
+    ' Check error handling mode after loading project options
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Display heading
     With Log
@@ -324,7 +351,7 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
     dCategory.Add "Class", cDbObject
     dCategory.Add "Objects", dObjects
     dCategories.Add cDbObject.Category, dCategory
-    VCSIndex.Conflicts.Initialize dCategories
+    VCSIndex.Conflicts.Initialize dCategories, eatExport
     VCSIndex.CheckExportConflicts dObjects
 
     ' Resolve any outstanding conflict, or allow user to cancel.
@@ -334,7 +361,7 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
             .ShowDialog
             If .ApproveResolutions Then
                 Log.Add "Resolving source conflicts", False
-                .Resolve dCategories
+                .Resolve
             Else
                 ' Cancel export
                 Log.Spacer
@@ -463,8 +490,12 @@ Public Sub ExportMultipleObjects(objItems As Dictionary, Optional bolForceClose 
     Options.LoadProjectOptions
     Log.Clear
     Log.OperationType = eotExport
+    Log.SourcePath = Options.GetExportFolder
     Log.Active = True
     Perf.StartTiming
+
+    ' Check error handling mode after loading project options
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Display heading
     With Log
@@ -511,7 +542,7 @@ Public Sub ExportMultipleObjects(objItems As Dictionary, Optional bolForceClose 
             dCategories.Item(cDbObject.Category).Item("Objects").Add cDbObject.SourceFile, cDbObject
         End If
 
-        VCSIndex.Conflicts.Initialize dCategories
+        VCSIndex.Conflicts.Initialize dCategories, eatExport
         VCSIndex.CheckExportConflicts dObjects
     Next
 
@@ -522,7 +553,7 @@ Public Sub ExportMultipleObjects(objItems As Dictionary, Optional bolForceClose 
             .ShowDialog
             If .ApproveResolutions Then
                 Log.Add "Resolving source conflicts", False
-                .Resolve dCategories
+                .Resolve
             Else
                 ' Cancel export
                 Log.Spacer
@@ -717,10 +748,13 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         End If
     End If
 
+    ' Load options from project
     Set Options = Nothing
     Options.LoadOptionsFromFile StripSlash(strSourceFolder) & PathSep & "vcs-options.json"
     ' Override the export folder when exporting to an alternate path.
     If Len(strAlternatePath) Then Options.ExportFolder = strSourceFolder
+    ' Update VBA debug mode after loading options
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Build original file name for database
     If blnFullBuild Then
@@ -752,6 +786,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
     ' Start log and performance timers
     Log.Clear
     Log.OperationType = IIf(blnFullBuild, eotBuild, eotMerge)
+    Log.SourcePath = strSourceFolder
     Log.Active = True
     Perf.StartTiming
 
@@ -773,12 +808,25 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         .Flush
     End With
 
+    ' Check project VCS version
+    If Options.CompareLoadedVersion = evcNewerVersion Then
+        If MsgBox2("Newer VCS Version Detected", _
+            "This project uses VCS version " & Options.GetLoadedVersion & _
+            ", but version " & GetVCSVersion & " is currently installed." & vbCrLf & "Would you like to continue anyway?", _
+            "Click YES to continue this operation, or NO to cancel.", _
+            vbExclamation + vbYesNo + vbDefaultButton2) <> vbYes Then
+            Log.ErrorLevel = eelCritical
+            GoTo CleanUp
+        End If
+    End If
+
     ' Rename original file as a backup
     strBackup = GetBackupFileName(strPath)
     If blnFullBuild Then
         If FSO.FileExists(strPath) Then
             Log.Add "Saving backup of original database..."
             Name strPath As strBackup
+            If CatchAny(eelCritical, "Unable to rename original file", ModuleName & ".Build") Then GoTo CleanUp
             Log.Add "Saved as " & FSO.GetFileName(strBackup) & "."
         End If
     Else
@@ -827,7 +875,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
     Log.Add "Scanning source files..."
     Log.Flush
     Set dCategories = New Dictionary
-    VCSIndex.Conflicts.Initialize dCategories
+    VCSIndex.Conflicts.Initialize dCategories, eatImport
     Perf.OperationStart "Scan Source Files"
     For Each cCategory In GetContainers(intFilter)
         Set dCategory = New Dictionary
@@ -843,21 +891,21 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
                 Log.Add "Not merging " & LCase(cCategory.Category) & ". (Imported only on full build)", Options.ShowDebug
                 dCategory.Add "Files", New Dictionary
             Else
-                ' Return just the modified source files for merge
-                ' (Optionally uses the git integration to determine changes.)
+                ' Return just the modified source files for merge, including source file paths
+                ' representing orphaned objects that no longer exist in the database.
                 dCategory.Add "Files", VCSIndex.GetModifiedSourceFiles(cCategory)
             End If
         End If
+        ' Check count of modified source files.
         If dCategory("Files").Count = 0 Then
             Log.Add IIf(blnFullBuild, "No ", "No modified ") & LCase(cCategory.Category) & " source files found.", Options.ShowDebug
         Else
-            dCategories.Add cCategory, dCategory
-        End If
-        If Not blnFullBuild Then
-            ' Record any conflicts for later review
-            VCSIndex.CheckImportConflicts cCategory, dCategory("Files")
-            ' Clear orphaned database objects (With no corresponding source file)
-            cCategory.ClearOrphanedDatabaseObjects
+            dCategories.Add cCategory.Category, dCategory
+            ' For merge builds, check for import conflicts or orphaned database objects
+            If Not blnFullBuild Then
+                ' Record any conflicts for later review
+                VCSIndex.CheckMergeConflicts cCategory, dCategory("Files")
+            End If
         End If
         ' Check for critical error or cancel
         If Log.ErrorLevel = eelCritical Then
@@ -875,7 +923,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
             .ShowDialog
             If .ApproveResolutions Then
                 Log.Add "Resolving source conflicts", False
-                .Resolve dCategories
+                .Resolve
             Else
                 ' Cancel build/merge
                 Log.Spacer
@@ -904,8 +952,8 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
     ' Loop through all categories
     For Each varCategory In dCategories.Keys
 
-        ' Set reference to object category class
-        Set cCategory = varCategory
+        ' Set reference to object category class and file list
+        Set cCategory = dCategories(varCategory)("Class")
         Set dFiles = dCategories(varCategory)("Files")
 
         ' Show category header
@@ -1088,8 +1136,12 @@ Public Sub LoadSingleObject(cComponentClass As IDbComponent, strName As String, 
     Options.LoadProjectOptions
     Log.Clear
     Log.OperationType = eotMerge
+    Log.SourcePath = Options.GetExportFolder
     Log.Active = True
     Perf.StartTiming
+
+    ' Check error handling mode after loading project options
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Display heading
     With Log
@@ -1113,8 +1165,8 @@ Public Sub LoadSingleObject(cComponentClass As IDbComponent, strName As String, 
     dCategory.Add "Class", cComponentClass
     dCategory.Add "Files", dSourceFiles
     dCategories.Add cComponentClass, dCategory
-    VCSIndex.Conflicts.Initialize dCategories
-    VCSIndex.CheckImportConflicts cComponentClass, dSourceFiles
+    VCSIndex.Conflicts.Initialize dCategories, eatImport
+    VCSIndex.CheckMergeConflicts cComponentClass, dSourceFiles
 
     ' Resolve any outstanding conflict, or allow user to cancel.
     With VCSIndex.Conflicts
@@ -1123,7 +1175,7 @@ Public Sub LoadSingleObject(cComponentClass As IDbComponent, strName As String, 
             .ShowDialog
             If .ApproveResolutions Then
                 Log.Add "Resolving source conflicts", False
-                .Resolve dCategories
+                .Resolve
             Else
                 ' Cancel export
                 Log.Spacer
@@ -1203,8 +1255,12 @@ Public Sub MergeAllSource()
     Options.LoadProjectOptions
     Log.Clear
     Log.OperationType = eotMerge
+    Log.SourcePath = Options.GetExportFolder
     Log.Active = True
     Perf.StartTiming
+
+    ' Check error handling mode after loading project options
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Display heading
     With Log

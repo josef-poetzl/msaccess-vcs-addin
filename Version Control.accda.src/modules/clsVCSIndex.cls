@@ -241,11 +241,11 @@ Public Function Update(cItem As IDbComponent, intAction As eIndexOperationType, 
         End Select
 
         ' Save timestamp of exported source file.
-        dteDateTime = GetLastModifiedDate(cItem.SourceFile)
+        dteDateTime = GetSourceModifiedDate(cItem, cItem.SourceFile)
         .Item("SourceModified") = ZNDate(dteDateTime)
 
         ' Save hash of file properties
-        .Item("FilePropertiesHash") = GetFilePropertyHash(cItem.SourceFile)
+        .Item("FilePropertiesHash") = GetSourceFilesPropertyHash(cItem)
 
     End With
 
@@ -444,75 +444,79 @@ End Property
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : GetFilePropertyHash
-' Author    : Adam Waller
-' Date      : 5/27/2021
-' Purpose   : Returns a hash of some file properties used to quickly scan for changes.
-'---------------------------------------------------------------------------------------
-'
-Public Function GetFilePropertyHash(strFile As String) As String
-
-    Dim oFile As Scripting.File
-
-    If FSO.FileExists(strFile) Then
-        Perf.OperationStart "Get File Property Hash"
-        Set oFile = FSO.GetFile(strFile)
-
-        With New clsConcat
-            .Add oFile.DateLastModified, oFile.Size
-            GetFilePropertyHash = GetStringHash(.GetStr)
-        End With
-        Perf.OperationEnd
-    End If
-
-End Function
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : GetModifiedSourceFiles
 ' Author    : Adam Waller
 ' Date      : 12/2/2020
-' Purpose   : Return a collection of source files that appear to be modified from
-'           : the previous export. If Git integration is enabled, this will be used
-'           : to improve the performance of the determination. Otherwise file modified
-'           : dates will be used to determine which files have changed.
-'           : NOTE: This will also include paths for files that no longer exist
-'           : in source files.
+' Purpose   : Return a collection of source files that appear to be different from
+'           : the index hash of the previous export. File modified dates will be used
+'           ' to determine which files have changed.
+'           : NOTE: This will also include source file paths for database objects that
+'           : no longer exist. (Orphaned database objects not represented in source.)
 '---------------------------------------------------------------------------------------
 '
 Public Function GetModifiedSourceFiles(cCategory As IDbComponent) As Dictionary
 
-    Dim colAllFiles As Dictionary
+    Dim dAllFiles As Dictionary
+    Dim dItems As Dictionary
+    Dim varItem As Variant
+    Dim cItem As IDbComponent
+    Dim strHash As String
     Dim varFile As Variant
     Dim strFile As String
     Dim strPath As String
     Dim blnModified As Boolean
+    Dim blnMissing As Boolean
 
     Set GetModifiedSourceFiles = New Dictionary
     With GetModifiedSourceFiles
-        ' Make sure we have a previous commit to reference.
-        If Options.UseGitIntegration And LastMergedCommit <> vbNullString Then
-            ' Return list of any modified files of this type as served by Git.
-            Set GetModifiedSourceFiles = Git.GetModifiedSourceFiles(cCategory)
-        Else
-            ' Loop through files and check modified dates.
-            ' Get a list of all the files for this component.
-            Set colAllFiles = cCategory.GetFileList
-            For Each varFile In colAllFiles
-                strFile = varFile
-                ' Reset flag
-                blnModified = True
-                If Me.Exists(cCategory, strFile) Then
-                    ' Build the path to find the item in the index.
-                    strPath = Join(Array("Components", cCategory.Category, FSO.GetFileName(strFile), "SourceModified"), PathSep)
-                    ' Compare modified date of file with modified date in index.
-                    ' File is considered not modified if the index date matches the file modification date.
-                    blnModified = Not (dNZ(m_dIndex, strPath) = GetLastModifiedDate(strFile))
+
+        ' Get a full list of source files and database objects
+        Set dAllFiles = cCategory.GetFileList
+        Set dItems = cCategory.GetAllFromDB
+
+        ' Loop through files and check modified dates.
+        ' Get a list of all the files for this component.
+        For Each varItem In dAllFiles
+            strFile = varItem
+
+            ' Reset flags
+            blnModified = True
+            blnMissing = False
+
+            ' See if the database object currently exists
+            If Not cCategory.SingleFile Then
+                blnMissing = Not dItems.Exists(strFile)
+            End If
+
+            ' Check the index for any existing entry, so we can compare the saved modified date.
+            If (Not blnMissing) And Me.Exists(cCategory, strFile) Then
+                ' Get hash of current source files.
+                strHash = GetSourceFilesPropertyHash(cCategory, strFile)
+                ' Build the path to find the item in the index.
+                strPath = Join(Array("Components", cCategory.Category, FSO.GetFileName(strFile), "FilePropertiesHash"), "\")
+                ' File is considered not modified if the index date matches the file modification date.
+                blnModified = Not (dNZ(m_dIndex, strPath) = strHash)
+            End If
+
+            ' Add modified files to collection
+            If blnModified Then .Add strFile, vbNullString
+        Next varItem
+
+        ' Now loop through database objects, and compare to source file list
+        ' to identify orphaned database objects no longer represented in source.
+        For Each varItem In dItems.Items
+            Set cItem = varItem
+            ' We are only concerned about non single-file items.
+            If Not cItem.SingleFile Then
+                ' See if the path exists in the list of source files
+                If Not dAllFiles.Exists(cItem.SourceFile) Then
+                    ' This object does not appear to exist in the source files.
+                    ' Add to list of files to process. (This will remove the
+                    ' existing database object during the merge.)
+                    .Add cItem.SourceFile, vbNullString
                 End If
-                ' Add modified files to collection
-                If blnModified Then .Add strFile, vbNullString
-            Next varFile
-        End If
+            End If
+        Next varItem
     End With
 
 End Function
@@ -556,7 +560,7 @@ Public Sub CheckExportConflicts(dDbComponents As Dictionary)
             Me.Conflicts.Add cItem, _
                 CStr(varKey), _
                 Me.Item(cItem).ExportDate, _
-                GetLastModifiedDate(cItem.SourceFile), _
+                GetSourceModifiedDate(cItem, cItem.SourceFile), _
                 ercOverwrite
         End If
         ' Increment the progress bar
@@ -602,7 +606,7 @@ Private Function IsExportConflict(cItem As IDbComponent) As Boolean
     If FSO.FileExists(strFile) Then
 
         ' Get a hash of the file properties
-        strHash = Me.GetFilePropertyHash(strFile)
+        strHash = GetSourceFilesPropertyHash(cItem)
 
         ' Check to see if this object is in the index
         ' (Has been exported/imported before.)
@@ -617,7 +621,7 @@ Private Function IsExportConflict(cItem As IDbComponent) As Boolean
                 ' Doesn't match. This could be a conflict, depending on the dates.
                 ' If the modified date of the source file is NEWER than the
                 ' last export date...
-                If Me.Item(cItem).ExportDate < GetLastModifiedDate(strFile) Then
+                If Me.Item(cItem).ExportDate < GetSourceModifiedDate(cItem) Then
                     ' ...and the content is different, then we have a conflict.
                     blnCompareTemp = True
                 End If
@@ -634,7 +638,7 @@ Private Function IsExportConflict(cItem As IDbComponent) As Boolean
         strTempFile = Replace(strFile, Options.GetExportFolder, GetTempExportFolder)
         Log.Add "  Exporting " & cItem.Name, False
         cItem.Export strTempFile
-        blnConflict = Not FileContentsMatch(strFile, strTempFile)
+        blnConflict = Not SourceMatches(cItem, strFile, strTempFile)
     End If
 
     ' Return result
@@ -650,30 +654,41 @@ End Function
 ' Purpose   : Check for potential conflicts when merging into this database.
 '---------------------------------------------------------------------------------------
 '
-Public Sub CheckImportConflicts(cComponent As IDbComponent, dFiles As Dictionary)
+Public Sub CheckMergeConflicts(cComponent As IDbComponent, dFiles As Dictionary)
 
     Dim varKey As Variant
     Dim cItem As IDbComponent
     Dim sngStart As Single
     Dim strFile As String
+    Dim intConflict As eResolveConflict
 
     ' Capture start time so we can display some progress if this
     ' scan takes a while.
     sngStart = Timer
+    Perf.OperationStart "Check Merge Conflicts"
 
     ' Loop through the list of source files
     ' (Each key is a full path to a source file)
     For Each varKey In dFiles.Keys
         strFile = varKey
-        If IsImportConflict(cComponent, strFile) Then
+        intConflict = IsMergeConflict(cComponent, strFile)
+        If intConflict Then
             ' Get database item
-            Set cItem = cComponent.GetAllFromDB.Item(strFile)
+            If cComponent.GetAllFromDB.Exists(strFile) Then
+                ' Get individual item (form, report)
+                Set cItem = cComponent.GetAllFromDB.Item(strFile)
+            Else
+                ' Get parent class for single file items
+                Set cItem = cComponent
+            End If
             ' Add to list of conflicts
             Me.Conflicts.Add cItem, _
                 strFile, _
                 cItem.DateModified, _
-                GetLastModifiedDate(strFile), _
-                ercOverwrite
+                GetSourceModifiedDate(cComponent, strFile), _
+                intConflict, _
+                strFile, _
+                ercSkip
         End If
         ' Increment the progress bar
         Log.Increment
@@ -685,76 +700,132 @@ Public Sub CheckImportConflicts(cComponent As IDbComponent, dFiles As Dictionary
             sngStart = 0
         End If
     Next varKey
+    Perf.OperationEnd
 
 End Sub
 
 
-' Returns true if we are about to overwrite changes in the database that don't match
-' the current source file
-Private Function IsImportConflict(cItemClass As IDbComponent, strSourceFile As String) As Boolean
+'---------------------------------------------------------------------------------------
+' Procedure : IsMergeConflict
+' Author    : Adam Waller
+' Date      : 12/5/2023
+' Purpose   : Returns true if we are about to overwrite changes in the database that
+'           : don't match the current source file.
+'---------------------------------------------------------------------------------------
+'
+Private Function IsMergeConflict(cItemClass As IDbComponent, strSourceFile As String) As eResolveConflict
 
     Dim blnConflict As Boolean
     Dim cItem As IDbComponent
-    Dim strName As String
     Dim strTempFile As String
 
     ' Check for special cases based on component type
     If cItemClass.ComponentType = edbTableData Then
         ' Table data is not considered an import conflict, and should
         ' always be overwritten.
-        IsImportConflict = False
+        IsMergeConflict = ercNone
         Exit Function
     End If
 
-    ' See if the database object even exists before we worry about conflicts.
-    strName = GetObjectNameFromFileName(strSourceFile)
-    If cItemClass.GetAllFromDB.Exists(strSourceFile) Then
+    ' Single file objects are treated a little differently
+    If cItemClass.SingleFile Then
+        If cItemClass.IsModified Then IsMergeConflict = ercOverwrite
+    Else
+        ' See if the database object even exists before we worry about conflicts.
+        If cItemClass.GetAllFromDB.Exists(strSourceFile) Then
 
-        ' Get class instance for database item
-        Set cItem = cItemClass.GetAllFromDB.Item(strSourceFile)
+            ' Get class instance for database item
+            Set cItem = cItemClass.GetAllFromDB.Item(strSourceFile)
 
-        ' See if this object appears to be modified since the last import/export
-        If cItem.IsModified Then
-            ' Just because the modification date is different doesn't always
-            ' mean the object definition has actually changed. By comparing
-            ' a fresh export of the object, we can determine for sure if the
-            ' source files match.
-            strTempFile = Replace(strSourceFile, Options.GetExportFolder, GetTempExportFolder)
-            Log.Add "  Exporting " & cItem.Name, False
-            cItem.Export strTempFile
-            blnConflict = Not FileContentsMatch(strSourceFile, strTempFile)
+            ' See if this object appears to be modified since the last import/export
+            If cItem.IsModified Then
+                If Not FSO.FileExists(strSourceFile) Then
+                    ' Modified object, and source file does not exist. Could be a case
+                    ' where we are removing an orphaned database object.
+                    IsMergeConflict = ercDelete
+                Else
+                    ' Just because the modification date is different doesn't always
+                    ' mean the object definition has actually changed. By comparing
+                    ' a fresh export of the object, we can determine for sure if the
+                    ' source files match.
+                    strTempFile = Replace(strSourceFile, Options.GetExportFolder, GetTempExportFolder)
+                    Log.Add "  Exporting " & cItem.Name, False
+                    cItem.Export strTempFile
+                    ' Because we are using a newly exported temp file, the file properties
+                    ' hash won't match, since the file dates are going to be different.
+                    If Not SourceMatches(cItemClass, strSourceFile, strTempFile) Then
+                        IsMergeConflict = ercOverwrite
+                    End If
+                End If
+            Else
+                ' Based on the index, it does not appear that this item
+                ' has changed since the last export or import operation.
+                ' We should be good to overwrite (or skip importing) this
+                ' object in a merge operation.
+            End If
         Else
-            ' Based on the index, it does not appear that this item
-            ' has changed since the last export or import operation.
-            ' We should be good to overwrite (or skip importing) this
-            ' object in a merge operation.
+            ' Database object does not exist. No conflict to merge this file.
         End If
-    End If
 
-    ' Return result
-    IsImportConflict = blnConflict
+    End If
 
 End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : FileContentsMatch
+' Procedure : SourceMatches
 ' Author    : Adam Waller
-' Date      : 9/15/2021
-' Purpose   : Returns true if the contents of the files match. Starts with the least
-'           : expensive comparison of size, then goes on to compare a hash of the
-'           : full contents.
+' Date      : 12/7/2023
+' Purpose   : Returns true if the two represented source components match at a source
+'           : file level, not counting file modification dates.
 '---------------------------------------------------------------------------------------
 '
-Private Function FileContentsMatch(strFile1 As String, strFile2 As String) As Boolean
-    If FSO.FileExists(strFile1) And FSO.FileExists(strFile2) Then
-        If FSO.GetFile(strFile1).Size = FSO.GetFile(strFile2).Size Then
-            If GetFileHash(strFile1) = GetFileHash(strFile2) Then
-                ' The contents of the two files is identical
-                FileContentsMatch = True
+Private Function SourceMatches(cType As IDbComponent, strFile1 As String, strFile2 As String) As Boolean
+
+    Dim dPaths(1 To 2) As Dictionary
+    Dim strFiles(1 To 2) As String
+    Dim intCnt As Integer
+    Dim varExt As Variant
+    Dim strPath As String
+    Dim varKey As Variant
+
+    strFiles(1) = strFile1
+    strFiles(2) = strFile2
+
+    ' Start by retrieving the paths of existing files for this component.
+    For intCnt = 1 To 2
+        Set dPaths(intCnt) = New Dictionary
+        For Each varExt In cType.FileExtensions
+            strPath = SwapExtension(strFiles(intCnt), CStr(varExt))
+            If FSO.FileExists(strPath) Then
+                ' Add path to existing source file
+                dPaths(intCnt).Add FSO.GetFileName(strPath), strPath
             End If
-        End If
-    End If
+        Next varExt
+    Next intCnt
+
+    ' Simple comparison of dictionaries
+    If dPaths(1).Count <> dPaths(2).Count Then Exit Function
+    ' Check for matching keys
+    For Each varKey In dPaths(1).Keys
+        If Not dPaths(2).Exists(varKey) Then Exit Function
+    Next varKey
+
+    ' If count and keys match, check file sizes
+    For Each varKey In dPaths(1).Keys
+        If FSO.GetFile(dPaths(1).Item(varKey)).Size _
+        <> FSO.GetFile(dPaths(2).Item(varKey)).Size Then Exit Function
+    Next varKey
+
+    ' Compare hash of content
+    For Each varKey In dPaths(1).Keys
+        If GetFileHash(CStr(dPaths(1).Item(varKey))) _
+        <> GetFileHash(CStr(dPaths(2).Item(varKey))) Then Exit Function
+    Next varKey
+
+    ' If we have reached this point without exiting, then the source must match.
+    SourceMatches = True
+
 End Function
 
 

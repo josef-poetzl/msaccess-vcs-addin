@@ -24,6 +24,7 @@ Private m_FileList As Dictionary
 Private Type udtVbaFileContent
     strContent As String
     blnIsClass As Boolean
+    blnPublicCreatable As Boolean
 End Type
 
 ' This requires us to use all the public methods and properties of the implemented class
@@ -70,6 +71,8 @@ End Sub
 '
 Private Sub IDbComponent_Import(strFile As String)
 
+    Const cintPublicCreateable As Integer = 5   ' Instancing
+
     Dim strName As String
     Dim strTempFile As String
     Dim udtFile As udtVbaFileContent
@@ -93,6 +96,12 @@ Private Sub IDbComponent_Import(strFile As String)
     ' Make sure the correct project is active before saving.
     Set VBE.ActiveVBProject = CurrentVBProject
     DoCmd.Save acModule, strName
+
+    ' Update instancing for public creatable classes
+    If udtFile.blnPublicCreatable Then
+        CurrentVBProject.VBComponents(strName).Properties("Instancing") = cintPublicCreateable
+        DoCmd.Save acModule, strName
+    End If
 
     ' Set reference to object
     LogUnhandledErrors
@@ -124,6 +133,8 @@ Private Function ParseSourceFile(strFile As String, strName As String) As udtVba
     Dim cData As clsConcat
     Dim blnIsClass As Boolean
     Dim blnHasHeader As Boolean
+    Dim blnCreatable As Boolean
+    Dim blnPublic As Boolean
 
     Perf.OperationStart "Parse VBA Module"
 
@@ -136,15 +147,16 @@ Private Function ParseSourceFile(strFile As String, strName As String) As udtVba
             ' Class with VBE header
             blnIsClass = True
             blnHasHeader = True
-            Exit For
         ElseIf StartsWith(strLines(lngLine), "Attribute VB_Name = """) Then
             ' Module with VBE header
             blnHasHeader = True
-            Exit For
         ElseIf StartsWith(strLines(lngLine), "Attribute VB_GlobalNameSpace = ") Then
             ' Class with no header
             blnIsClass = True
-            Exit For
+        ElseIf strLines(lngLine) = "Attribute VB_Creatable = True" Then
+            blnCreatable = True
+        ElseIf strLines(lngLine) = "Attribute VB_Exposed = True" Then
+            blnPublic = True
         End If
         ' Exit after 9 lines
         If lngLine > 8 Then Exit For
@@ -179,6 +191,7 @@ Private Function ParseSourceFile(strFile As String, strName As String) As udtVba
     With ParseSourceFile
         .blnIsClass = blnIsClass
         .strContent = cData.GetStr
+        .blnPublicCreatable = (blnCreatable And blnPublic)
     End With
 
     Perf.OperationEnd
@@ -301,30 +314,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedSourceFiles
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Remove any source files for objects not in the current database.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_ClearOrphanedSourceFiles()
-    ClearOrphanedSourceFiles Me, "bas", "cls"
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedDatabaseObjects
-' Author    : Adam Waller
-' Date      : 11/3/2021
-' Purpose   : Remove database objects that are not represented by existing source files.
-'---------------------------------------------------------------------------------------
-'
-Public Sub IDbComponent_ClearOrphanedDatabaseObjects()
-    RemoveOrphanedDatabaseObjects Me
-End Sub
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : IsModified
 ' Author    : Adam Waller
 ' Date      : 11/21/2020
@@ -359,21 +348,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : SourceModified
-' Author    : Adam Waller
-' Date      : 4/27/2020
-' Purpose   : The date/time the source object was modified. In most cases, this would
-'           : be the date/time of the source file, but it some cases like SQL objects
-'           : the date can be determined through other means, so this function
-'           : allows either approach to be taken.
-'---------------------------------------------------------------------------------------
-'
-Private Function IDbComponent_SourceModified() As Date
-    If FSO.FileExists(IDbComponent_SourceFile) Then IDbComponent_SourceModified = GetLastModifiedDate(IDbComponent_SourceFile)
-End Function
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : Category
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -393,6 +367,21 @@ End Property
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
     IDbComponent_BaseFolder = Options.GetExportFolder & "modules" & PathSep
+End Property
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : FileExtensions
+' Author    : Adam Waller
+' Date      : 12/1/2023
+' Purpose   : A collection of the file extensions used in source files for this
+'           : component type.
+'---------------------------------------------------------------------------------------
+'
+Private Property Get IDbComponent_FileExtensions() As Collection
+    Set IDbComponent_FileExtensions = New Collection
+    IDbComponent_FileExtensions.Add "bas"
+    IDbComponent_FileExtensions.Add "cls"
 End Property
 
 
@@ -476,18 +465,6 @@ End Property
 Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
     IDbComponent_ComponentType = edbModule
 End Property
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : Upgrade
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Run any version specific upgrade processes before importing.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_Upgrade()
-    ' No upgrade needed for modules.
-End Sub
 
 
 '---------------------------------------------------------------------------------------

@@ -51,6 +51,7 @@ End Sub
 '
 Private Sub IDbComponent_Export(Optional strAlternatePath As String)
     Dim strContent As String
+    ClearFilesByExtension IDbComponent_BaseFolder, "txt"    ' Legacy extension
     strContent = GetSource
     WriteFile strContent, Nz2(strAlternatePath, IDbComponent_SourceFile)
     VCSIndex.Update Me, IIf(strAlternatePath = vbNullString, eatExport, eatAltExport), GetStringHash(strContent, True)
@@ -299,30 +300,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedSourceFiles
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Remove any source files for objects not in the current database.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_ClearOrphanedSourceFiles()
-    ClearFilesByExtension IDbComponent_BaseFolder, "txt"
-    ClearOrphanedSourceFiles Me, "json"
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedDatabaseObjects
-' Author    : Adam Waller
-' Date      : 11/3/2021
-' Purpose   : Remove database objects that are not represented by existing source files.
-'---------------------------------------------------------------------------------------
-'
-Public Sub IDbComponent_ClearOrphanedDatabaseObjects()
-End Sub
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : IsModified
 ' Author    : Adam Waller
 ' Date      : 11/21/2020
@@ -350,21 +327,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : SourceModified
-' Author    : Adam Waller
-' Date      : 4/27/2020
-' Purpose   : The date/time the source object was modified. In most cases, this would
-'           : be the date/time of the source file, but it some cases like SQL objects
-'           : the date can be determined through other means, so this function
-'           : allows either approach to be taken.
-'---------------------------------------------------------------------------------------
-'
-Private Function IDbComponent_SourceModified() As Date
-    If FSO.FileExists(IDbComponent_SourceFile) Then IDbComponent_SourceModified = GetLastModifiedDate(IDbComponent_SourceFile)
-End Function
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : Category
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -384,6 +346,20 @@ End Property
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
     IDbComponent_BaseFolder = Options.GetExportFolder & "relations" & PathSep
+End Property
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : FileExtensions
+' Author    : Adam Waller
+' Date      : 12/1/2023
+' Purpose   : A collection of the file extensions used in source files for this
+'           : component type.
+'---------------------------------------------------------------------------------------
+'
+Private Property Get IDbComponent_FileExtensions() As Collection
+    Set IDbComponent_FileExtensions = New Collection
+    IDbComponent_FileExtensions.Add "json"
 End Property
 
 
@@ -451,18 +427,6 @@ End Property
 Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
     IDbComponent_ComponentType = edbRelation
 End Property
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : Upgrade
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Run any version specific upgrade processes before importing.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_Upgrade()
-    ' No upgrade needed.
-End Sub
 
 
 '---------------------------------------------------------------------------------------

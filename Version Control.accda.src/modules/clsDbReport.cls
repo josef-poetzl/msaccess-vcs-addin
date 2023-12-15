@@ -37,6 +37,8 @@ Implements IDbComponent
 '
 Private Sub IDbComponent_Export(Optional strAlternatePath As String)
     Dim strHash As String
+    ClearFilesByExtension IDbComponent_BaseFolder, "pv" ' Remove legacy files
+    If Not Options.SavePrintVars Then ClearFilesByExtension IDbComponent_BaseFolder, "json"
     strHash = SaveComponentAsText(acReport, m_Report.Name, Nz2(strAlternatePath, IDbComponent_SourceFile), Me)
     VCSIndex.Update Me, IIf(strAlternatePath = vbNullString, eatExport, eatAltExport), _
         strHash, GetCodeModuleHash(IDbComponent_ComponentType, m_Report.Name)
@@ -142,32 +144,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedSourceFiles
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Remove any source files for objects not in the current database.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_ClearOrphanedSourceFiles()
-    ClearFilesByExtension IDbComponent_BaseFolder, "pv" ' Remove legacy files
-    If Not Options.SavePrintVars Then ClearFilesByExtension IDbComponent_BaseFolder, "json"
-    ClearOrphanedSourceFiles Me, "bas", "json", "cls"
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedDatabaseObjects
-' Author    : Adam Waller
-' Date      : 11/3/2021
-' Purpose   : Remove database objects that are not represented by existing source files.
-'---------------------------------------------------------------------------------------
-'
-Public Sub IDbComponent_ClearOrphanedDatabaseObjects()
-    RemoveOrphanedDatabaseObjects Me
-End Sub
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : IsModified
 ' Author    : Adam Waller
 ' Date      : 11/21/2020
@@ -207,21 +183,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : SourceModified
-' Author    : Adam Waller
-' Date      : 4/27/2020
-' Purpose   : The date/time the source object was modified. In most cases, this would
-'           : be the date/time of the source file, but it some cases like SQL objects
-'           : the date can be determined through other means, so this function
-'           : allows either approach to be taken.
-'---------------------------------------------------------------------------------------
-'
-Private Function IDbComponent_SourceModified() As Date
-    If FSO.FileExists(IDbComponent_SourceFile) Then IDbComponent_SourceModified = GetLastModifiedDate(IDbComponent_SourceFile)
-End Function
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : Category
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -241,6 +202,21 @@ End Property
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
     IDbComponent_BaseFolder = Options.GetExportFolder & "reports" & PathSep
+End Property
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : FileExtensions
+' Author    : Adam Waller
+' Date      : 12/1/2023
+' Purpose   : A collection of the file extensions used in source files for this
+'           : component type.
+'---------------------------------------------------------------------------------------
+'
+Private Property Get IDbComponent_FileExtensions() As Collection
+    Set IDbComponent_FileExtensions = New Collection
+    IDbComponent_FileExtensions.Add "bas"
+    IDbComponent_FileExtensions.Add "cls"
 End Property
 
 
@@ -308,18 +284,6 @@ End Property
 Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
     IDbComponent_ComponentType = edbReport
 End Property
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : Upgrade
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Run any version specific upgrade processes before importing.
-'---------------------------------------------------------------------------------------
-'
-Private Sub IDbComponent_Upgrade()
-    ' No upgrade needed.
-End Sub
 
 
 '---------------------------------------------------------------------------------------

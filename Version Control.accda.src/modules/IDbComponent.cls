@@ -31,28 +31,6 @@ Public DbObject As Object
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedSourceFiles
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Remove any source files for objects not in the current database.
-'---------------------------------------------------------------------------------------
-'
-Public Sub ClearOrphanedSourceFiles()
-End Sub
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : ClearOrphanedDatabaseObjects
-' Author    : Adam Waller
-' Date      : 11/3/2021
-' Purpose   : Remove database objects that are not represented by existing source files.
-'---------------------------------------------------------------------------------------
-'
-Public Sub ClearOrphanedDatabaseObjects()
-End Sub
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : Export
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -138,20 +116,6 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : SourceModified
-' Author    : Adam Waller
-' Date      : 4/27/2020
-' Purpose   : The date/time the source object was modified. In most cases, this would
-'           : be the date/time of the source file, but it some cases like SQL objects
-'           : the date can be determined through other means, so this function
-'           : allows either approach to be taken.
-'---------------------------------------------------------------------------------------
-'
-Public Function SourceModified() As Date
-End Function
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : BaseFolder
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -169,6 +133,18 @@ End Property
 '---------------------------------------------------------------------------------------
 '
 Public Property Get SourceFile() As String
+End Property
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : FileExtensions
+' Author    : Adam Waller
+' Date      : 12/1/2023
+' Purpose   : A collection of the file extensions used in source files for this
+'           : component type.
+'---------------------------------------------------------------------------------------
+'
+Public Property Get FileExtensions() As Collection
 End Property
 
 
@@ -251,14 +227,3 @@ End Property
 '
 Public Property Get QuickCount() As Long
 End Property
-
-
-'---------------------------------------------------------------------------------------
-' Procedure : Upgrade
-' Author    : Adam Waller
-' Date      : 4/23/2020
-' Purpose   : Run any version specific upgrade processes before importing.
-'---------------------------------------------------------------------------------------
-'
-Public Sub Upgrade()
-End Sub
