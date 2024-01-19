@@ -175,7 +175,7 @@ Private Sub IDbComponent_Import(strFile As String)
     ' Update index
     strName = GetObjectNameFromFileName(strFile)
     Set m_Table = CurrentData.AllTables(strName)
-    VCSIndex.Update Me, eatImport
+    VCSIndex.Update Me, eatImport, GetFileHash(strFile)
 
 End Sub
 
@@ -583,6 +583,7 @@ Private Function ImportLinkedTable(strFile As String) As Boolean
             If tdf.Connect <> strConnect Then
                 tdf.Connect = strConnect
                 tdf.RefreshLink
+                CatchAny eelError, "Error refreshing link for " & tdf.Name, ModuleName(Me) & ".ImportLinkedTable"
             End If
             dbs.TableDefs.Refresh
 

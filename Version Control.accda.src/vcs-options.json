@@ -1,6 +1,6 @@
 ﻿{
   "Info": {
-    "AddinVersion": "4.0.30",
+    "AddinVersion": "4.0.31",
     "AccessVersion": "14.0 32-bit"
   },
   "Options": {
@@ -36,7 +36,7 @@
     "FormatSQL": true,
     "ForceImportOriginalQuerySQL": false,
     "SaveTableSQL": true,
-    "SplitLayoutFromVBA": false,
+    "SplitLayoutFromVBA": true,
     "StripPublishOption": true,
     "SanitizeColors": 3,
     "SanitizeLevel": 2,
@@ -54,7 +54,7 @@
     "RunBeforeExport": "",
     "RunAfterExport": "",
     "RunBeforeBuild": "",
-    "RunAfterBuild": "",
+    "RunAfterBuild": "AfterBuild",
     "RunBeforeMerge": "",
     "RunAfterMerge": "",
     "ShowVCSLegacy": true,

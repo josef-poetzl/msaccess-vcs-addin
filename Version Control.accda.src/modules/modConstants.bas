@@ -78,6 +78,7 @@ Public Enum eDatabaseComponentType
     edbVbeReference
     edbProject
     edbConnection
+    edbCommandBar
     ' Future implementation?
     'edbLinkedTable
     'edbFileProperty

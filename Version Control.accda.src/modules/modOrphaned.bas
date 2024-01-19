@@ -154,7 +154,4 @@ Private Sub CompareToIndex(cType As IDbComponent, strFilePath As String, dExtens
         End If
     End If
 
-    ' Handle any uncaught errors
-    CatchAny eelError, "Error removing orphaned objects.", ModuleName & ".RemoveOrphanedDatabaseObjects"
-
 End Sub
