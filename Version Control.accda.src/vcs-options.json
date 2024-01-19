@@ -54,7 +54,7 @@
     "RunBeforeExport": "",
     "RunAfterExport": "",
     "RunBeforeBuild": "",
-    "RunAfterBuild": "AfterBuild",
+    "RunAfterBuild": "",
     "RunBeforeMerge": "",
     "RunAfterMerge": "",
     "ShowVCSLegacy": true,
