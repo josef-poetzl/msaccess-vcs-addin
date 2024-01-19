@@ -453,21 +453,31 @@ Sub Main()
     If Not objApp Is Nothing Then
 
         ' Check the project name, just in case we are editing the VCS project
-        If objApp.CurrentProject.Name = "Version Control.accda" Then
-            ' Rename project so we can run the callback directly on the add-in
-            ' even if the local project does not currently compile. (Such as
-            ' after removing a class module during a merge operation.)
-            Set objProj = GetAddInVBProject(objApp)
-            objProj.Name = "MSAccessVCS-Lib"
-            objApp.Run "MSAccessVCS-Lib.WorkerCallback", strKey, varReturn
-            objProj.Name = "MSAccessVCS"
-        Else
-            ' Return key to caller to signal job completion
-            objApp.Run "MSAccessVCS.WorkerCallback", strKey, varReturn
-        End If
+        ' not required if call with add-in-name!
+        objApp.Run AddInCallPath & ".WorkerCallback", strKey, varReturn
+'        If objApp.CurrentProject.Name = ADDIN_FILE_NAME_EXT Then
+'            ' Rename project so we can run the callback directly on the add-in
+'            ' even if the local project does not currently compile. (Such as
+'            ' after removing a class module during a merge operation.)
+'            '
+'            ' don't do this!
+'            Err.Raise vbObjectError, "clsWorker.Main", "Don't rename VBProject"
+'
+'            Set objProj = GetAddInVBProject(objApp)
+'            objProj.Name = "MSAccessVCS-Lib"
+'            objApp.Run "MSAccessVCS-Lib.WorkerCallback", strKey, varReturn
+'            objProj.Name = "MSAccessVCS"
+'        Else
+'            ' Return key to caller to signal job completion
+'            objApp.Run "MSAccessVCS.WorkerCallback", strKey, varReturn
+'        End If
     End If
 
 End Sub
+
+Private Property Get AddInCallPath() As String
+    AddInCallPath = GetInstallSettings.strInstallFolder & "\" & ADDIN_FILE_NAME
+End Property
 
 
 '---------------------------------------------------------------------------------------
@@ -523,7 +533,7 @@ Function GetAddInVBProject(objApp)
 
     ' Search for project with matching filename.
     For Each objProj In objApp.VBE.VBProjects
-        If StrComp(objFSO.GetFileName(objProj.FileName), "Version Control.accda", vbTextCompare) = 0 Then
+        If StrComp(objFSO.GetFileName(objProj.FileName), ADDIN_FILE_NAME_EXT, vbTextCompare) = 0 Then
             ' Check for different file path
             If StrComp(objProj.FileName, strUncPath, vbTextCompare) <> 0 Then
                 Set GetAddInVBProject = objProj

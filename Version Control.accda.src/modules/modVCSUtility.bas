@@ -1038,18 +1038,6 @@ End Sub
 
 
 '---------------------------------------------------------------------------------------
-' Procedure : AfterBuild
-' Author    : Adam Waller
-' Date      : 12/18/2023
-' Purpose   : Run this code after building the add-in from source.
-'---------------------------------------------------------------------------------------
-'
-Public Sub AfterBuild()
-    modResource.VerifyResources
-End Sub
-
-
-'---------------------------------------------------------------------------------------
 ' Procedure : CheckGitFiles
 ' Author    : Adam Waller
 ' Date      : 5/23/2022

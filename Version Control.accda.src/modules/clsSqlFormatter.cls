@@ -742,31 +742,9 @@ Private Function GetQuotedString(Optional lngStartOffset As Long = 0) As String
     With New clsConcat
         ' Build out RegEx expression
         .Add "^("
-
-            ' Accomodate dialect-specific variants
-            Select Case m_intDialect
-
-                Case esdMySQL
-                    ' Backtick quoted string using `` to escape
-                    .Add "((`[^`]*($|`))+)|"
-
-                    ' Double quoted string using "" or \" to escape
-                    .Add "((""[^""\\\\]*(?:\\\\.[^""\\\\]*)*(""|$))+)|"
-
-                    ' Single quoted string using '' or \' to escape
-                    .Add "((\'[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*(\'|$))+)"
-
-                Case Else
-                    ' Square bracket quoted string (SQL Server) using ]] to escape
-                    .Add "((\[[^\]]*($|\]))(\][^\]]*($|\]))*)|"
-
-                    ' Double quoted string using "" to escape
-                    .Add "((""[^""]*(""|$))+)|"
-
-                    ' Single quoted string using '' to escape
-                    .Add "((\'[^\']*(\'|$))+)"
-
-            End Select
+            .Add Join(GetQuotedStringPatterns(), "|")
+            ' Suggestion:
+            '.AddArray GetQuotedStringPatterns(), "|"
         .Add ")"
         strExp = .GetStr
     End With
@@ -783,6 +761,45 @@ Private Function GetQuotedString(Optional lngStartOffset As Long = 0) As String
 
 End Function
 
+Private Function GetQuotedStringPatterns() As String()
+
+    Dim Pattern() As String
+
+    Select Case m_intDialect
+        Case esdMySQL
+            ReDim Pattern(3)
+        Case Else
+            ReDim Pattern(2)
+    End Select
+
+    ' square bracket quoted string (SQL Server, JET/ACE) using ]] to escape  .. maybe not for MySQL?
+    Pattern(0) = "((\[[^\]]*($|\]))(\][^\]]*($|\]))*)"
+
+    Select Case m_intDialect
+        Case esdMySQL
+
+            ' double quoted string using "" or \" to escape
+            Pattern(1) = "((""[^""\\\\]*(?:\\\\.[^""\\\\]*)*(""|$))+)"
+
+            ' single quoted string using '' or \' to escape
+            Pattern(2) = "((\'[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*(\'|$))+)"      ' sx',
+
+            ' backtick quoted string using `` to escape ' .. only for MySQL?
+            Pattern(3) = "((`[^`]*($|`))+)"
+
+        Case Else
+
+            '  double quoted string using "" to escape
+            Pattern(1) = "((""[^""]*(""|$))+)"
+
+            ' single quoted string using '' to escape
+            Pattern(2) = "((\'[^\']*(\'|$))+)"      ' sx',
+
+    End Select
+
+    GetQuotedStringPatterns = Pattern
+
+End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : RemainingChars
