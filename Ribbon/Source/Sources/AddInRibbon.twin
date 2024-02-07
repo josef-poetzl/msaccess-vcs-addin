@@ -24,7 +24,7 @@ Class AddInRibbon
 	*/
  
 	' Cached copy of the ribbon XML as loaded from the Ribbon.xml file.
-	Private strRibbonXML As string
+	Private strRibbonXML As String
 	
 	' A reference to the Microsoft Access application
 	Private applicationObject As Object
