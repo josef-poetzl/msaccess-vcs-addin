@@ -107,7 +107,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         Log.Add "Running " & Options.RunBeforeExport & "..."
         Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport
+        ApplicationRunProcedure Options.RunBeforeExport
         Perf.OperationEnd
     End If
 
@@ -236,7 +236,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If Options.RunAfterExport <> vbNullString Then
         Log.Add "Running " & Options.RunAfterExport & "..."
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport
+        ApplicationRunProcedure Options.RunAfterExport
         Perf.OperationEnd
         CatchAny eelError, "Error running " & Options.RunAfterExport, ModuleName & ".ExportSource", True, True
     End If
@@ -279,6 +279,43 @@ CleanUp:
 
 End Sub
 
+Private Sub ApplicationRunProcedure(ByVal ProcedureName As String)
+
+    If InStr(1, ProcedureName, ".") Then
+        If TryRunAddInProcedure(ProcedureName) Then
+            Exit Sub
+        End If
+    End If
+
+    RunSubInCurrentProject ProcedureName
+
+End Sub
+
+Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
+
+    Dim AddInFile As String
+
+    If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    ProcedureName = Replace(ProcedureName, "%appdata%", Environ("appdata"))
+
+    AddInFile = Left(ProcedureName, InStrRev(ProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(AddInFile)) = 0 Then
+        Exit Function ' or raise error?
+    End If
+
+    TryRunAddInProcedure = True
+
+    Application.Run ProcedureName
+
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : ExportSingleObject
