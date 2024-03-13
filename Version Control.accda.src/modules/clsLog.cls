@@ -183,7 +183,7 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
             strPrefix = "ERROR: "
             MsgBoxPrefix = "Error"
             MsgBoxStyle = vbExclamation
-        Case eErrorLevel.eelWarning
+        Case eErrorLevel.eelWarning, eErrorLevel.eelAlert
             strPrefix = "WARNING: "
             MsgBoxPrefix = "Warning"
             MsgBoxStyle = vbInformation
