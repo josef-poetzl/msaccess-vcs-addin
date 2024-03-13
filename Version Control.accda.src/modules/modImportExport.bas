@@ -294,8 +294,9 @@ End Sub
 Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
 
     Dim AddInFile As String
+    Dim ExternalReturnErrorMessage As String
 
-    If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 
     ProcedureName = Replace(ProcedureName, "%appdata%", Environ("appdata"))
 
@@ -306,7 +307,18 @@ Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
 
     TryRunAddInProcedure = True
 
-    Application.Run ProcedureName
+' What could a generally usable interface look like?
+'
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Boolean
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Long ' ... = eErrorLevel .. -1 for all ok?
+' * Public Function ProcedureNameInAddIn() as String ... Returns:
+'                                      "Error: ErrorMessage"   => Error log
+'                                   or "Warning: Warning Message" => displayed Warning log
+'                                   or vbNullstring ... show nothing, all success
+'
+    If Not Application.Run(ProcedureName, ExternalReturnErrorMessage) Then
+        Log.Error eelLoggedWarning, ExternalReturnErrorMessage, Mid(ProcedureName, InStrRev(ProcedureName, "\") + 1)
+    End If
 
 ExitHere:
     Exit Function

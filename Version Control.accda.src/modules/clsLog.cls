@@ -176,6 +176,7 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
         Case eelWarning:    strPrefix = "WARNING: "
         Case eelError:      strPrefix = "ERROR: "
         Case eelCritical:   strPrefix = "CRITICAL: "
+        Case eelLoggedWarning: strPrefix = "WARNING: "
     End Select
 
     ' Build the error message string.

@@ -99,6 +99,7 @@ Public Enum eErrorLevel
     eelWarning      ' Logged to file
     eelError        ' Displayed and logged
     eelCritical     ' Cancel operation
+    eelLoggedWarning ' Displayed and logged (not an error)
 End Enum
 
 ' Compare mode for cloning dictionary object
