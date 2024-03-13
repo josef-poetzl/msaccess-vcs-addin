@@ -271,6 +271,12 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Sub cmdExport_Click()
+    RunExport
+End Sub
+
+Public Function RunExport() As eErrorLevel
+
+    Dim ExportErrorLevel As eErrorLevel
 
     cmdClose.SetFocus
     HideActionButtons
@@ -289,9 +295,9 @@ Public Sub cmdExport_Click()
     ' See if we are exporting a single object, or everything.
     If Me.objSingleObject Is Nothing Then
         ' Export the source code using the specified filter.
-        modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me
+        ExportErrorLevel = modImportExport.ExportSource(chkFullExport, Me.intContainerFilter, Me)
     Else
-        modImportExport.ExportSingleObject Me.objSingleObject, Me
+        ExportErrorLevel = modImportExport.ExportSingleObject(Me.objSingleObject, Me)
     End If
 
     ' Turn on scroll bars in case the user wants to scroll back through the log.
@@ -307,7 +313,9 @@ Public Sub cmdExport_Click()
         DoEvents
     End If
 
-End Sub
+    RunExport = ExportErrorLevel
+
+End Function
 
 
 '---------------------------------------------------------------------------------------

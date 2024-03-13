@@ -19,7 +19,7 @@ Private Const ModuleName As String = "modImportExport"
 ' Purpose   : Export source files from the currently open database.
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain)
+Public Function ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain) As eErrorLevel
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -36,20 +36,20 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Can't export without an open database
-    If Not DatabaseFileOpen Then Exit Sub
+    If Not DatabaseFileOpen Then Exit Function
 
     ' If we are running this from the current database, we need to run it a different
     ' way to prevent file corruption issues. (This really shouldn't happen after v4.02)
     If StrComp(CurrentProject.FullName, CodeProject.FullName, vbTextCompare) = 0 Then
         MsgBox2 "Unabled to Export Running Database", "Please launch the export using the add-in menu or ribbon", , vbExclamation
-        Exit Sub
+        Exit Function
     Else
         ' Close any open database objects.
         If Not CloseDatabaseObjects Then
             MsgBox2 "Please close all database objects", _
                 "All database objects (i.e.forms, reports, tables, queries, etc...) must be closed to export source code.", _
                 , vbExclamation
-            Exit Sub
+            Exit Function
         End If
     End If
 
@@ -96,7 +96,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
                     Log.Add "Export Canceled", , , "Red", True
                     Log.Flush
                     Log.ErrorLevel = eelCritical
-                    Exit Sub
+                    Exit Function
             End If
         Case evcOlderVersion
             Log.Add "Updated VCS (" & Options.GetLoadedVersion & " -> " & GetVCSVersion & ")", , , "blue"
@@ -274,10 +274,13 @@ CleanUp:
         .Save
     End With
 
+    'Keep ErrorLevel for callers
+    ExportSource = Log.ErrorLevel
+
     ' Clear object references
     modObjects.ReleaseObjects
 
-End Sub
+End Function
 
 Private Sub ApplicationRunProcedure(ByVal ProcedureName As String)
 
@@ -294,7 +297,7 @@ End Sub
 Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
 
     Dim AddInFile As String
-    Dim ExternalReturnErrorMessage As String
+    Dim ExternalReturnValue As Variant
 
 If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 
@@ -316,8 +319,14 @@ If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 '                                   or "Warning: Warning Message" => displayed Warning log
 '                                   or vbNullstring ... show nothing, all success
 '
-    If Not Application.Run(ProcedureName, ExternalReturnErrorMessage) Then
-        Log.Error eelAlert, ExternalReturnErrorMessage, Mid(ProcedureName, InStrRev(ProcedureName, "\") + 1)
+    ExternalReturnValue = Application.Run(ProcedureName)
+
+    If VarType(ExternalReturnValue) = vbString Then
+        LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(ProcedureName)
+    ElseIf VarType(ExternalReturnValue) = vbBoolean Then
+        If Not ExternalReturnValue Then ' Cancel export
+            Log.Error eelCritical, GetProcedureNameFromPath(ProcedureName) & " failed", "modImportExport.TryRunAddInProcedure"
+        End If
     End If
 
 ExitHere:
@@ -329,6 +338,40 @@ ErrHandler:
 
 End Function
 
+Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSource As String)
+
+    Dim ErrorLevel As eErrorLevel
+    Dim ErrorLevelEndPos As Long
+
+    ErrorLevelEndPos = InStr(1, ErrorMessage, ":")
+    If ErrorLevelEndPos > 1 Then
+        Select Case Trim(Left(ErrorMessage, ErrorLevelEndPos - 1))
+            Case "Error"
+                ErrorLevel = eelError
+            Case "Warning", "Alert"
+                ErrorLevel = eelAlert
+            Case "Critical", "FATAL"
+                ErrorLevel = eelCritical
+            Case Else
+                ErrorLevel = eelAlert
+                ErrorLevelEndPos = 0 ' don't remove String before ":"
+        End Select
+        If ErrorLevelEndPos > 0 Then
+            ErrorMessage = Trim(Mid(ErrorMessage, ErrorLevelEndPos + 1))
+        End If
+    Else
+        ErrorLevel = eelAlert
+    End If
+
+    Log.Error ErrorLevel, ErrorMessage, ErrorMessageSource
+
+End Sub
+
+Private Function GetProcedureNameFromPath(ByVal FullProcedureName As String) As String
+    GetProcedureNameFromPath = Mid(FullProcedureName, InStrRev(FullProcedureName, "\") + 1)
+End Function
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : ExportSingleObject
 ' Author    : Adam Waller
@@ -336,7 +379,7 @@ End Function
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain)
+Public Function ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain) As eErrorLevel
 
     Dim dCategories As Dictionary
     Dim dCategory As Dictionary
@@ -345,7 +388,7 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
     Dim strTempFile As String
 
     ' Guard clause
-    If objItem Is Nothing Then Exit Sub
+    If objItem Is Nothing Then Exit Function
 
     ' Use inline error handling functions to trap and log errors.
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
@@ -459,10 +502,13 @@ CleanUp:
     ' Save index file (don't change export date for single item export)
     VCSIndex.Save
 
+    'Keep ErrorLevel for callers
+    ExportSingleObject = Log.ErrorLevel
+
     ' Clear object references
     modObjects.ReleaseObjects
 
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
