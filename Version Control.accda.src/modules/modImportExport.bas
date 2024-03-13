@@ -317,7 +317,7 @@ If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 '                                   or vbNullstring ... show nothing, all success
 '
     If Not Application.Run(ProcedureName, ExternalReturnErrorMessage) Then
-        Log.Error eelLoggedWarning, ExternalReturnErrorMessage, Mid(ProcedureName, InStrRev(ProcedureName, "\") + 1)
+        Log.Error eelAlert, ExternalReturnErrorMessage, Mid(ProcedureName, InStrRev(ProcedureName, "\") + 1)
     End If
 
 ExitHere:
