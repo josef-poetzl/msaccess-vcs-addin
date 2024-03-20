@@ -107,7 +107,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         Log.Add "Running " & Options.RunBeforeExport & "..."
         Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport
+        ApplicationRunProcedure Options.RunBeforeExport
         Perf.OperationEnd
     End If
 
@@ -236,7 +236,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If Options.RunAfterExport <> vbNullString Then
         Log.Add "Running " & Options.RunAfterExport & "..."
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport
+        ApplicationRunProcedure Options.RunAfterExport
         Perf.OperationEnd
         CatchAny eelError, "Error running " & Options.RunAfterExport, ModuleName & ".ExportSource", True, True
     End If
@@ -275,6 +275,107 @@ CleanUp:
     End With
 
 End Sub
+
+Private Sub ApplicationRunProcedure(ByVal ProcedureName As String)
+
+    If InStr(1, ProcedureName, ".") Then
+        If TryRunAddInProcedure(ProcedureName) Then
+            Exit Sub
+        End If
+    End If
+
+    RunSubInCurrentProject ProcedureName
+
+End Sub
+
+Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
+
+    Dim AddInFile As String
+    Dim ExternalReturnValue As Variant
+
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    ProcedureName = Replace(ProcedureName, "%appdata%", Environ("appdata"))
+
+    AddInFile = Left(ProcedureName, InStrRev(ProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(AddInFile)) = 0 Then
+        Exit Function ' or raise error?
+    End If
+
+    TryRunAddInProcedure = True
+
+' What could a generally usable interface look like?
+'
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Boolean
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Long ' ... = eErrorLevel .. -1 for all ok?
+' * Public Function ProcedureNameInAddIn() as String ... Returns:
+'                                      "Error: ErrorMessage"   => Error log
+'                                   or "Warning: Warning Message" => displayed Warning log
+'                                   or vbNullstring ... show nothing, all success
+'
+'
+'I decided to test this variant(s):
+'
+    ExternalReturnValue = Application.Run(ProcedureName)
+
+    If VarType(ExternalReturnValue) = vbString Then
+        LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(ProcedureName)
+    ElseIf VarType(ExternalReturnValue) = vbBoolean Then
+        If Not ExternalReturnValue Then ' Cancel export
+            Log.Error eelCritical, GetProcedureNameFromPath(ProcedureName) & " failed", "modImportExport.TryRunAddInProcedure"
+        End If
+    End If
+
+' This code allows:
+' * Public Function ProcedureNameInAddIn() as String
+'        optional with eErrorLevel code like "Error: Error description" or "Warning: warining message to show"
+' * Public Function ProcedureNameInAddIn() as Boolean
+'        => if false then Error (eelCritical)
+'
+' Note: I added Alert to eErrorLevel .. show this Alert/Warining in Dialog, bot don't stop export
+'
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
+
+Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSource As String)
+
+    Dim ErrorLevel As eErrorLevel
+    Dim ErrorLevelEndPos As Long
+
+    ErrorLevelEndPos = InStr(1, ErrorMessage, ":")
+    If ErrorLevelEndPos > 1 Then
+        Select Case Trim(Left(ErrorMessage, ErrorLevelEndPos - 1))
+            Case "Error"
+                ErrorLevel = eelError
+            Case "Warning", "Alert"
+                ErrorLevel = eelAlert
+            Case "Critical", "FATAL"
+                ErrorLevel = eelCritical
+            Case Else
+                ErrorLevel = eelAlert
+                ErrorLevelEndPos = 0 ' don't remove String before ":"
+        End Select
+        If ErrorLevelEndPos > 0 Then
+            ErrorMessage = Trim(Mid(ErrorMessage, ErrorLevelEndPos + 1))
+        End If
+    Else
+        ErrorLevel = eelAlert
+    End If
+
+    Log.Error ErrorLevel, ErrorMessage, ErrorMessageSource
+
+End Sub
+
+Private Function GetProcedureNameFromPath(ByVal FullProcedureName As String) As String
+    GetProcedureNameFromPath = Mid(FullProcedureName, InStrRev(FullProcedureName, "\") + 1)
+End Function
+
 
 
 '---------------------------------------------------------------------------------------
