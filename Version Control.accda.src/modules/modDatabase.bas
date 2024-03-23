@@ -544,7 +544,7 @@ Public Sub RunProcedureInCurrentProject(strSubName As String)
 
     ' Make sure procedure exists in current database
     If Not GlobalProcExists(strSubName) Then
-        Log.Error eelError, "The procedure """ & strSubName & """ not found.", ModuleName & ".RunSubInCurrentProject"
+        Log.Error eelError, "The procedure """ & strSubName & """ not found.", ModuleName & ".RunProcedureInCurrentProject"
         Log.Add "The procedure must be declared as public in a standard module.", False
         Exit Sub
     End If
@@ -583,7 +583,7 @@ Public Sub ExecuteLoggedApplicationRun(ByVal ProcedureName As String)
         LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(ProcedureName)
     ElseIf VarType(ExternalReturnValue) = vbBoolean Then
         If Not ExternalReturnValue Then ' Cancel export
-            Log.Error eelCritical, GetProcedureNameFromPath(ProcedureName) & " failed", "modImportExport.TryRunAddInProcedure"
+            Log.Error eelCritical, GetProcedureNameFromPath(ProcedureName) & " failed (return False)", "ExecuteLoggedApplicationRun"
         End If
     End If
 
@@ -603,6 +603,8 @@ Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSour
                 ErrorLevel = eelAlert
             Case "Critical", "FATAL"
                 ErrorLevel = eelCritical
+            Case "Log", "Note"
+                ErrorLevel = eelWarning
             Case Else
                 ErrorLevel = eelAlert
                 ErrorLevelEndPos = 0 ' don't remove String before ":"
@@ -619,9 +621,8 @@ Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSour
 End Sub
 
 Private Function GetProcedureNameFromPath(ByVal FullProcedureName As String) As String
-    GetProcedureNameFromPath = Mid(FullProcedureName, InStrRev(FullProcedureName, "\") + 1)
+    GetProcedureNameFromPath = Mid(FullProcedureName, InStrRev(Replace(FullProcedureName, "!", "\"), "\") + 1)
 End Function
-
 
 
 '---------------------------------------------------------------------------------------

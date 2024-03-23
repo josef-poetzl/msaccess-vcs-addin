@@ -21,8 +21,7 @@ Private Const ModuleName As String = "modImportExport"
 '
 Public Sub ExportSource(blnFullExport As Boolean, _
                Optional intFilter As eContainerFilter = ecfAllObjects, _
-               Optional frmMain As Form_frmVCSMain, _
-               Optional ActiveLogging As Boolean = True)
+               Optional frmMain As Form_frmVCSMain)
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -63,7 +62,7 @@ Public Sub ExportSource(blnFullExport As Boolean, _
     Log.Clear
     Log.OperationType = eotExport
     Log.SourcePath = Options.GetExportFolder
-    Log.Active = ActiveLogging
+    Log.Active = True
     Perf.StartTiming
 
     ' Check error handling mode after loading project options
@@ -323,8 +322,7 @@ End Function
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain, _
-                     Optional ActiveLogging As Boolean = True)
+Public Sub ExportSingleObject(ByRef objItem As AccessObject, Optional ByRef frmMain As Form_frmVCSMain)
 
     Dim dCategories As Dictionary
     Dim dCategory As Dictionary
@@ -355,7 +353,7 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
     Log.Clear
     Log.OperationType = eotExport
     Log.SourcePath = Options.GetExportFolder
-    Log.Active = ActiveLogging
+    Log.Active = True
     Perf.StartTiming
 
     ' Check error handling mode after loading project options

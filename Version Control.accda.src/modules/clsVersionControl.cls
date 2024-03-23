@@ -51,9 +51,9 @@ End Sub
 ' Purpose   : Export the source code for the current database
 '---------------------------------------------------------------------------------------
 '
-Public Sub Export()
-    RunExport ecfAllObjects
-End Sub
+Public Function Export() As eErrorLevel
+    Export = RunExport(ecfAllObjects)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -63,9 +63,9 @@ End Sub
 ' Purpose   : Export just the VBA related components
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportVBA()
-    RunExport ecfVBAItems
-End Sub
+Public Function ExportVBA() As eErrorLevel
+    ExportVBA = RunExport(ecfVBAItems)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -75,18 +75,19 @@ End Sub
 ' Purpose   : Export the selected object
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSelected()
+Public Function ExportSelected() As eErrorLevel
     Dim objSelected As AccessObject
     Set objSelected = GetSelectedNavPaneObject
     If objSelected Is Nothing Then
         MsgBox2 "Please Select an Object First", _
             "Select a single object in the Navigation Pane to export.", _
             "(This item must have the keyboard focus.)", vbInformation
+        ExportSelected = eelCritical
     Else
         ' Export the item
-        RunExport , objSelected
+        ExportSelected = RunExport(, objSelected)
     End If
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -96,7 +97,7 @@ End Sub
 ' Purpose   : Handle different kinds of exports based on filter
 '---------------------------------------------------------------------------------------
 '
-Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject)
+Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject) As eErrorLevel
 
     Dim ExportErrorLevel As eErrorLevel
 
@@ -109,9 +110,19 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
         End If
         .Visible = True
         .RunExport
-        If Log.ErrorLevel <= eelWarning Then .AutoClose
+        ExportErrorLevel = Log.ErrorLevel
+        If ExportErrorLevel <= eelWarning Then
+            If InteractionMode = eimSilent Then
+                .AutoClose 0
+            Else
+                .AutoClose
+            End If
+        End If
     End With
-End Sub
+
+    RunExport = ExportErrorLevel
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -537,3 +548,20 @@ End Sub
 Private Function ReadSetting(strName As String, Optional strDefault As String) As String
     ReadSetting = GetSetting(PROJECT_NAME, "State", strName, strDefault)
 End Function
+
+'---------------------------------------------------------------------------------------
+' Procedure : SilentMode
+' Purpose   : Activate InteractionMode = eimSilent inside VCS
+'---------------------------------------------------------------------------------------
+'
+Public Property Get SilentMode() As Boolean
+    SilentMode = (InteractionMode = eimSilent)
+End Property
+
+Public Property Let SilentMode(ByVal RunInSilentMode As Boolean)
+    If RunInSilentMode Then
+        InteractionMode = eimSilent
+    Else
+        InteractionMode = eimNormal
+    End If
+End Property

@@ -221,8 +221,13 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
         If Log.Active Then
             ' Show message box for fatal error.
             If eLevel = eelCritical Then
-                MsgBox2 "Unable to Continue", .GetStr, _
-                    "Please review the log file for additional details.", vbCritical
+                If InteractionMode = eimSilent Then
+                    Me.Add "Unable to Continue", True, , "red", True
+                    Me.Add "Please review the log file for additional details.", True
+                Else
+                    MsgBox2 "Unable to Continue", .GetStr, _
+                            "Please review the log file for additional details.", vbCritical
+                End If
             End If
         Else
             ' Show message on any error level when we are not logging to a file.
