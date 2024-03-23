@@ -19,7 +19,10 @@ Private Const ModuleName As String = "modImportExport"
 ' Purpose   : Export source files from the currently open database.
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain)
+Public Sub ExportSource(blnFullExport As Boolean, _
+               Optional intFilter As eContainerFilter = ecfAllObjects, _
+               Optional frmMain As Form_frmVCSMain, _
+               Optional ActiveLogging As Boolean = True)
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -36,20 +39,20 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Can't export without an open database
-    If Not DatabaseFileOpen Then Exit Function
+    If Not DatabaseFileOpen Then Exit Sub
 
     ' If we are running this from the current database, we need to run it a different
     ' way to prevent file corruption issues. (This really shouldn't happen after v4.02)
     If StrComp(CurrentProject.FullName, CodeProject.FullName, vbTextCompare) = 0 Then
         MsgBox2 "Unabled to Export Running Database", "Please launch the export using the add-in menu or ribbon", , vbExclamation
-        Exit Function
+        Exit Sub
     Else
         ' Close any open database objects.
         If Not CloseDatabaseObjects Then
             MsgBox2 "Please close all database objects", _
                 "All database objects (i.e.forms, reports, tables, queries, etc...) must be closed to export source code.", _
                 , vbExclamation
-            Exit Function
+            Exit Sub
         End If
     End If
 
@@ -60,7 +63,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     Log.Clear
     Log.OperationType = eotExport
     Log.SourcePath = Options.GetExportFolder
-    Log.Active = True
+    Log.Active = ActiveLogging
     Perf.StartTiming
 
     ' Check error handling mode after loading project options
@@ -96,7 +99,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
                     Log.Add "Export Canceled", , , "Red", True
                     Log.Flush
                     Log.ErrorLevel = eelCritical
-                    Exit Function
+                    Exit Sub
             End If
         Case evcOlderVersion
             Log.Add "Updated VCS (" & Options.GetLoadedVersion & " -> " & GetVCSVersion & ")", , , "blue"
@@ -284,14 +287,13 @@ Private Sub ApplicationRunProcedure(ByVal ProcedureName As String)
         End If
     End If
 
-    RunSubInCurrentProject ProcedureName
+    RunProcedureInCurrentProject ProcedureName
 
 End Sub
 
 Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
 
     Dim AddInFile As String
-    Dim ExternalReturnValue As Variant
 
 If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 
@@ -303,25 +305,7 @@ If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
     End If
 
     TryRunAddInProcedure = True
-
-' What could a generally usable interface look like?
-'
-' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Boolean
-' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Long ' ... = eErrorLevel .. -1 for all ok?
-' * Public Function ProcedureNameInAddIn() as String ... Returns:
-'                                      "Error: ErrorMessage"   => Error log
-'                                   or "Warning: Warning Message" => displayed Warning log
-'                                   or vbNullstring ... show nothing, all success
-'
-    ExternalReturnValue = Application.Run(ProcedureName)
-
-    If VarType(ExternalReturnValue) = vbString Then
-        LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(ProcedureName)
-    ElseIf VarType(ExternalReturnValue) = vbBoolean Then
-        If Not ExternalReturnValue Then ' Cancel export
-            Log.Error eelCritical, GetProcedureNameFromPath(ProcedureName) & " failed", "modImportExport.TryRunAddInProcedure"
-        End If
-    End If
+    ExecuteLoggedApplicationRun ProcedureName
 
 ExitHere:
     Exit Function
@@ -332,40 +316,6 @@ ErrHandler:
 
 End Function
 
-Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSource As String)
-
-    Dim ErrorLevel As eErrorLevel
-    Dim ErrorLevelEndPos As Long
-
-    ErrorLevelEndPos = InStr(1, ErrorMessage, ":")
-    If ErrorLevelEndPos > 1 Then
-        Select Case Trim(Left(ErrorMessage, ErrorLevelEndPos - 1))
-            Case "Error"
-                ErrorLevel = eelError
-            Case "Warning", "Alert"
-                ErrorLevel = eelAlert
-            Case "Critical", "FATAL"
-                ErrorLevel = eelCritical
-            Case Else
-                ErrorLevel = eelAlert
-                ErrorLevelEndPos = 0 ' don't remove String before ":"
-        End Select
-        If ErrorLevelEndPos > 0 Then
-            ErrorMessage = Trim(Mid(ErrorMessage, ErrorLevelEndPos + 1))
-        End If
-    Else
-        ErrorLevel = eelAlert
-    End If
-
-    Log.Error ErrorLevel, ErrorMessage, ErrorMessageSource
-
-End Sub
-
-Private Function GetProcedureNameFromPath(ByVal FullProcedureName As String) As String
-    GetProcedureNameFromPath = Mid(FullProcedureName, InStrRev(FullProcedureName, "\") + 1)
-End Function
-
-
 '---------------------------------------------------------------------------------------
 ' Procedure : ExportSingleObject
 ' Author    : Adam Waller
@@ -373,7 +323,8 @@ End Function
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain)
+Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain, _
+                     Optional ActiveLogging As Boolean = True)
 
     Dim dCategories As Dictionary
     Dim dCategory As Dictionary
@@ -382,7 +333,7 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
     Dim strTempFile As String
 
     ' Guard clause
-    If objItem Is Nothing Then Exit Function
+    If objItem Is Nothing Then Exit Sub
 
     ' Use inline error handling functions to trap and log errors.
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
@@ -404,7 +355,7 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
     Log.Clear
     Log.OperationType = eotExport
     Log.SourcePath = Options.GetExportFolder
-    Log.Active = True
+    Log.Active = ActiveLogging
     Perf.StartTiming
 
     ' Check error handling mode after loading project options
@@ -495,7 +446,7 @@ CleanUp:
 
     ' Save index file (don't change export date for single item export)
     VCSIndex.Save
-                                                                  
+
 End Sub
 
 
@@ -851,7 +802,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         If strText <> vbNullString Then
             Log.Add "Running " & strText & "..."
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject strText
+            RunProcedureInCurrentProject strText
             Perf.OperationEnd
         End If
 
@@ -1101,7 +1052,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         If Options.RunAfterBuild <> vbNullString Then
             Log.Add "Running " & Options.RunAfterBuild & "..."
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            RunProcedureInCurrentProject Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
@@ -1109,7 +1060,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         If Options.RunAfterMerge <> vbNullString Then
             Log.Add "Running " & Options.RunAfterMerge & "..."
             Perf.OperationStart "RunAfterMerge"
-            RunSubInCurrentProject Options.RunAfterMerge
+            RunProcedureInCurrentProject Options.RunAfterMerge
             Perf.OperationEnd
         End If
     End If
@@ -1583,7 +1534,7 @@ Private Sub PrepareRunBootstrap()
         ' Run any pre-build bootstrapping code
         Log.Add "Running " & Options.RunBeforeBuild
         Perf.OperationStart "RunBeforeBuild"
-        RunSubInCurrentProject strName
+        RunProcedureInCurrentProject strName
         Perf.OperationEnd
     End If
 

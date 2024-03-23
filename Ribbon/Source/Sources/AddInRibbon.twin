@@ -1,7 +1,7 @@
 
 Class AddInRibbon
 
-    Private Const AddInFileName As String = "msaccess-vcs"
+    Private Const AddInFileName As String = "Version Control"  ' or "msaccess-vcs" ?
 	' don't use "Version Control" 
 	'     * FileName without " " is simple to use for Application.Run
 	'     * "Version Control" has little significance as to what kind of file this is

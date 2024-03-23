@@ -13,7 +13,7 @@ Option Explicit
 ' VBE Project Name for this Add-In
 Public Const PROJECT_NAME As String = "MSAccessVCS"
 
-Public Const ADDIN_FILE_NAME As String = "msaccess-vcs"
+Public Const ADDIN_FILE_NAME As String = "Version Control" ' or "msaccess-vcs" ?
 Public Const ADDIN_FILE_NAME_EXT As String = ADDIN_FILE_NAME & ".accda"
 
 ' Read/write chunks of text, rather than the whole thing at once for massive

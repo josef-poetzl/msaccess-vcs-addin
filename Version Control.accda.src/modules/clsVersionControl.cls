@@ -108,8 +108,8 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
             Set .objSingleObject = objItem
         End If
         .Visible = True
-        ExportErrorLevel = .RunExport
-        If ExportErrorLevel <= eelWarning Then .AutoClose
+        .RunExport
+        If Log.ErrorLevel <= eelWarning Then .AutoClose
     End With
 End Sub
 
@@ -492,9 +492,9 @@ Private Sub SaveState()
 
     ' Error trapping setting. (We need this to "Break in Class Modules" for this add-in)
     strValue = Application.GetOption("Error Trapping")
-    If strValue <> "1" Then
+    If strValue <> "2" Then
         PreserveSetting "Error Trapping", strValue
-        Application.SetOption "Error Trapping", 1
+        Application.SetOption "Error Trapping", 2
     End If
 
 End Sub
