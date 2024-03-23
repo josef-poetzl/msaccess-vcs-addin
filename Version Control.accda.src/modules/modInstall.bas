@@ -96,7 +96,9 @@ End Function
 '           : Returns true if successful.
 '---------------------------------------------------------------------------------------
 '
-Public Sub InstallVCSAddin(blnTrustFolder As Boolean, blnUseRibbon As Boolean, blnOpenAfterInstall As Boolean, strInstallFolder As String)
+Public Sub InstallVCSAddin(ByRef blnTrustFolder As Boolean, ByRef blnUseRibbon As Boolean, _
+                           ByRef blnOpenAfterInstall As Boolean, ByRef strInstallFolder As String, _
+                  Optional ByVal CreateCompiledVersion As Boolean = False)
 
     Const OPEN_MODE_OPTION As String = "Default Open Mode for Databases"
 
@@ -154,7 +156,7 @@ Public Sub InstallVCSAddin(blnTrustFolder As Boolean, blnUseRibbon As Boolean, b
     If this.blnTrustAddInFolder Then VerifyTrustedLocation
 
     ' Copy the add-in file
-    If Not UpdateAddInFile Then Exit Sub
+    If Not UpdateAddInFile(CreateCompiledVersion) Then Exit Sub
 
     ' Install the ribbon
     If this.blnUseRibbonAddIn Then
@@ -167,8 +169,12 @@ Public Sub InstallVCSAddin(blnTrustFolder As Boolean, blnUseRibbon As Boolean, b
 
     ' Register the Menu controls
     RegisterMenuItem "&VCS Open", "=AddInMenuItemLaunch()"
-    RegisterMenuItem "&VCS Options", "=AddInOptionsLaunch()"
-    RegisterMenuItem "&VCS Export All Source", "=AddInMenuItemExport()"
+    RemoveMenuItem "&VCS Options"
+    RemoveMenuItem "&VCS Export All Source"
+    If Not blnUseRibbon Then
+        RegisterMenuItem "&VCS Options", "=AddInOptionsLaunch()"
+        RegisterMenuItem "&VCS Export All Source", "=AddInMenuItemExport()"
+    End If
 
     ' Update installed version number
     InstalledVersion = AppVersion
@@ -272,7 +278,7 @@ End Sub
 ' Purpose   : Update the add-in database file. Return true if successful.
 '---------------------------------------------------------------------------------------
 '
-Private Function UpdateAddInFile() As Boolean
+Private Function UpdateAddInFile(ByVal CreateCompiledVersion As Boolean) As Boolean
 
     ' Make sure the destination folder exists
     VerifyPath GetAddInFileName
@@ -281,7 +287,13 @@ Private Function UpdateAddInFile() As Boolean
     LogUnhandledErrors
     On Error Resume Next
     If FSO.FileExists(GetAddInFileName) Then DeleteFile GetAddInFileName, True
-    FSO.CopyFile CodeProject.FullName, GetAddInFileName, True
+
+    If CreateCompiledVersion Then
+        CreateAccde CodeProject.FullName, GetAddInFileName
+    Else
+        FSO.CopyFile CodeProject.FullName, GetAddInFileName, True
+    End If
+
     If Err Then
         MsgBox2 "Unable to Update File", _
             "Encountered error " & Err.Number & ": " & Err.Description & " when copying file.", _
@@ -296,6 +308,23 @@ Private Function UpdateAddInFile() As Boolean
 
 End Function
 
+Private Sub CreateAccde(ByVal SourceFilePath As String, ByVal DestFilePath As String)
+
+    Dim FileToCompile As String
+    Dim AccessApp As Access.Application
+
+    FileToCompile = DestFilePath & ".accdb"
+
+    FSO.CopyFile SourceFilePath, FileToCompile, True
+
+    Set AccessApp = New Access.Application
+    AccessApp.Visible = True
+    'create accde
+    AccessApp.SysCmd 603, (FileToCompile), (DestFilePath)
+
+    FSO.DeleteFile FileToCompile, True
+
+End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : MigrateUserFiles
@@ -352,7 +381,7 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Function GetAddInFileName() As String
-    GetAddInFileName = FSO.BuildPath(GetInstallSettings.strInstallFolder, CodeProject.Name)
+    GetAddInFileName = FSO.BuildPath(GetInstallSettings.strInstallFolder, ADDIN_FILE_NAME_EXT)
 End Function
 
 
@@ -473,7 +502,8 @@ End Sub
 '           :  `AppVersion` property defined below.)
 '---------------------------------------------------------------------------------------
 '
-Public Sub Deploy(Optional ReleaseType As eReleaseType = Same_Version)
+Public Sub Deploy(Optional ByRef ReleaseType As eReleaseType = Same_Version, _
+                  Optional ByVal CreateCompiledVersion As Boolean = False)
 
     Const cstrSpacer As String = "--------------------------------------------------------------"
 
@@ -520,7 +550,7 @@ Public Sub Deploy(Optional ReleaseType As eReleaseType = Same_Version)
     CopyFileToZip CodeProject.FullName, strBinaryFile
 
     ' Deploy latest version on this machine
-    If Not UpdateAddInFile Then Exit Sub
+    If Not UpdateAddInFile(CreateCompiledVersion) Then Exit Sub
 
     ' Use the newly installed add-in to Export the project to version control.
     modAPI.HandleRibbonCommand "btnExport"

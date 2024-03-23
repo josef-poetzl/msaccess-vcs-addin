@@ -16,11 +16,11 @@ Begin Form
     GridX =24
     GridY =24
     DatasheetFontHeight =11
-    ItemSuffix =67
-    Left =-25575
-    Top =1500
-    Right =-255
-    Bottom =14085
+    ItemSuffix =69
+    Left =6795
+    Top =3330
+    Right =14948
+    Bottom =12690
     RecSrcDt = Begin
         0x79e78b777268e540
     End
@@ -135,8 +135,9 @@ Begin Form
             GridlineShade =65.0
         End
         Begin Tab
+            TextFontFamily =18
             FontSize =11
-            FontName ="Calibri"
+            FontName ="Cambria"
             ThemeFontIndex =0
             GridlineThemeColorIndex =1
             GridlineShade =65.0
@@ -800,20 +801,18 @@ Begin Form
                 End
                 Begin Tab
                     OverlapFlags =95
-                    TextFontFamily =18
                     Left =240
                     Top =1200
                     Width =6735
-                    Height =3000
+                    Height =3075
                     FontSize =8
                     TabIndex =3
                     Name ="tabInstallType"
-                    FontName ="Cambria"
 
                     LayoutCachedLeft =240
                     LayoutCachedTop =1200
                     LayoutCachedWidth =6975
-                    LayoutCachedHeight =4200
+                    LayoutCachedHeight =4275
                     BackColor =15130848
                     BackThemeColorIndex =-1
                     BackShade =100.0
@@ -836,16 +835,16 @@ Begin Form
                     Begin
                         Begin Page
                             OverlapFlags =87
-                            Left =315
-                            Top =1590
-                            Width =6585
-                            Height =2535
+                            Left =278
+                            Top =1493
+                            Width =6660
+                            Height =2746
                             Name ="Page40"
                             Caption ="Basic Install"
-                            LayoutCachedLeft =315
-                            LayoutCachedTop =1590
-                            LayoutCachedWidth =6900
-                            LayoutCachedHeight =4125
+                            LayoutCachedLeft =278
+                            LayoutCachedTop =1493
+                            LayoutCachedWidth =6938
+                            LayoutCachedHeight =4239
                             Begin
                                 Begin Label
                                     OverlapFlags =215
@@ -908,44 +907,44 @@ Begin Form
                         End
                         Begin Page
                             OverlapFlags =215
-                            Left =315
-                            Top =1590
-                            Width =6585
-                            Height =2535
+                            Left =278
+                            Top =1493
+                            Width =6660
+                            Height =2745
                             Name ="Page41"
                             Caption ="Advanced Install"
-                            LayoutCachedLeft =315
-                            LayoutCachedTop =1590
-                            LayoutCachedWidth =6900
-                            LayoutCachedHeight =4125
+                            LayoutCachedLeft =278
+                            LayoutCachedTop =1493
+                            LayoutCachedWidth =6938
+                            LayoutCachedHeight =4238
                             Begin
                                 Begin CheckBox
                                     TabStop = NotDefault
                                     OverlapFlags =215
-                                    Left =660
-                                    Top =2670
+                                    Left =668
+                                    Top =2528
                                     Name ="chkOpenAfterInstall"
                                     DefaultValue ="False"
 
-                                    LayoutCachedLeft =660
-                                    LayoutCachedTop =2670
-                                    LayoutCachedWidth =920
-                                    LayoutCachedHeight =2910
+                                    LayoutCachedLeft =668
+                                    LayoutCachedTop =2528
+                                    LayoutCachedWidth =928
+                                    LayoutCachedHeight =2768
                                     Begin
                                         Begin Label
                                             OverlapFlags =215
-                                            Left =945
-                                            Top =2640
+                                            Left =953
+                                            Top =2498
                                             Width =2595
                                             Height =465
                                             FontSize =10
                                             ForeColor =5324600
                                             Name ="Label36"
                                             Caption ="Open add-in after installing to trust the add-in file"
-                                            LayoutCachedLeft =945
-                                            LayoutCachedTop =2640
-                                            LayoutCachedWidth =3540
-                                            LayoutCachedHeight =3105
+                                            LayoutCachedLeft =953
+                                            LayoutCachedTop =2498
+                                            LayoutCachedWidth =3548
+                                            LayoutCachedHeight =2963
                                             ForeThemeColorIndex =-1
                                             ForeTint =100.0
                                         End
@@ -955,20 +954,20 @@ Begin Form
                                     TabStop = NotDefault
                                     OverlapFlags =215
                                     Left =660
-                                    Top =2250
+                                    Top =2138
                                     TabIndex =1
                                     Name ="chkUseRibbon"
                                     DefaultValue ="True"
 
                                     LayoutCachedLeft =660
-                                    LayoutCachedTop =2250
+                                    LayoutCachedTop =2138
                                     LayoutCachedWidth =920
-                                    LayoutCachedHeight =2490
+                                    LayoutCachedHeight =2378
                                     Begin
                                         Begin Label
                                             OverlapFlags =215
                                             Left =945
-                                            Top =2220
+                                            Top =2108
                                             Width =2595
                                             Height =300
                                             FontSize =10
@@ -976,9 +975,9 @@ Begin Form
                                             Name ="Label40"
                                             Caption ="Use Ribbbon Addin"
                                             LayoutCachedLeft =945
-                                            LayoutCachedTop =2220
+                                            LayoutCachedTop =2108
                                             LayoutCachedWidth =3540
-                                            LayoutCachedHeight =2520
+                                            LayoutCachedHeight =2408
                                             ForeThemeColorIndex =-1
                                             ForeTint =100.0
                                         End
@@ -1006,34 +1005,34 @@ Begin Form
                                 Begin TextBox
                                     OverlapFlags =215
                                     IMESentenceMode =3
-                                    Left =660
-                                    Top =3660
+                                    Left =668
+                                    Top =3803
                                     Width =2760
                                     Height =300
                                     FontSize =10
                                     TabIndex =2
                                     Name ="txtInstallFolder"
 
-                                    LayoutCachedLeft =660
-                                    LayoutCachedTop =3660
-                                    LayoutCachedWidth =3420
-                                    LayoutCachedHeight =3960
+                                    LayoutCachedLeft =668
+                                    LayoutCachedTop =3803
+                                    LayoutCachedWidth =3428
+                                    LayoutCachedHeight =4103
                                     BackShade =95.0
                                     Begin
                                         Begin Label
                                             OverlapFlags =223
-                                            Left =660
-                                            Top =3360
+                                            Left =668
+                                            Top =3503
                                             Width =1485
                                             Height =300
                                             FontSize =10
                                             ForeColor =5324600
                                             Name ="Label63"
                                             Caption ="Install Folder:   "
-                                            LayoutCachedLeft =660
-                                            LayoutCachedTop =3360
-                                            LayoutCachedWidth =2145
-                                            LayoutCachedHeight =3660
+                                            LayoutCachedLeft =668
+                                            LayoutCachedTop =3503
+                                            LayoutCachedWidth =2153
+                                            LayoutCachedHeight =3803
                                             ForeThemeColorIndex =-1
                                             ForeTint =100.0
                                         End
@@ -1041,8 +1040,8 @@ Begin Form
                                 End
                                 Begin CommandButton
                                     OverlapFlags =215
-                                    Left =3480
-                                    Top =3660
+                                    Left =3488
+                                    Top =3803
                                     Width =420
                                     Height =300
                                     TabIndex =3
@@ -1086,14 +1085,47 @@ Begin Form
                                         0x0000000000000000
                                     End
 
-                                    LayoutCachedLeft =3480
-                                    LayoutCachedTop =3660
-                                    LayoutCachedWidth =3900
-                                    LayoutCachedHeight =3960
+                                    LayoutCachedLeft =3488
+                                    LayoutCachedTop =3803
+                                    LayoutCachedWidth =3908
+                                    LayoutCachedHeight =4103
                                     Gradient =0
                                     BackColor =15130848
                                     BackThemeColorIndex =-1
                                     BackTint =100.0
+                                End
+                                Begin CheckBox
+                                    TabStop = NotDefault
+                                    OverlapFlags =215
+                                    Left =668
+                                    Top =3098
+                                    TabIndex =4
+                                    Name ="chkCreateCompiledVersion"
+                                    DefaultValue ="False"
+
+                                    LayoutCachedLeft =668
+                                    LayoutCachedTop =3098
+                                    LayoutCachedWidth =928
+                                    LayoutCachedHeight =3338
+                                    Begin
+                                        Begin Label
+                                            OverlapFlags =215
+                                            Left =953
+                                            Top =3068
+                                            Width =2595
+                                            Height =300
+                                            FontSize =10
+                                            ForeColor =5324600
+                                            Name ="Label68"
+                                            Caption ="Create compiled version"
+                                            LayoutCachedLeft =953
+                                            LayoutCachedTop =3068
+                                            LayoutCachedWidth =3548
+                                            LayoutCachedHeight =3368
+                                            ForeThemeColorIndex =-1
+                                            ForeTint =100.0
+                                        End
+                                    End
                                 End
                             End
                         End

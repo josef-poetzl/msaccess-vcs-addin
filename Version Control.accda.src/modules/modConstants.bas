@@ -13,6 +13,9 @@ Option Explicit
 ' VBE Project Name for this Add-In
 Public Const PROJECT_NAME As String = "MSAccessVCS"
 
+Public Const ADDIN_FILE_NAME As String = "msaccess-vcs"
+Public Const ADDIN_FILE_NAME_EXT As String = ADDIN_FILE_NAME & ".accda"
+
 ' Read/write chunks of text, rather than the whole thing at once for massive
 ' performance gains when reading large files.
 ' See https://docs.microsoft.com/is-is/sql/ado/reference/ado-api/readtext-method
@@ -92,10 +95,11 @@ End Enum
 ' Error levels used for logging and monitoring the status
 ' of the current operation.
 Public Enum eErrorLevel
-    eelNoError
-    eelWarning      ' Logged to file
-    eelError        ' Displayed and logged
-    eelCritical     ' Cancel operation
+    eelNoError = 0
+    eelWarning = 1   ' Logged to file
+    eelAlert = 2     ' Displayed and , show Warning not Error
+    eelError = 3     ' Displayed and logged
+    eelCritical = 4  ' Cancel operation
 End Enum
 
 ' Compare mode for cloning dictionary object

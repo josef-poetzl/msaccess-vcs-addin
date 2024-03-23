@@ -73,7 +73,7 @@ Private Function NGHash(pData As LongPtr, lenData As Long, Optional HashingAlgor
     'Error messages not implemented
     '
     On Error GoTo VBErrHandler
-    Dim errorMessage As String
+    Dim ErrorMessage As String
 
     Dim hAlg As LongPtr
     Dim algId As String
@@ -115,10 +115,10 @@ ExitHandler:
     Exit Function
 
 VBErrHandler:
-    errorMessage = "VB Error " & Err.Number & ": " & Err.Description
+    ErrorMessage = "VB Error " & Err.Number & ": " & Err.Description
 
 ErrHandler:
-    CatchAny eelCritical, "Error hashing! " & errorMessage & ". Algorithm: " & HashingAlgorithm, ModuleName & ".NGHash", True, True
+    CatchAny eelCritical, "Error hashing! " & ErrorMessage & ". Algorithm: " & HashingAlgorithm, ModuleName & ".NGHash", True, True
     GoTo ExitHandler
 
 End Function

@@ -32,15 +32,6 @@
 			"versionMinor": 0
 		},
 		{
-			"id": "{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}",
-			"lcid": 0,
-			"name": "Microsoft Office 14.0 Object Library",
-			"path32": "C:\\Program Files (x86)\\Common Files\\Microsoft Shared\\OFFICE14\\MSO.DLL",
-			"path64": "",
-			"versionMajor": 2,
-			"versionMinor": 5
-		},
-		{
 			"id": "{420B2830-E718-11CF-893D-00A0C9054228}",
 			"lcid": 0,
 			"name": "Microsoft Scripting Runtime",
@@ -57,6 +48,15 @@
 			"path64": "C:\\Program Files\\Common Files\\System\\ado\\msado15.dll",
 			"versionMajor": 6,
 			"versionMinor": 1
+		},
+		{
+			"id": "{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}",
+			"lcid": 0,
+			"name": "Microsoft Office 16.0 Object Library",
+			"path32": "C:\\Program Files (x86)\\Microsoft Office\\Root\\VFS\\ProgramFilesCommonX86\\Microsoft Shared\\OFFICE16\\MSO.DLL",
+			"path64": "",
+			"versionMajor": 2,
+			"versionMinor": 8
 		},
 		{
 			"id": "{F50B82D0-DCAB-43FE-9631-11959D4A4728}",

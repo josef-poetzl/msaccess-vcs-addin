@@ -171,11 +171,29 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
 
     Dim strPrefix As String
     Dim strDisplay As String
+    Dim bolLogToFile As Boolean
+    Dim bolDisplay As Boolean
+    Dim MsgBoxStyle As VbMsgBoxStyle
+    Dim MsgBoxPrefix As String
+
+    bolDisplay = (eLevel > eelWarning)
 
     Select Case eLevel
-        Case eelWarning:    strPrefix = "WARNING: "
-        Case eelError:      strPrefix = "ERROR: "
-        Case eelCritical:   strPrefix = "CRITICAL: "
+        Case eErrorLevel.eelError
+            strPrefix = "ERROR: "
+            MsgBoxPrefix = "Error"
+            MsgBoxStyle = vbExclamation
+        Case eErrorLevel.eelWarning, eErrorLevel.eelAlert
+            strPrefix = "WARNING: "
+            MsgBoxPrefix = "Warning"
+            MsgBoxStyle = vbInformation
+        Case eErrorLevel.eelCritical
+            strPrefix = "CRITICAL: "
+            MsgBoxPrefix = "Critical"
+            MsgBoxStyle = vbCritical
+        Case Else
+            strPrefix = "INFO: "
+            MsgBoxStyle = vbInformation
     End Select
 
     ' Build the error message string.
@@ -189,15 +207,15 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
         End If
 
         ' Log all errors, and display on the output screen anything higher than a warning
-        Me.Add vbNullString, (eLevel > eelWarning)
-        Me.Spacer (eLevel > eelWarning)
-        Me.Add strDisplay, (eLevel > eelWarning), , "red"
+        Me.Add vbNullString, bolDisplay
+        Me.Spacer bolDisplay
+        Me.Add strDisplay, bolDisplay, , "red"
 
         ' Log the additional error and source details to the log file
         If Err Then .Add "Error ", Err.Number, ": ", Err.Description, " "
         If strSource <> vbNullString Then .Add "Source: ", strSource
         Me.Add .GetStr, False
-        Me.Spacer (eLevel > eelWarning)
+        Me.Spacer bolDisplay
 
         ' See if we are actively logging an operation
         If Log.Active Then
@@ -208,12 +226,9 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
             End If
         Else
             ' Show message on any error level when we are not logging to a file.
-            Select Case eLevel
-                Case eelNoError:    ' Do nothing
-                Case eelWarning:    MsgBox2 "Warning", strDisplay, .GetStr, vbInformation
-                Case eelError:      MsgBox2 "Error", strDisplay, .GetStr, vbExclamation
-                Case eelCritical:   MsgBox2 "Critical", strDisplay, .GetStr, vbCritical
-            End Select
+            If eLevel > 0 Then
+                MsgBox2 MsgBoxPrefix, strDisplay, .GetStr, MsgBoxStyle
+            End If
         End If
     End With
 

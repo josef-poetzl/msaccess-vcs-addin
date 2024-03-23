@@ -36,20 +36,20 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Can't export without an open database
-    If Not DatabaseFileOpen Then Exit Sub
+    If Not DatabaseFileOpen Then Exit Function
 
     ' If we are running this from the current database, we need to run it a different
     ' way to prevent file corruption issues. (This really shouldn't happen after v4.02)
     If StrComp(CurrentProject.FullName, CodeProject.FullName, vbTextCompare) = 0 Then
         MsgBox2 "Unabled to Export Running Database", "Please launch the export using the add-in menu or ribbon", , vbExclamation
-        Exit Sub
+        Exit Function
     Else
         ' Close any open database objects.
         If Not CloseDatabaseObjects Then
             MsgBox2 "Please close all database objects", _
                 "All database objects (i.e.forms, reports, tables, queries, etc...) must be closed to export source code.", _
                 , vbExclamation
-            Exit Sub
+            Exit Function
         End If
     End If
 
@@ -96,7 +96,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
                     Log.Add "Export Canceled", , , "Red", True
                     Log.Flush
                     Log.ErrorLevel = eelCritical
-                    Exit Sub
+                    Exit Function
             End If
         Case evcOlderVersion
             Log.Add "Updated VCS (" & Options.GetLoadedVersion & " -> " & GetVCSVersion & ")", , , "blue"
@@ -107,7 +107,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         Log.Add "Running " & Options.RunBeforeExport & "..."
         Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport
+        ApplicationRunProcedure Options.RunBeforeExport
         Perf.OperationEnd
     End If
 
@@ -236,7 +236,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If Options.RunAfterExport <> vbNullString Then
         Log.Add "Running " & Options.RunAfterExport & "..."
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport
+        ApplicationRunProcedure Options.RunAfterExport
         Perf.OperationEnd
         CatchAny eelError, "Error running " & Options.RunAfterExport, ModuleName & ".ExportSource", True, True
     End If
@@ -276,6 +276,95 @@ CleanUp:
 
 End Sub
 
+Private Sub ApplicationRunProcedure(ByVal ProcedureName As String)
+
+    If InStr(1, ProcedureName, ".") Then
+        If TryRunAddInProcedure(ProcedureName) Then
+            Exit Sub
+        End If
+    End If
+
+    RunSubInCurrentProject ProcedureName
+
+End Sub
+
+Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
+
+    Dim AddInFile As String
+    Dim ExternalReturnValue As Variant
+
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    ProcedureName = Replace(ProcedureName, "%appdata%", Environ("appdata"))
+
+    AddInFile = Left(ProcedureName, InStrRev(ProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(AddInFile)) = 0 Then
+        Exit Function ' or raise error?
+    End If
+
+    TryRunAddInProcedure = True
+
+' What could a generally usable interface look like?
+'
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Boolean
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Long ' ... = eErrorLevel .. -1 for all ok?
+' * Public Function ProcedureNameInAddIn() as String ... Returns:
+'                                      "Error: ErrorMessage"   => Error log
+'                                   or "Warning: Warning Message" => displayed Warning log
+'                                   or vbNullstring ... show nothing, all success
+'
+    ExternalReturnValue = Application.Run(ProcedureName)
+
+    If VarType(ExternalReturnValue) = vbString Then
+        LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(ProcedureName)
+    ElseIf VarType(ExternalReturnValue) = vbBoolean Then
+        If Not ExternalReturnValue Then ' Cancel export
+            Log.Error eelCritical, GetProcedureNameFromPath(ProcedureName) & " failed", "modImportExport.TryRunAddInProcedure"
+        End If
+    End If
+
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
+
+Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSource As String)
+
+    Dim ErrorLevel As eErrorLevel
+    Dim ErrorLevelEndPos As Long
+
+    ErrorLevelEndPos = InStr(1, ErrorMessage, ":")
+    If ErrorLevelEndPos > 1 Then
+        Select Case Trim(Left(ErrorMessage, ErrorLevelEndPos - 1))
+            Case "Error"
+                ErrorLevel = eelError
+            Case "Warning", "Alert"
+                ErrorLevel = eelAlert
+            Case "Critical", "FATAL"
+                ErrorLevel = eelCritical
+            Case Else
+                ErrorLevel = eelAlert
+                ErrorLevelEndPos = 0 ' don't remove String before ":"
+        End Select
+        If ErrorLevelEndPos > 0 Then
+            ErrorMessage = Trim(Mid(ErrorMessage, ErrorLevelEndPos + 1))
+        End If
+    Else
+        ErrorLevel = eelAlert
+    End If
+
+    Log.Error ErrorLevel, ErrorMessage, ErrorMessageSource
+
+End Sub
+
+Private Function GetProcedureNameFromPath(ByVal FullProcedureName As String) As String
+    GetProcedureNameFromPath = Mid(FullProcedureName, InStrRev(FullProcedureName, "\") + 1)
+End Function
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : ExportSingleObject
@@ -293,7 +382,7 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
     Dim strTempFile As String
 
     ' Guard clause
-    If objItem Is Nothing Then Exit Sub
+    If objItem Is Nothing Then Exit Function
 
     ' Use inline error handling functions to trap and log errors.
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
@@ -406,8 +495,9 @@ CleanUp:
 
     ' Save index file (don't change export date for single item export)
     VCSIndex.Save
-
+                                                                  
 End Sub
+
 
 
 '---------------------------------------------------------------------------------------

@@ -97,6 +97,9 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject)
+
+    Dim ExportErrorLevel As eErrorLevel
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         If objItem Is Nothing Then
@@ -105,8 +108,8 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
             Set .objSingleObject = objItem
         End If
         .Visible = True
-        .cmdExport_Click
-        If Log.ErrorLevel < eelError Then .AutoClose
+        ExportErrorLevel = .RunExport
+        If ExportErrorLevel <= eelWarning Then .AutoClose
     End With
 End Sub
 
