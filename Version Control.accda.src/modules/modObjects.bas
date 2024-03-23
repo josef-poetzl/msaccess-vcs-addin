@@ -19,6 +19,7 @@ Private Type udtObjects
     VCSIndex As clsVCSIndex
     Worker As clsWorker
     Git As clsGitIntegration
+    Translation As clsTranslation
 
     ' Keep a persistent reference to file system object after initializing version control.
     ' This way we don't have to recreate this object dozens of times while using VCS.
@@ -108,6 +109,34 @@ End Property
 Public Function Perf() As clsPerformance
     If this.Perf Is Nothing Then Set this.Perf = New clsPerformance
     Set Perf = this.Perf
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : Translation
+' Author    : Adam Waller
+' Date      : 5/19/2021
+' Purpose   : Expose translation class
+'---------------------------------------------------------------------------------------
+'
+Public Function Translation() As clsTranslation
+    If this.Translation Is Nothing Then Set this.Translation = New clsTranslation
+    Set Translation = this.Translation
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : T
+' Author    : Adam Waller
+' Date      : 3/19/2024
+' Purpose   : Wrapper function to translate to current language
+'---------------------------------------------------------------------------------------
+'
+Public Function T(strText As String, Optional strComments As String, Optional strContext As String, _
+    Optional var0, Optional var1, Optional var2, Optional var3, Optional var4, _
+    Optional var5, Optional var6, Optional var7, Optional var8, Optional var9)
+    T = Translation.T(strText, strComments, strContext, _
+        var0, var1, var2, var3, var4, var5, var6, var7, var8, var9)
 End Function
 
 

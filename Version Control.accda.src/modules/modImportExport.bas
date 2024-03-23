@@ -19,7 +19,7 @@ Private Const ModuleName As String = "modImportExport"
 ' Purpose   : Export source files from the currently open database.
 '---------------------------------------------------------------------------------------
 '
-Public Function ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain) As eErrorLevel
+Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain)
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -274,13 +274,7 @@ CleanUp:
         .Save
     End With
 
-    'Keep ErrorLevel for callers
-    ExportSource = Log.ErrorLevel
-
-    ' Clear object references
-    modObjects.ReleaseObjects
-
-End Function
+End Sub
 
 Private Sub ApplicationRunProcedure(ByVal ProcedureName As String)
 
@@ -379,7 +373,7 @@ End Function
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
-Public Function ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain) As eErrorLevel
+Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain)
 
     Dim dCategories As Dictionary
     Dim dCategory As Dictionary
@@ -501,14 +495,9 @@ CleanUp:
 
     ' Save index file (don't change export date for single item export)
     VCSIndex.Save
+                                                                  
+End Sub
 
-    'Keep ErrorLevel for callers
-    ExportSingleObject = Log.ErrorLevel
-
-    ' Clear object references
-    modObjects.ReleaseObjects
-
-End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -704,9 +693,6 @@ CleanUp:
 
     ' Save index file (don't change export date for multiple items export)
     VCSIndex.Save
-
-    ' Clear object references
-    modObjects.ReleaseObjects
 
 End Sub
 
@@ -1186,9 +1172,6 @@ CleanUp:
             "A backup of the previous build was saved as '" & FSO.GetFileName(strBackup) & "'.", vbInformation
     End If
 
-    ' Clear object references
-    modObjects.ReleaseObjects
-
 End Sub
 
 
@@ -1312,9 +1295,6 @@ CleanUp:
 
     ' Save index file (don't change export date for single item export)
     VCSIndex.Save
-
-    ' Clear object references
-    modObjects.ReleaseObjects
 
 End Sub
 
@@ -1441,9 +1421,6 @@ CleanUp:
 
     ' Save index file (don't change export date for single item export)
     VCSIndex.Save
-
-    ' Clear object references
-    modObjects.ReleaseObjects
 
 End Sub
 
