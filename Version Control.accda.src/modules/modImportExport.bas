@@ -107,7 +107,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         Log.Add "Running " & Options.RunBeforeExport & "..."
         Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport
+        ApplicationRunProcedure Options.RunBeforeExport
         Perf.OperationEnd
     End If
 
@@ -236,7 +236,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If Options.RunAfterExport <> vbNullString Then
         Log.Add "Running " & Options.RunAfterExport & "..."
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport
+        ApplicationRunProcedure Options.RunAfterExport
         Perf.OperationEnd
         CatchAny eelError, "Error running " & Options.RunAfterExport, ModuleName & ".ExportSource", True, True
     End If
@@ -276,6 +276,42 @@ CleanUp:
 
 End Sub
 
+Private Sub ApplicationRunProcedure(ByVal ProcedureName As String)
+
+    If InStr(1, ProcedureName, ".") Then
+        If TryRunAddInProcedure(ProcedureName) Then
+            Exit Sub
+        End If
+    End If
+
+    RunProcedureInCurrentProject ProcedureName
+
+End Sub
+
+Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
+
+    Dim AddInFile As String
+
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    ProcedureName = Replace(ProcedureName, "%appdata%", Environ("appdata"))
+
+    AddInFile = Left(ProcedureName, InStrRev(ProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(AddInFile)) = 0 Then
+        Exit Function ' or raise error?
+    End If
+
+    TryRunAddInProcedure = True
+    ExecuteLoggedApplicationRun ProcedureName
+
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : ExportSingleObject
@@ -761,7 +797,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         If strText <> vbNullString Then
             Log.Add "Running " & strText & "..."
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject strText
+            RunProcedureInCurrentProject strText
             Perf.OperationEnd
         End If
 
@@ -1011,7 +1047,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         If Options.RunAfterBuild <> vbNullString Then
             Log.Add "Running " & Options.RunAfterBuild & "..."
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            RunProcedureInCurrentProject Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
@@ -1019,7 +1055,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, _
         If Options.RunAfterMerge <> vbNullString Then
             Log.Add "Running " & Options.RunAfterMerge & "..."
             Perf.OperationStart "RunAfterMerge"
-            RunSubInCurrentProject Options.RunAfterMerge
+            RunProcedureInCurrentProject Options.RunAfterMerge
             Perf.OperationEnd
         End If
     End If
@@ -1493,7 +1529,7 @@ Private Sub PrepareRunBootstrap()
         ' Run any pre-build bootstrapping code
         Log.Add "Running " & Options.RunBeforeBuild
         Perf.OperationStart "RunBeforeBuild"
-        RunSubInCurrentProject strName
+        RunProcedureInCurrentProject strName
         Perf.OperationEnd
     End If
 

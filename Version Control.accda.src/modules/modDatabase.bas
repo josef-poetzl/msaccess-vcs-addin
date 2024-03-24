@@ -526,7 +526,7 @@ End Function
 '           : current project, not the add-in file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunSubInCurrentProject(strSubName As String)
+Public Sub RunProcedureInCurrentProject(strSubName As String)
 
     Dim strCmd As String
 
@@ -544,7 +544,7 @@ Public Sub RunSubInCurrentProject(strSubName As String)
 
     ' Make sure procedure exists in current database
     If Not GlobalProcExists(strSubName) Then
-        Log.Error eelError, "The procedure """ & strSubName & """ not found.", ModuleName & ".RunSubInCurrentProject"
+        Log.Error eelError, "The procedure """ & strSubName & """ not found.", ModuleName & ".RunProcedureInCurrentProject"
         Log.Add "The procedure must be declared as public in a standard module.", False
         Exit Sub
     End If
@@ -556,13 +556,73 @@ Public Sub RunSubInCurrentProject(strSubName As String)
     If StrComp(CurrentVBProject.Name, GetAddInProject.Name, vbTextCompare) = 0 Then
         ' Temporarily rename the add-in project so the sub runs in the current project.
         GetAddInProject.Name = "MSAccessVCS-Lib"
-        Application.Run strCmd
+        ExecuteLoggedApplicationRun strCmd
         GetAddInProject.Name = PROJECT_NAME
     Else
-        Application.Run strCmd
+        ExecuteLoggedApplicationRun strCmd
     End If
 
 End Sub
+
+Public Sub ExecuteLoggedApplicationRun(ByVal ProcedureName As String)
+
+   Dim ExternalReturnValue As Variant
+
+' What could a generally usable interface look like?
+'
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Boolean
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Long ' ... = eErrorLevel .. -1 for all ok?
+' * Public Function ProcedureNameInAddIn() as String ... Returns:
+'                                      "Error: ErrorMessage"   => Error log
+'                                   or "Warning: Warning Message" => displayed Warning log
+'                                   or vbNullstring ... show nothing, all success
+'
+    ExternalReturnValue = Application.Run(ProcedureName)
+
+    If VarType(ExternalReturnValue) = vbString Then
+        LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(ProcedureName)
+    ElseIf VarType(ExternalReturnValue) = vbBoolean Then
+        If Not ExternalReturnValue Then ' Cancel export
+            Log.Error eelCritical, GetProcedureNameFromPath(ProcedureName) & " failed (return False)", "ExecuteLoggedApplicationRun"
+        End If
+    End If
+
+End Sub
+
+Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSource As String)
+
+    Dim ErrorLevel As eErrorLevel
+    Dim ErrorLevelEndPos As Long
+
+    ErrorLevelEndPos = InStr(1, ErrorMessage, ":")
+    If ErrorLevelEndPos > 1 Then
+        Select Case Trim(Left(ErrorMessage, ErrorLevelEndPos - 1))
+            Case "Error"
+                ErrorLevel = eelError
+            Case "Warning", "Alert"
+                ErrorLevel = eelAlert
+            Case "Critical", "FATAL"
+                ErrorLevel = eelCritical
+            Case "Log", "Note"
+                ErrorLevel = eelWarning
+            Case Else
+                ErrorLevel = eelAlert
+                ErrorLevelEndPos = 0 ' don't remove String before ":"
+        End Select
+        If ErrorLevelEndPos > 0 Then
+            ErrorMessage = Trim(Mid(ErrorMessage, ErrorLevelEndPos + 1))
+        End If
+    Else
+        ErrorLevel = eelAlert
+    End If
+
+    Log.Error ErrorLevel, ErrorMessage, ErrorMessageSource
+
+End Sub
+
+Private Function GetProcedureNameFromPath(ByVal FullProcedureName As String) As String
+    GetProcedureNameFromPath = Mid(FullProcedureName, InStrRev(Replace(FullProcedureName, "!", "\"), "\") + 1)
+End Function
 
 
 '---------------------------------------------------------------------------------------
