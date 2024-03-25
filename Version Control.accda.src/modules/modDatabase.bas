@@ -589,14 +589,14 @@ Public Sub ExecuteLoggedApplicationRun(ByVal ProcedureName As String)
 
 End Sub
 
-Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSource As String)
+Private Sub LogErrorMessage(ByVal errorMessage As String, ByVal ErrorMessageSource As String)
 
     Dim ErrorLevel As eErrorLevel
     Dim ErrorLevelEndPos As Long
 
-    ErrorLevelEndPos = InStr(1, ErrorMessage, ":")
+    ErrorLevelEndPos = InStr(1, errorMessage, ":")
     If ErrorLevelEndPos > 1 Then
-        Select Case Trim(Left(ErrorMessage, ErrorLevelEndPos - 1))
+        Select Case Trim(Left(errorMessage, ErrorLevelEndPos - 1))
             Case "Error"
                 ErrorLevel = eelError
             Case "Warning", "Alert"
@@ -610,13 +610,13 @@ Private Sub LogErrorMessage(ByVal ErrorMessage As String, ByVal ErrorMessageSour
                 ErrorLevelEndPos = 0 ' don't remove String before ":"
         End Select
         If ErrorLevelEndPos > 0 Then
-            ErrorMessage = Trim(Mid(ErrorMessage, ErrorLevelEndPos + 1))
+            errorMessage = Trim(Mid(errorMessage, ErrorLevelEndPos + 1))
         End If
     Else
         ErrorLevel = eelAlert
     End If
 
-    Log.Error ErrorLevel, ErrorMessage, ErrorMessageSource
+    Log.Error ErrorLevel, errorMessage, ErrorMessageSource
 
 End Sub
 
