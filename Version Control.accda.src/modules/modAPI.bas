@@ -22,9 +22,10 @@ End Enum
 Public Enum eErrorLevel
     eelNoError = 0
     eelWarning = 1   ' Logged to file
-    eelAlert = 2     ' Displayed and , show Warning not Error
-    eelError = 3     ' Displayed and logged
-    eelCritical = 4  ' Cancel operation
+    eelInfo = 2      ' Displayed and logged, show Note (not red)
+    eelAlert = 3     ' Displayed and logged, show Warning not Error
+    eelError = 4     ' Displayed and logged
+    eelCritical = 5  ' Cancel operation
 End Enum
 
 ' Formats used when exporting table data.
