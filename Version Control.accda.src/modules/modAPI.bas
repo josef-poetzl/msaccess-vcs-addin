@@ -21,7 +21,7 @@ End Enum
 ' of the current operation.
 Public Enum eErrorLevel
     eelNoError = 0
-    eelWarning = 1   ' Logged to file
+    eelWarning = 1   ' Logged to file  ... rename to eelLogOnly?
     eelInfo = 2      ' Displayed and logged, show Note (not red)
     eelAlert = 3     ' Displayed and logged, show Warning not Error
     eelError = 4     ' Displayed and logged

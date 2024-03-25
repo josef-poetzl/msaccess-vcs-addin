@@ -603,8 +603,10 @@ Private Sub LogErrorMessage(ByVal errorMessage As String, ByVal ErrorMessageSour
                 ErrorLevel = eelAlert
             Case "Critical", "FATAL"
                 ErrorLevel = eelCritical
-            Case "Log", "Note", "Success", "Info"
+            Case "Note", "Success", "Info"
                 ErrorLevel = eelInfo
+            Case "Log"
+                ErrorLevel = eelWarning
             Case Else
                 ErrorLevel = eelAlert
                 ErrorLevelEndPos = 0 ' don't remove String before ":"
