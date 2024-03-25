@@ -560,8 +560,8 @@ End Property
 
 Public Property Let SilentMode(ByVal RunInSilentMode As Boolean)
     If RunInSilentMode Then
-        InteractionMode = eimSilent
+        SetInteractionMode eimSilent
     Else
-        InteractionMode = eimNormal
+        SetInteractionMode eimNormal
     End If
 End Property

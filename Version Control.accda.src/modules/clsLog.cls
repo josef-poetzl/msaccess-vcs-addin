@@ -200,6 +200,7 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
             strColor = "blue"
         Case Else
             strPrefix = "INFO: "
+            MsgBoxPrefix = "Info"
             MsgBoxStyle = vbInformation
     End Select
 
