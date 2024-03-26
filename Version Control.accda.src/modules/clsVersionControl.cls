@@ -565,3 +565,18 @@ Public Property Let SilentMode(ByVal RunInSilentMode As Boolean)
         SetInteractionMode eimNormal
     End If
 End Property
+
+'---------------------------------------------------------------------------------------
+' Sub  : AddLog
+' Purpose   : Save Log from external (using API)
+'---------------------------------------------------------------------------------------
+'
+Public Sub AddLog(strText As String, Optional blnPrint As Boolean = True, _
+         Optional blnNextOutputOnNewLine As Boolean = True, _
+         Optional strColor As String = vbNullString, _
+         Optional blnBold As Boolean = False, _
+         Optional blnItalic As Boolean = False)
+
+   Log.Add strText, blnPrint, blnNextOutputOnNewLine, strColor, blnBold, blnItalic
+
+End Sub
