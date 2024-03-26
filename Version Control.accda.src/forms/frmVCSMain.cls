@@ -28,6 +28,7 @@ Public strLastLogFilePath As String
 ' Use this property to set the path to the source files (such as a build triggered from the API)
 Public strSourcePath As String
 
+Private m_ExportStartedByForm As Boolean
 
 '---------------------------------------------------------------------------------------
 ' Procedure : cmdBuild_Click
@@ -270,7 +271,8 @@ End Function
 ' Purpose   : Export source code from current database
 '---------------------------------------------------------------------------------------
 '
-Public Sub cmdExport_Click()
+Private Sub cmdExport_Click()
+    m_ExportStartedByForm = True
     RunExport
 End Sub
 
@@ -419,6 +421,12 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Sub AutoClose(Optional CloseTimerInterval As Long = 2000)
+
+    ' do not auto close if export started by button click
+    If m_ExportStartedByForm Then
+       Exit Sub
+    End If
+
     'The procedure may be called when the form has been closed.
     'In this case, a VBA error may occur, so we check if the
     'form is loaded before setting the property. We do not use
@@ -430,6 +438,7 @@ Public Sub AutoClose(Optional CloseTimerInterval As Long = 2000)
             Me.TimerInterval = CloseTimerInterval
         End If
     End If
+
 End Sub
 
 
