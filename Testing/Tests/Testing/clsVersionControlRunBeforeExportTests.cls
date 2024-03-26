@@ -92,11 +92,12 @@ Public Sub TestRunBeforeExport_CallBooleanFunction_CheckCallAndErrorLevelFailed(
 End Sub
 
 'AccUnit:Row("Log: ...", 1, False).Name = "Log"
-'AccUnit:Row("Info: ...", 2, True).Name = "Info"
-'AccUnit:Row("Success: ...", 2, True).Name = "Success"
-'AccUnit:Row("Note: ...", 2, True).Name = "Note"
+'AccUnit:Row("Info: ...", 2, False).Name = "Info"
+'AccUnit:Row("Success: ...", 2, False).Name = "Success"
+'AccUnit:Row("Note: ...", 2, False).Name = "Note"
 'AccUnit:Row("Warning: ...", 3, True).Name = "Warning"
 'AccUnit:Row("Alert: ...", 3, True).Name = "Alert"
+'AccUnit:Row("Failed: ...", 3, True).Name = "Failed"
 'AccUnit:Row("Error: ...", 4, true).Name = "Error"
 'AccUnit:Row("Critical: ...", 5, true).Name = "Critical"
 Public Sub TestRunBeforeExport_CallStringFunction_CheckCallAndErrorLevelFailed( _

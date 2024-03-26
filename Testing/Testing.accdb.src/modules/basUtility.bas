@@ -6,6 +6,10 @@ Option Explicit
 ' This way we don't have to recreate this object dozens of times while using VCS.
 Private m_FSO As Scripting.FileSystemObject
 
+' for UncPath
+Private Declare PtrSafe Function WNetGetConnection Lib "mpr.dll" Alias "WNetGetConnectionA" ( _
+         ByVal lpszLocalName As String, ByVal lpszRemoteName As String, cbRemoteName As Long) As Long
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : FSO
@@ -98,7 +102,9 @@ Public Function GetVBProjectForCurrentDB() As VBProject
     Dim objProj As Object
     Dim strPath As String
 
-    strPath = CurrentProject.FullName
+    ' Note: objProj.FileName is UncPath
+    strPath = UncPath(CurrentProject.FullName)
+
     If VBE.ActiveVBProject.FileName = strPath Then
         ' Use currently active project
         Set GetVBProjectForCurrentDB = VBE.ActiveVBProject
@@ -111,6 +117,28 @@ Public Function GetVBProjectForCurrentDB() As VBProject
             End If
         Next objProj
     End If
+
+End Function
+
+Private Function UncPath(ByVal Path As String, Optional ByVal IgnoreErrors As Boolean = True) As String
+
+   Dim UNC As String * 512
+
+   If VBA.Len(Path) = 1 Then Path = Path & ":"
+
+   If WNetGetConnection(VBA.Left$(Path, 2), UNC, VBA.Len(UNC)) Then
+
+      If IgnoreErrors Then
+         UncPath = Path
+      Else
+         Err.Raise 5 ' Invalid procedure call or argument
+      End If
+
+   Else
+
+      UncPath = VBA.Left$(UNC, VBA.InStr(UNC, vbNullChar) - 1) & VBA.Mid$(Path, 3)
+
+   End If
 
 End Function
 
