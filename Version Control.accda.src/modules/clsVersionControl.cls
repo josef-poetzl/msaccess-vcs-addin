@@ -111,7 +111,7 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
         .Visible = True
         .RunExport
         ExportErrorLevel = Log.ErrorLevel
-        If ExportErrorLevel <= eelWarning Then
+        If ExportErrorLevel <= eelInfo Then
             If InteractionMode = eimSilent Then
                 .AutoClose 0
             Else

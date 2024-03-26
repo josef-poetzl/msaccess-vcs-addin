@@ -22,7 +22,7 @@ End Enum
 Public Enum eErrorLevel
     eelNoError = 0
     eelWarning = 1   ' Logged to file  ... rename to eelLogOnly?
-    eelInfo = 2      ' Displayed and logged, show Note (not red)
+    eelInfo = 2      ' Displayed and logged, show Note (not red) - allow AutoClose
     eelAlert = 3     ' Displayed and logged, show Warning not Error
     eelError = 4     ' Displayed and logged
     eelCritical = 5  ' Cancel operation

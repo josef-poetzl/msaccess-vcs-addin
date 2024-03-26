@@ -599,7 +599,7 @@ Private Sub LogErrorMessage(ByVal errorMessage As String, ByVal ErrorMessageSour
         Select Case Trim(Left(errorMessage, ErrorLevelEndPos - 1))
             Case "Error"
                 ErrorLevel = eelError
-            Case "Warning", "Alert"
+            Case "Warning", "Alert", "Failed"
                 ErrorLevel = eelAlert
             Case "Critical", "FATAL"
                 ErrorLevel = eelCritical
