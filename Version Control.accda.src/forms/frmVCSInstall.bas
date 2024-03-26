@@ -1095,6 +1095,39 @@ Begin Form
                                     BackThemeColorIndex =-1
                                     BackTint =100.0
                                 End
+                                Begin CheckBox
+                                    TabStop = NotDefault
+                                    OverlapFlags =215
+                                    Left =660
+                                    Top =3098
+                                    TabIndex =4
+                                    Name ="chkCreateCompiledVersion"
+                                    DefaultValue ="False"
+
+                                    LayoutCachedLeft =660
+                                    LayoutCachedTop =3098
+                                    LayoutCachedWidth =920
+                                    LayoutCachedHeight =3338
+                                    Begin
+                                        Begin Label
+                                            OverlapFlags =215
+                                            Left =945
+                                            Top =3091
+                                            Width =2595
+                                            Height =300
+                                            FontSize =10
+                                            ForeColor =5324600
+                                            Name ="Label68"
+                                            Caption ="Create compiled version"
+                                            LayoutCachedLeft =945
+                                            LayoutCachedTop =3091
+                                            LayoutCachedWidth =3540
+                                            LayoutCachedHeight =3391
+                                            ForeThemeColorIndex =-1
+                                            ForeTint =100.0
+                                        End
+                                    End
+                                End
                             End
                         End
                     End
