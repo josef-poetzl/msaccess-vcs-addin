@@ -28,6 +28,11 @@ Public strLastLogFilePath As String
 ' Use this property to set the path to the source files (such as a build triggered from the API)
 Public strSourcePath As String
 
+Private m_SelfRef As Form
+
+Public Sub KeepReference()
+   Set m_SelfRef = Me
+End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : cmdBuild_Click
@@ -242,8 +247,9 @@ End Sub
 Private Sub cmdClose_Click()
     ' Ignore the error if the user resumes (cancels the close operation)
     LogUnhandledErrors
+    Set m_SelfRef = Nothing
     On Error Resume Next
-    DoCmd.Close acForm, Me.Name
+    DoCmd.Close ' acForm, Me.Name
     Catch 2501  ' Close form was canceled.
 End Sub
 

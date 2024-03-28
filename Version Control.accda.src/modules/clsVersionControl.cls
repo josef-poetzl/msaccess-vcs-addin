@@ -97,8 +97,8 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject)
-    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
-    With Form_frmVCSMain
+    With New Form_frmVCSMain
+        .KeepReference
         If objItem Is Nothing Then
             .intContainerFilter = intFilter
         Else
