@@ -53,10 +53,13 @@ End Sub
 ' Purpose   : Export the source code for the current database
 '---------------------------------------------------------------------------------------
 '
-Public Sub Export()
-    If HasFormOpen Then Exit Sub
-    RunExport ecfAllObjects
-End Sub
+Public Function Export() As eErrorLevel
+    If HasFormOpen Then
+        Export = eelCritical
+        Exit Function
+    End If
+    Export = RunExport(ecfAllObjects)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -66,10 +69,13 @@ End Sub
 ' Purpose   : Export just the VBA related components
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportVBA()
-    If HasFormOpen Then Exit Sub
-    RunExport ecfVBAItems
-End Sub
+Public Function ExportVBA() As eErrorLevel
+    If HasFormOpen Then
+        ExportVBA = eelCritical
+        Exit Function
+    End If
+    ExportVBA = RunExport(ecfVBAItems)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -79,24 +85,27 @@ End Sub
 ' Purpose   : Export the selected object
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSelected()
+Public Function ExportSelected() As eErrorLevel
 
     Dim objSelected As AccessObject
 
-    If HasFormOpen Then Exit Sub
+    If HasFormOpen Then
+        ExportSelected = eelCritical
+        Exit Function
+    End If
 
     Set objSelected = GetSelectedNavPaneObject
     If objSelected Is Nothing Then
+        ExportSelected = eelCritical
         MsgBox2 "Please Select an Object First", _
             "Select a single object in the Navigation Pane to export.", _
             "(This item must have the keyboard focus.)", vbInformation
-        ExportSelected = eelCritical
     Else
         ' Export the item
         ExportSelected = RunExport(, objSelected)
     End If
 
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -106,7 +115,8 @@ End Sub
 ' Purpose   : Handle different kinds of exports based on filter
 '---------------------------------------------------------------------------------------
 '
-Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject) As eErrorLevel
+Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, _
+                           Optional objItem As AccessObject) As eErrorLevel
 
     Dim ExportErrorLevel As eErrorLevel
 
@@ -132,7 +142,6 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
     RunExport = ExportErrorLevel
 
 End Function
-
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Build
@@ -523,9 +532,9 @@ Private Sub SaveState()
 
     ' Error trapping setting. (We need this to "Break in Class Modules" for this add-in)
     strValue = Application.GetOption("Error Trapping")
-    If strValue <> "2" Then
+    If strValue < "1" Then
         PreserveSetting "Error Trapping", strValue
-        Application.SetOption "Error Trapping", 2
+        Application.SetOption "Error Trapping", 1
     End If
 
 End Sub
@@ -646,9 +655,9 @@ Private Function HasFormOpen(Optional blnWarnUser As Boolean = True) As Boolean
                     End If
                     MsgBox2 "Add-in Form Already Open", _
                         "Please close '" & strCaption & "' before running this action.", , vbInformation
-                    HasFormOpen = True
-                    Exit Function
                 End If
+                HasFormOpen = True
+                Exit Function
             End If
         End If
     Next

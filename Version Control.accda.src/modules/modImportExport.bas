@@ -294,10 +294,11 @@ Private Function TryRunAddInProcedure(ByVal ProcedureName As String) As Boolean
 
 If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 
-    ProcedureName = Replace(ProcedureName, "%appdata%", Environ("appdata"))
+    ProcedureName = Replace(ProcedureName, "%addins%", Environ$("appdata") & "\Microsoft\AddIns")
+    ProcedureName = Replace(ProcedureName, "%appdata%", Environ$("appdata"))
 
-    AddInFile = Left(ProcedureName, InStrRev(ProcedureName, ".")) & "accda"
-    If Len(VBA.Dir(AddInFile)) = 0 Then
+    AddInFile = Left$(ProcedureName, InStrRev(ProcedureName, ".")) & "accda"
+    If Len(Dir(AddInFile)) = 0 Then
         Exit Function ' or raise error?
     End If
 
