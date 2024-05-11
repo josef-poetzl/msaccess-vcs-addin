@@ -89,15 +89,6 @@ Public Enum eDatabaseServerType
     estMySql
 End Enum
 
-' Error levels used for logging and monitoring the status
-' of the current operation.
-Public Enum eErrorLevel
-    eelNoError
-    eelWarning      ' Logged to file
-    eelError        ' Displayed and logged
-    eelCritical     ' Cancel operation
-End Enum
-
 ' Compare mode for cloning dictionary object
 ' See CloneDictionary function
 Public Enum eCompareMethod2

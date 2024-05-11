@@ -45,6 +45,7 @@ Public Sub cmdRunTests_Click()
     '========================
     '   BEGIN TESTS
     '========================
+On Error GoTo HandleTestError ' clear strTest after error
 
     ' Tables
     strTest = dbs.TableDefs("tblInternal").Name
@@ -181,10 +182,11 @@ Public Sub cmdRunTests_Click()
     ' Other
     ShowResult "VCS Options file exists", FSO.FileExists(ExportFolder & "vcs-options.json")
 
-
     '========================
     '   END TESTS
     '========================
+
+    On Error Resume Next
 
     ' Display results
     lblResults.Caption = _
@@ -198,6 +200,15 @@ Public Sub cmdRunTests_Click()
     End If
 
     If Err Then Err.Clear
+
+ExitHere:
+    Exit Sub
+
+HandleTestError:
+   strTest = Err.Description
+   Debug.Print "Error " & Err.Number, Err.Description
+   Err.Clear
+   Resume Next
 
 End Sub
 

@@ -17,6 +17,17 @@ Public Enum eInteractionMode
     eimSilent = 1
 End Enum
 
+' Error levels used for logging and monitoring the status
+' of the current operation.
+Public Enum eErrorLevel
+    eelNoError = 0
+    eelWarning = 1   ' Logged to file  ... rename to eelLogOnly?
+    eelInfo = 2      ' Displayed and logged, show Note (not red) - allow AutoClose
+    eelAlert = 3     ' Displayed and logged, show Warning not Error
+    eelError = 4     ' Displayed and logged
+    eelCritical = 5  ' Cancel operation
+End Enum
+
 ' Formats used when exporting table data.
 Public Enum eTableDataExportFormat
     etdNoData = 0
