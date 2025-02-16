@@ -58,10 +58,10 @@ End Sub
 ' Purpose   : Export the source code for the current database
 '---------------------------------------------------------------------------------------
 '
-Public Sub Export()
-    If HasFormOpen Then Exit Sub
-    RunExport ecfAllObjects
-End Sub
+Public Function Export() As eErrorLevel
+    If HasFormOpen Then Exit Function
+    Export = RunExport(ecfAllObjects)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -71,10 +71,10 @@ End Sub
 ' Purpose   : Export just the VBA related components
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportVBA()
-    If HasFormOpen Then Exit Sub
-    RunExport ecfVBAItems
-End Sub
+Public Function ExportVBA() As eErrorLevel
+    If HasFormOpen Then Exit Function
+    ExportVBA = RunExport(ecfVBAItems)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -84,23 +84,24 @@ End Sub
 ' Purpose   : Export the selected object
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSelected()
+Public Function ExportSelected() As eErrorLevel
 
     Dim objSelected As AccessObject
 
-    If HasFormOpen Then Exit Sub
+    If HasFormOpen Then Exit Function
 
     Set objSelected = GetSelectedNavPaneObject
     If objSelected Is Nothing Then
+        ExportSelected = eelCritical
         MsgBox2 "Please Select an Object First", _
             "Select a single object in the Navigation Pane to export.", _
             "(This item must have the keyboard focus.)", vbInformation
     Else
         ' Export the item
-        RunExport , objSelected
+        ExportSelected = RunExport(, objSelected)
     End If
 
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -110,7 +111,10 @@ End Sub
 ' Purpose   : Handle different kinds of exports based on filter
 '---------------------------------------------------------------------------------------
 '
-Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject)
+Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject) As eErrorLevel
+
+    Dim ExportErrorLevel As eErrorLevel
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         If objItem Is Nothing Then
@@ -120,9 +124,19 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
         End If
         .Visible = True
         .cmdExport_Click
-        If Log.ErrorLevel < eelError Then .AutoClose
+        ExportErrorLevel = Log.ErrorLevel
+        If ExportErrorLevel <= eelInfo Then
+            If InteractionMode = eimSilent Then
+                .AutoClose 0
+            Else
+                .AutoClose
+            End If
+        End If
     End With
-End Sub
+
+    RunExport = ExportErrorLevel
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -566,7 +580,7 @@ Private Sub SaveState()
 
     ' Error trapping setting. (We need this to "Break in Class Modules" for this add-in)
     strValue = Application.GetOption("Error Trapping")
-    If strValue <> "1" Then
+    If strValue < "1" Then  ' 2 should also work
         PreserveSetting "Error Trapping", strValue
         Application.SetOption "Error Trapping", 1
     End If
@@ -666,3 +680,36 @@ Private Function HasFormOpen(Optional blnWarnUser As Boolean = True) As Boolean
     Next
 
 End Function
+
+
+'---------------------------------------------------------------------------------------
+' Property  : SilentMode
+' Purpose   : Activate InteractionMode = eimSilent inside VCS
+'---------------------------------------------------------------------------------------
+'
+Public Property Get SilentMode() As Boolean
+    SilentMode = (InteractionMode = eimSilent)
+End Property
+
+Public Property Let SilentMode(ByVal RunInSilentMode As Boolean)
+    If RunInSilentMode Then
+        SetInteractionMode eimSilent
+    Else
+        SetInteractionMode eimNormal
+    End If
+End Property
+
+'---------------------------------------------------------------------------------------
+' Procedure : AddLog
+' Purpose   : Save Log from external (using API)
+'---------------------------------------------------------------------------------------
+'
+Public Sub AddLog(strText As String, Optional blnPrint As Boolean = True, _
+         Optional blnNextOutputOnNewLine As Boolean = True, _
+         Optional strColor As String = vbNullString, _
+         Optional blnBold As Boolean = False, _
+         Optional blnItalic As Boolean = False)
+
+   Log.Add strText, blnPrint, blnNextOutputOnNewLine, strColor, blnBold, blnItalic
+
+End Sub
