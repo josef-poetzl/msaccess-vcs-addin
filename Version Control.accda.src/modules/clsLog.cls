@@ -171,11 +171,37 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
 
     Dim strPrefix As String
     Dim strDisplay As String
+    Dim bolLogToFile As Boolean
+    Dim bolDisplay As Boolean
+    Dim MsgBoxStyle As VbMsgBoxStyle
+    Dim MsgBoxPrefix As String
+    Dim strColor As String
+
+    bolDisplay = (eLevel > eelWarning)
+    strColor = "red"
 
     Select Case eLevel
-        Case eelWarning:    strPrefix = "WARNING: "
-        Case eelError:      strPrefix = "ERROR: "
-        Case eelCritical:   strPrefix = "CRITICAL: "
+        Case eErrorLevel.eelError
+            strPrefix = "ERROR: "
+            MsgBoxPrefix = "Error"
+            MsgBoxStyle = vbExclamation
+        Case eErrorLevel.eelWarning, eErrorLevel.eelAlert
+            strPrefix = "WARNING: "
+            MsgBoxPrefix = "Warning"
+            MsgBoxStyle = vbInformation
+        Case eErrorLevel.eelCritical
+            strPrefix = "CRITICAL: "
+            MsgBoxPrefix = "Critical"
+            MsgBoxStyle = vbCritical
+        Case eErrorLevel.eelInfo
+            strPrefix = "INFO: "
+            MsgBoxPrefix = "Info"
+            MsgBoxStyle = vbInformation
+            strColor = "blue"
+        Case Else
+            strPrefix = "INFO: "
+            MsgBoxPrefix = "Info"
+            MsgBoxStyle = vbInformation
     End Select
 
     ' Build the error message string.
@@ -189,31 +215,33 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
         End If
 
         ' Log all errors, and display on the output screen anything higher than a warning
-        Me.Add vbNullString, (eLevel > eelWarning)
-        Me.Spacer (eLevel > eelWarning)
-        Me.Add strDisplay, (eLevel > eelWarning), , "red"
+        Me.Add vbNullString, bolDisplay
+        Me.Spacer bolDisplay
+        Me.Add strDisplay, bolDisplay, , strColor
 
         ' Log the additional error and source details to the log file
         If Err Then .Add "Error ", Err.Number, ": ", Err.Description, " "
         If strSource <> vbNullString Then .Add "Source: ", strSource
         Me.Add .GetStr, False
-        Me.Spacer (eLevel > eelWarning)
+        Me.Spacer bolDisplay
         Me.Flush ' Force a screen update.
         ' See if we are actively logging an operation
         If Log.Active Then
             ' Show message box for fatal error.
             If eLevel = eelCritical Then
-                MsgBox2 "Unable to Continue", .GetStr, _
-                    "Please review the log file for additional details.", vbCritical
+                If InteractionMode = eimSilent Then
+                    Me.Add "Unable to Continue", True, , "red", True
+                    Me.Add "Please review the log file for additional details.", True
+                Else
+                    MsgBox2 "Unable to Continue", .GetStr, _
+                            "Please review the log file for additional details.", vbCritical
+                End If
             End If
         Else
             ' Show message on any error level when we are not logging to a file.
-            Select Case eLevel
-                Case eelNoError:    ' Do nothing
-                Case eelWarning:    MsgBox2 "Warning", strDisplay, .GetStr, vbInformation
-                Case eelError:      MsgBox2 "Error", strDisplay, .GetStr, vbExclamation
-                Case eelCritical:   MsgBox2 "Critical", strDisplay, .GetStr, vbCritical
-            End Select
+            If eLevel > 0 Then
+                MsgBox2 MsgBoxPrefix, strDisplay, .GetStr, MsgBoxStyle
+            End If
         End If
     End With
 
