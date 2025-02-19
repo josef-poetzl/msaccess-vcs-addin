@@ -94,8 +94,8 @@ Public Function ExportSelected() As eErrorLevel
     If objSelected Is Nothing Then
         ExportSelected = eelCritical
         MsgBox2 "Please Select an Object First", _
-            "Select a single object in the Navigation Pane to export.", _
-            "(This item must have the keyboard focus.)", vbInformation
+            "Select a single object in the Navigation Pane to export (this item must have the keyboard focus).", _
+            "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
         ' Export the item
         ExportSelected = RunExport(, objSelected)
@@ -292,8 +292,8 @@ Public Sub LoadSelected()
     Set objSelected = GetSelectedNavPaneObject
     If objSelected Is Nothing Then
         MsgBox2 "Please Select an Object First", _
-            "Select a single object in the Navigation Pane to reload from source.", _
-            "(This item must have the keyboard focus.)", vbInformation
+            "Select a single object in the Navigation Pane to reload from source (this item must have the keyboard focus).", _
+            "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
         ' Remove all object references to selected item
         Set cComponentClass = GetClassFromObject(objSelected)
