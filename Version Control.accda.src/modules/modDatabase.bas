@@ -554,13 +554,13 @@ Public Sub RunSubInCurrentProject(strSubName As String)
 
     ' Check for add-in project name
     If StrComp(CurrentVBProject.Name, GetAddInProject.Name, vbTextCompare) = 0 Then
-        ' Temporarily rename the add-in project so the sub runs in the current project.
-        GetAddInProject.Name = "MSAccessVCS-Lib"
-        Application.Run strCmd
-        GetAddInProject.Name = PROJECT_NAME
-    Else
-        Application.Run strCmd
+        ' Temporarily rename the add-in project so the sub runs in the current project ... Not required: call with full name
+        Dim FilenameWithoutFileExt As String
+        FilenameWithoutFileExt = Left(CurrentVBProject.FileName, Len(CurrentVBProject.FileName) - Len(".accda"))
+        strCmd = Replace(strCmd, "[" & CurrentVBProject.Name & "]", FilenameWithoutFileExt)
     End If
+
+    Application.Run strCmd
 
 End Sub
 
