@@ -171,7 +171,6 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
 
     Dim strPrefix As String
     Dim strDisplay As String
-    Dim bolLogToFile As Boolean
     Dim bolDisplay As Boolean
     Dim lngMsgBoxStyle As VbMsgBoxStyle
     Dim strMsgBoxPrefix As String
