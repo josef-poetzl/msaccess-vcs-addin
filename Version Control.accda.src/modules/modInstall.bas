@@ -158,8 +158,13 @@ Public Sub InstallVCSAddin(blnTrustFolder As Boolean, blnUseRibbon As Boolean, b
 
     ' Register the Menu controls
     RegisterMenuItem "&VCS Open", "=AddInMenuItemLaunch()"
-    RegisterMenuItem "&VCS Options", "=AddInOptionsLaunch()"
-    RegisterMenuItem "&VCS Export All Source", "=AddInMenuItemExport()"
+    If blnUseRibbon Then ' Options and export menu items are not required when using the ribbon.
+        RemoveMenuItem "&VCS Options"
+        RemoveMenuItem "&VCS Export All Source"
+    Else
+        RegisterMenuItem "&VCS Options", "=AddInOptionsLaunch()"
+        RegisterMenuItem "&VCS Export All Source", "=AddInMenuItemExport()"
+    End If
 
     ' Update installed version number
     InstalledVersion = AppVersion
