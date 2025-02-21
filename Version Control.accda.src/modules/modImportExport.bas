@@ -103,7 +103,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         Log.Add T("Running {0}...", var0:=Options.RunBeforeExport)
         Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport
+        ApplicationRunProcedure Options.RunBeforeExport
         Perf.OperationEnd
     End If
 
@@ -246,7 +246,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If Options.RunAfterExport <> vbNullString Then
         Log.Add T("Running {0}...", var0:=Options.RunAfterExport)
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport
+        ApplicationRunProcedure Options.RunAfterExport
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If
@@ -811,7 +811,7 @@ Public Sub Build(strSourceFolder As String _
         If strText <> vbNullString Then
             Log.Add T("Running {0}...", var0:=strText)
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject strText
+            ApplicationRunProcedure strText
             Perf.OperationEnd
         End If
 
@@ -1073,7 +1073,7 @@ Public Sub Build(strSourceFolder As String _
         If Options.RunAfterBuild <> vbNullString Then
             Log.Add T("Running {0}...", var0:=Options.RunAfterBuild)
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            ApplicationRunProcedure Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
@@ -1081,7 +1081,7 @@ Public Sub Build(strSourceFolder As String _
         If Options.RunAfterMerge <> vbNullString Then
             Log.Add T("Running {0}...", Options.RunAfterMerge)
             Perf.OperationStart "RunAfterMerge"
-            RunSubInCurrentProject Options.RunAfterMerge
+            ApplicationRunProcedure Options.RunAfterMerge
             Perf.OperationEnd
         End If
     End If
@@ -1587,7 +1587,7 @@ Private Sub PrepareRunBootstrap()
         ' Run any pre-build bootstrapping code
         Log.Add T("Running {0}", var0:=Options.RunBeforeBuild)
         Perf.OperationStart "RunBeforeBuild"
-        RunSubInCurrentProject strName
+        ApplicationRunProcedure strName
         Perf.OperationEnd
     End If
 
@@ -1669,3 +1669,41 @@ Public Sub InitializeForms(cContainers As Dictionary)
     CatchAny eelError, "Unhandled error while initializing forms", ModuleName & ".InitializeForms"
 
 End Sub
+
+Private Sub ApplicationRunProcedure(ByVal strProcedureName As String)
+
+    If InStr(1, strProcedureName, ".") Then
+        If TryRunAddInProcedure(strProcedureName) Then
+            Exit Sub
+        End If
+    End If
+
+    RunSubInCurrentProject strProcedureName
+
+End Sub
+
+Private Function TryRunAddInProcedure(ByVal strProcedureName As String) As Boolean
+
+    Dim strAddInFile As String
+
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    strProcedureName = Replace(strProcedureName, "%addins%", Environ$("appdata") & "\Microsoft\AddIns", , , vbTextCompare)
+    strProcedureName = Replace(strProcedureName, "%appdata%", Environ("appdata"), , , vbTextCompare)
+
+    strAddInFile = Left(strProcedureName, InStrRev(strProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(strAddInFile)) = 0 Then
+        Exit Function ' or raise error?
+    End If
+
+    TryRunAddInProcedure = True
+    ExecuteLoggedApplicationRun strProcedureName
+
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
