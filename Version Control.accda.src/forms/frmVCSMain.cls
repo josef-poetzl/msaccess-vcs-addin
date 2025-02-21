@@ -160,8 +160,6 @@ End Function
 '
 Public Sub StartBuild(blnFullBuild As Boolean)
 
-    Dim strType As String
-
     cmdClose.SetFocus
     HideActionButtons
     DoEvents
