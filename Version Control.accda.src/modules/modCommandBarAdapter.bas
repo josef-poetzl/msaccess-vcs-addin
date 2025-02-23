@@ -4,7 +4,7 @@ Option Explicit
 
 Private m_CommandBarAdapter As clsCommandBarAdapter
 
-Public Sub InitVbeCommandBarAdapter(Optional ByVal ForceNewInstance As Boolean = False)
+Public Sub InitCommandBarAdapter(Optional ByVal ForceNewInstance As Boolean = False)
 
     If ForceNewInstance Then
         DisposeCommandBarAdapter

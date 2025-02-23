@@ -532,7 +532,7 @@ Private Sub Class_Initialize()
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
 
     ' Test commandbar buttons:
-    InitVbeCommandBarAdapter ' only for test .. start this later with ribbon oder ribbon add-in?
+    InitCommandBarAdapter  ' only for test .. start this later with ribbon oder ribbon add-in?
 
 End Sub
 

@@ -49,7 +49,7 @@ Private Sub AddSelectedCommandButtons(ByVal strCommandCode As String, ByVal strC
     AddCommandBarButton strCommandCode, Application.CommandBars, "Navigation Pane object Pop-up", strCaption, FaceId, 0, bolBeginGroup
 
     AddCommandBarButton strCommandCode, VBE.CommandBars, "Code Window", strCaption, FaceId, 473, bolBeginGroup
-    AddCommandBarButton strCommandCode, VBE.CommandBars, "Project Window", strCaption, FaceId, 4, bolBeginGroup
+    AddCommandBarButton strCommandCode, VBE.CommandBars, "Project Window", strCaption, FaceId, 2578, bolBeginGroup
 
 End Sub
 
