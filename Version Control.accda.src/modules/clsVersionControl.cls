@@ -530,6 +530,10 @@ Private Sub Class_Initialize()
     ' This way if the COM add-in is not active, it will be automatically activated
     ' when the add-in is opened from the [Database Tools\Add-ins] menu. (See #451)
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
+
+    ' Test commandbar buttons:
+    InitVbeCommandBarAdapter ' only for test .. start this later with ribbon oder ribbon add-in?
+
 End Sub
 
 
