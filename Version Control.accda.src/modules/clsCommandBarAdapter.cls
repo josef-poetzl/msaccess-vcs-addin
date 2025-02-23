@@ -12,6 +12,7 @@ Option Explicit
 
 Private m_ButtonAdapters As Collection
 Private WithEvents m_EventBridge As clsCommandBarAdapterEventBridge
+Attribute m_EventBridge.VB_VarHelpID = -1
 
 Private Const CompareSelectedWithBaseCommandCode As String = "CompareSelectedWithBase"
 Private Const ExportSelectedCommandCode As String = "ExportSelected"
