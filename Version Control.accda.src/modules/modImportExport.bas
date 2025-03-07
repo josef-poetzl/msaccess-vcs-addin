@@ -1670,23 +1670,52 @@ Public Sub InitializeForms(cContainers As Dictionary)
 
 End Sub
 
-Private Sub ApplicationRunProcedure(ByVal strProcedureName As String)
+Private Sub ApplicationRunProcedure(ByVal strRunProceduresStatement As String)
 
-    If InStr(1, strProcedureName, ".") Then
-        If TryRunAddInProcedure(strProcedureName) Then
-            Exit Sub
-        End If
+    Dim ProcedureCalls() As String
+    Dim strProcedureCall As String
+
+    If InStr(1, strRunProceduresStatement, ":") Then
+        ProcedureCalls = GetProcedureCalls(strRunProceduresStatement)
+    Else
+        ReDim ProcedureCalls(0)
+        ProcedureCalls(0) = strRunProceduresStatement
     End If
 
-    RunSubInCurrentProject strProcedureName
+    Dim i As Long
+    For i = LBound(ProcedureCalls) To UBound(ProcedureCalls)
+        strProcedureCall = ProcedureCalls(i)
+        If InStr(1, strProcedureCall, ".") Then
+            If Not TryRunAddInProcedure(strProcedureCall) Then
+                RunSubInCurrentProject strProcedureCall
+            End If
+        Else
+            RunSubInCurrentProject strProcedureCall
+        End If
+        If Log.ErrorLevel = eelCritical Then
+            Exit Sub
+        End If
+    Next
 
 End Sub
+
+Private Function GetProcedureCalls(ByVal strProcedureName As String) As String()
+
+    Const RegExPattern As String = "[^:()]+(?:\([^)]*\))?" ' split by : + ignore : inside " e.g. proc("a:b"):proc2
+
+    GetProcedureCalls = clsRegExpSupport.RegExSplit(strProcedureName, RegExPattern)
+
+End Function
 
 Private Function TryRunAddInProcedure(ByVal strProcedureName As String) As Boolean
 
     Dim strAddInFile As String
 
 If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    If Len(strProcedureName) = 0 Then
+        Exit Function
+    End If
 
     strProcedureName = Replace(strProcedureName, "%addins%", Environ$("appdata") & "\Microsoft\AddIns", , , vbTextCompare)
     strProcedureName = Replace(strProcedureName, "%appdata%", Environ("appdata"), , , vbTextCompare)
