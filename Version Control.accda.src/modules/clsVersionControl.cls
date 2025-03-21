@@ -319,12 +319,14 @@ Friend Sub LoadObject(ByVal objToLoad As AccessObject)
 
     If HasFormOpen Then Exit Sub
 
+    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
+    Form_frmVCSMain.StartBuild False
     LoadObjectProc objToLoad
+    Form_frmVCSMain.FinishBuild False
 
 End Sub
 
 Private Sub LoadObjectProc(objToLoad As AccessObject)
-
 
     Dim cComponentClass As IDbComponent
     Dim strObjectName As String
@@ -339,26 +341,31 @@ Private Sub LoadObjectProc(objToLoad As AccessObject)
     End With
 
     ' Import the object from source files
-    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
-    Form_frmVCSMain.StartBuild False
     LoadSingleObject cComponentClass, strObjectName, strSourceFilePath
-    Form_frmVCSMain.FinishBuild False
 
 End Sub
 
-Friend Sub LoadObjects(ByRef objToLoad() As AccessObject)
+Friend Sub LoadObjects(ByRef arrObjects() As AccessObject)
 
     Dim cComponentClass As IDbComponent
     Dim strObjectName As String
     Dim strSourceFilePath As String
+    Dim i As Long
 
-    If objToLoad(0) Is Nothing Then
+    If IsEmptyArray(arrObjects) Then
         Exit Sub
     End If
 
     If HasFormOpen Then Exit Sub
 
-    LoadObjectProc objToLoad(0)
+    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
+    Form_frmVCSMain.StartBuild False
+
+    For i = LBound(arrObjects) To UBound(arrObjects)
+        LoadObjectProc arrObjects(i)
+    Next
+
+    Form_frmVCSMain.FinishBuild False
 
 End Sub
 
