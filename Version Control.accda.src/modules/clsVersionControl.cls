@@ -88,17 +88,26 @@ Public Sub ExportSelected()
 
     Dim objSelected As AccessObject
 
-    If HasFormOpen Then Exit Sub
+    objSelected = GetSelectedNavPaneObject
 
-    Set objSelected = GetSelectedNavPaneObject
     If objSelected Is Nothing Then
         MsgBox2 "Please Select an Object First", _
             "Select a single object in the Navigation Pane to export (this item must have the keyboard focus).", _
             "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
-        ' Export the item
-        RunExport , objSelected
+        ExportObject objSelected
     End If
+
+End Sub
+
+Friend Sub ExportObject(ByVal objSelected As AccessObject)
+
+    If objSelected Is Nothing Then
+        Exit Sub
+    End If
+
+    If HasFormOpen Then Exit Sub
+    RunExport , objSelected
 
 End Sub
 
@@ -269,33 +278,45 @@ End Sub
 Public Sub LoadSelected()
 
     Dim objSelected As AccessObject
-    Dim cComponentClass As IDbComponent
-    Dim strObjectName As String
-    Dim strSourceFilePath As String
-
-    If HasFormOpen Then Exit Sub
 
     Set objSelected = GetSelectedNavPaneObject
+
     If objSelected Is Nothing Then
         MsgBox2 "Please Select an Object First", _
             "Select a single object in the Navigation Pane to reload from source (this item must have the keyboard focus).", _
             "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
-        ' Remove all object references to selected item
-        Set cComponentClass = GetClassFromObject(objSelected)
-        With cComponentClass
-            strObjectName = .Name
-            strSourceFilePath = .SourceFile
-            Set .DbObject = Nothing
-        End With
-        Set objSelected = Nothing
-
-        ' Import the object from source files
-        DoCmd.OpenForm "frmVCSMain", , , , , acHidden
-        Form_frmVCSMain.StartBuild False
-        LoadSingleObject cComponentClass, strObjectName, strSourceFilePath
-        Form_frmVCSMain.FinishBuild False
+        LoadObject objSelected
     End If
+
+End Sub
+
+Friend Sub LoadObject(objSelected As AccessObject)
+
+    Dim cComponentClass As IDbComponent
+    Dim strObjectName As String
+    Dim strSourceFilePath As String
+
+    If objSelected Is Nothing Then
+        Exit Sub
+    End If
+
+    If HasFormOpen Then Exit Sub
+
+    ' Remove all object references to selected item
+    Set cComponentClass = GetClassFromObject(objSelected)
+    With cComponentClass
+        strObjectName = .Name
+        strSourceFilePath = .SourceFile
+        Set .DbObject = Nothing
+    End With
+    Set objSelected = Nothing
+
+    ' Import the object from source files
+    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
+    Form_frmVCSMain.StartBuild False
+    LoadSingleObject cComponentClass, strObjectName, strSourceFilePath
+    Form_frmVCSMain.FinishBuild False
 
 End Sub
 
@@ -530,6 +551,10 @@ Private Sub Class_Initialize()
     ' This way if the COM add-in is not active, it will be automatically activated
     ' when the add-in is opened from the [Database Tools\Add-ins] menu. (See #451)
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
+
+    ' Test commandbar buttons:
+    InitCommandBarAdapter  ' only for test .. start this later with ribbon or ribbon add-in?
+
 End Sub
 
 
