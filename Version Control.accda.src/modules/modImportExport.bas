@@ -299,36 +299,39 @@ CleanUp:
 End Sub
 
 
+
 '---------------------------------------------------------------------------------------
 ' Procedure : ExportSingleObject
-' Author    : Adam Waller
-' Date      : 2/22/2023
+' Author    : Adam Waller, Josef Poetzl
+' Date      : 2/22/2023, 3/21/2025
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
 Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain)
 
-    Dim dCategories As Dictionary
-    Dim dCategory As Dictionary
-    Dim dObjects As Dictionary
-    Dim cDbObject As IDbComponent
-    Dim strTempFile As String
-
     ' Guard clause
     If objItem Is Nothing Then Exit Sub
 
+    Dim arrItems(0) As AccessObject
+    Set arrItems(0) = objItem
+
+    ExportObjects arrItems, frmMain
+
+End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : ExportObjects
+' Author    : Adam Waller, Josef Poetzl
+' Date      : 2/22/2023, 3/21/2025
+' Purpose   : Export objects (such as selected items)
+'---------------------------------------------------------------------------------------
+'
+Public Sub ExportObjects(ByRef objItems() As AccessObject, Optional frmMain As Form_frmVCSMain)
+
+    Dim i As Long
+
     ' Use inline error handling functions to trap and log errors.
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
-
-    ' Make sure the object is currently closed
-    With objItem
-        Select Case .Type
-            Case acForm, acMacro, acModule, acQuery, acReport, acTable
-                If SysCmd(acSysCmdGetObjectState, .Type, .Name) <> adStateClosed Then
-                    DoCmd.Close .Type, .Name, acSavePrompt
-                End If
-        End Select
-    End With
 
     ' Reload the project options and reset the logs
     Set VCSIndex = Nothing
@@ -353,11 +356,75 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
         .Add T("Export Folder: {0}", var0:=Options.GetExportFolder), False
         .Add Now
         .Spacer
-        .Add T("Exporting {0}...", var0:=objItem.Name)
+    End With
+
+    Dim Cancelled As Boolean
+    For i = LBound(objItems) To UBound(objItems)
+        ExportObjectProc objItems(i), frmMain, Cancelled
+        If Cancelled Then
+            GoTo CleanUp
+        End If
+    Next
+
+    With Log
+         ' Show final output and save log
+        .Spacer
+        .Add T("Done. ({0} seconds)", var0:=Round(Perf.TotalTime, 2)), , False, "green", True
         .Flush
         ' Save export log file path
         If Not frmMain Is Nothing Then frmMain.strLastLogFilePath = .LogFilePath
     End With
+
+CleanUp:
+
+    ' Run any cleanup routines
+    VCSIndex.ClearTempExportFolder
+
+    ' Add performance data to log file and save file
+    Perf.EndTiming
+    With Log
+        .Add vbNewLine & Perf.GetReports, False
+        .SaveFile
+        .Active = False
+        .Flush
+    End With
+
+    ' Save index file (don't change export date for single item export)
+    VCSIndex.Save
+
+End Sub
+
+Private Sub ExportObjectProc(objItem As AccessObject, frmMain As Form_frmVCSMain, ByRef Cancelled As Boolean)
+
+    Dim dCategories As Dictionary
+    Dim dCategory As Dictionary
+    Dim dObjects As Dictionary
+    Dim cDbObject As IDbComponent
+    Dim strTempFile As String
+
+    ' Guard clause
+    If objItem Is Nothing Then Exit Sub
+
+    ' Use inline error handling functions to trap and log errors.
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
+
+    ' Make sure the object is currently closed
+    With objItem
+        Select Case .Type
+            Case acForm, acMacro, acModule, acQuery, acReport, acTable
+                If SysCmd(acSysCmdGetObjectState, .Type, .Name) <> adStateClosed Then
+                    DoCmd.Close .Type, .Name, acSavePrompt
+                End If
+        End Select
+    End With
+
+    With Log
+        .Add T("Exporting {0}...", var0:=objItem.Name)
+        '.Flush
+    End With
+
+    ' Check error handling mode after loading project options
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
 
     ' Get a database component class from the item
     Set cDbObject = GetClassFromObject(objItem)
@@ -386,7 +453,8 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
                 Log.Spacer
                 Log.Add T("Export Canceled"), , , "Red", True
                 Log.ErrorLevel = eelCritical
-                GoTo CleanUp
+                Cancelled = True
+                Exit Sub
             End If
         End If
     End With
@@ -407,27 +475,6 @@ Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_
             cDbObject.Export
         End If
     End If
-
-    ' Show final output and save log
-    Log.Spacer
-    Log.Add T("Done. ({0} seconds)", var0:=Round(Perf.TotalTime, 2)), , False, "green", True
-
-CleanUp:
-
-    ' Run any cleanup routines
-    VCSIndex.ClearTempExportFolder
-
-    ' Add performance data to log file and save file
-    Perf.EndTiming
-    With Log
-        .Add vbNewLine & Perf.GetReports, False
-        .SaveFile
-        .Active = False
-        .Flush
-    End With
-
-    ' Save index file (don't change export date for single item export)
-    VCSIndex.Save
 
 End Sub
 

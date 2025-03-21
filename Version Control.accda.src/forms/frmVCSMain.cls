@@ -20,6 +20,7 @@ Public intContainerFilter As eContainerFilter
 
 ' Used for exporting or loading a single object
 Public objSingleObject As AccessObject
+Private arrObjects() As AccessObject
 
 ' Path to the last log file, in case the user wants to view the log after the operation.
 ' (The Log object has already been reset at this point, so we can't use Log.LogFilePath.)
@@ -28,6 +29,9 @@ Public strLastLogFilePath As String
 ' Use this property to set the path to the source files (such as a build triggered from the API)
 Public strSourcePath As String
 
+Public Sub SetObjectArray(ByRef arrAccessObject() As AccessObject)
+    arrObjects = arrAccessObject
+End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : cmdBuild_Click
@@ -292,8 +296,11 @@ Public Sub cmdExport_Click()
 
     ' See if we are exporting a single object, or everything.
     If Me.objSingleObject Is Nothing Then
-        ' Export the source code using the specified filter.
-        modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me
+        If Not IsEmptyArray(arrObjects) Then
+            modImportExport.ExportObjects arrObjects, Me
+        Else ' Export the source code using the specified filter.
+            modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me
+        End If
     Else
         modImportExport.ExportSingleObject Me.objSingleObject, Me
     End If

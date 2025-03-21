@@ -88,7 +88,7 @@ Public Sub ExportSelected()
 
     Dim objSelected As AccessObject
 
-    objSelected = GetSelectedNavPaneObject
+    Set objSelected = GetSelectedNavPaneObject
 
     If objSelected Is Nothing Then
         MsgBox2 "Please Select an Object First", _
@@ -100,14 +100,24 @@ Public Sub ExportSelected()
 
 End Sub
 
-Friend Sub ExportObject(ByVal objSelected As AccessObject)
+Friend Sub ExportObject(ByVal objToExport As AccessObject)
 
-    If objSelected Is Nothing Then
+    If objToExport Is Nothing Then
         Exit Sub
     End If
 
     If HasFormOpen Then Exit Sub
-    RunExport , objSelected
+    RunExport , objToExport
+
+End Sub
+
+Friend Sub ExportObjects(ByRef arrObjectsToExport() As AccessObject)
+
+    If IsEmptyArray(arrObjectsToExport) Then
+        Exit Sub
+    End If
+
+    RunExportObjects arrObjectsToExport
 
 End Sub
 
@@ -127,6 +137,16 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
         Else
             Set .objSingleObject = objItem
         End If
+        .Visible = True
+        .cmdExport_Click
+        If Log.ErrorLevel < eelError Then .AutoClose
+    End With
+End Sub
+
+Private Sub RunExportObjects(ByRef arrObjectsToExport() As AccessObject)
+    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
+    With Form_frmVCSMain
+        .SetObjectArray arrObjectsToExport
         .Visible = True
         .cmdExport_Click
         If Log.ErrorLevel < eelError Then .AutoClose
@@ -291,32 +311,54 @@ Public Sub LoadSelected()
 
 End Sub
 
-Friend Sub LoadObject(objSelected As AccessObject)
+Friend Sub LoadObject(ByVal objToLoad As AccessObject)
 
-    Dim cComponentClass As IDbComponent
-    Dim strObjectName As String
-    Dim strSourceFilePath As String
-
-    If objSelected Is Nothing Then
+    If objToLoad Is Nothing Then
         Exit Sub
     End If
 
     If HasFormOpen Then Exit Sub
 
+    LoadObjectProc objToLoad
+
+End Sub
+
+Private Sub LoadObjectProc(objToLoad As AccessObject)
+
+
+    Dim cComponentClass As IDbComponent
+    Dim strObjectName As String
+    Dim strSourceFilePath As String
+
     ' Remove all object references to selected item
-    Set cComponentClass = GetClassFromObject(objSelected)
+    Set cComponentClass = GetClassFromObject(objToLoad)
     With cComponentClass
         strObjectName = .Name
         strSourceFilePath = .SourceFile
         Set .DbObject = Nothing
     End With
-    Set objSelected = Nothing
 
     ' Import the object from source files
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     Form_frmVCSMain.StartBuild False
     LoadSingleObject cComponentClass, strObjectName, strSourceFilePath
     Form_frmVCSMain.FinishBuild False
+
+End Sub
+
+Friend Sub LoadObjects(ByRef objToLoad() As AccessObject)
+
+    Dim cComponentClass As IDbComponent
+    Dim strObjectName As String
+    Dim strSourceFilePath As String
+
+    If objToLoad(0) Is Nothing Then
+        Exit Sub
+    End If
+
+    If HasFormOpen Then Exit Sub
+
+    LoadObjectProc objToLoad(0)
 
 End Sub
 
@@ -553,7 +595,7 @@ Private Sub Class_Initialize()
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
 
     ' Test commandbar buttons:
-    InitCommandBarAdapter  ' only for test .. start this later with ribbon or ribbon add-in?
+    InitCommandBarAdapter  ' only for test .. start this later with ribbon oder ribbon add-in?
 
 End Sub
 
