@@ -121,17 +121,13 @@ Private Function GetSelectedObjectsFromVBE(Optional ByVal DisableObjectsFromVbeP
     Dim i As Long
     Dim objSelectedObject() As AccessObject
 
-
     Set SelectedVbc = VBE.SelectedVBComponent
 
     If SelectedVbc Is Nothing Then
         If DisableObjectsFromVbeProjectTreeGroup Then
             Exit Function
         End If
-        arrVbc = GetSelectedVBComponentsFromVbeProjectTreeGroup(SelectedTreeItemLevel)
-        If SelectedTreeItemLevel = 1 Then
-
-        End If
+        arrVbc = GetSelectedVBComponentsFromVbeProjectTreeGroup()
     Else
         ReDim arrVbc(0)
         Set arrVbc(0) = SelectedVbc
@@ -161,7 +157,7 @@ Private Function GetAccessObjectOfVbComponente(ByVal vbc As VBComponent) As Acce
 
 End Function
 
-Private Function GetSelectedVBComponentsFromVbeProjectTreeGroup(ByRef SelectedTreeviewItemLevel As Long) As VBComponent()
+Private Function GetSelectedVBComponentsFromVbeProjectTreeGroup() As VBComponent()
 
     Dim SelectedProjectTreeviewItemText As String
     Dim SelectedProjectTreeviewItemLevel As Long
@@ -249,7 +245,7 @@ Private Sub CompareObjectWithBase(ByRef objToCompare() As AccessObject)
 
 End Sub
 
-Private Sub ExportObjects(ByRef objToExport() As AccessObject)
+Private Sub ExportObjects(ByRef objToExport() As Access.AccessObject)
 
     If LBound(objToExport) = UBound(objToExport) Then   ' SingleObject
         VCS.ExportObject objToExport(0)
