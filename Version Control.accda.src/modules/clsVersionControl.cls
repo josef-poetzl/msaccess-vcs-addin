@@ -109,7 +109,7 @@ Friend Sub ExportObject(ByVal objToExport As AccessObject)
 
 End Sub
 
-Friend Sub ExportObjects(ByRef arrObjectsToExport() As AccessObject)
+Friend Sub ExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
 
     If IsEmptyArray(arrObjectsToExport) Then
         Exit Sub
@@ -141,7 +141,7 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
     End With
 End Sub
 
-Private Sub RunExportObjects(ByRef arrObjectsToExport() As AccessObject)
+Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         .SetObjectArray arrObjectsToExport
@@ -346,6 +346,7 @@ End Sub
 
 Friend Sub LoadObjects(ByRef arrObjects() As AccessObject)
 
+    Dim cComponentClasses() As IDbComponent
     Dim cComponentClass As IDbComponent
     Dim strObjectName As String
     Dim strSourceFilePath As String
@@ -357,12 +358,16 @@ Friend Sub LoadObjects(ByRef arrObjects() As AccessObject)
 
     If HasFormOpen Then Exit Sub
 
+    ReDim cComponentClasses(UBound(arrObjects))
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     Form_frmVCSMain.StartBuild False
 
     For i = LBound(arrObjects) To UBound(arrObjects)
-        LoadObjectProc arrObjects(i)
+        Set cComponentClasses(i) = GetClassFromObject(arrObjects(i))
     Next
+
+    modImportExport.LoadObjects cComponentClasses
 
     Form_frmVCSMain.FinishBuild False
 
