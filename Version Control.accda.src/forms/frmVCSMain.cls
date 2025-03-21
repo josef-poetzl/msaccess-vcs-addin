@@ -29,7 +29,7 @@ Public strLastLogFilePath As String
 ' Use this property to set the path to the source files (such as a build triggered from the API)
 Public strSourcePath As String
 
-Public Sub SetObjectArray(ByRef arrAccessObject() As AccessObject)
+Public Sub SetObjectArray(ByRef arrAccessObject() As Access.AccessObject)
     arrObjects = arrAccessObject
 End Sub
 
