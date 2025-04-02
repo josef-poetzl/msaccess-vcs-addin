@@ -131,6 +131,8 @@ End Sub
 '
 Private Sub Form_Load()
 
+    Static ETO As ErrorTrappingObserver: If ETO Is Nothing Then Set ETO = ErrorTrapping(BreakInClassModule)
+
     Const STYLE_NO_TABS As Integer = 2
 
     ' Change install type tab control to no tabs and no border
