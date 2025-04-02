@@ -670,6 +670,8 @@ End Sub
 '
 Private Sub Form_Load()
 
+    Static ETO As ErrorTrappingObserver: If ETO Is Nothing Then Set ETO = ErrorTrapping(BreakInClassModule)
+
     Dim intFormat As eTableDataExportFormat
     Dim intSanitizeLevel As eSanitizeLevel
 
