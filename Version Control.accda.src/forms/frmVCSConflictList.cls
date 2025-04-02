@@ -6,6 +6,10 @@ Option Compare Database
 Option Explicit
 
 
+Private Sub Form_Load()
+    Static ETO As ErrorTrappingObserver: If ETO Is Nothing Then Set ETO = ErrorTrapping(BreakInClassModule)
+End Sub
+
 '---------------------------------------------------------------------------------------
 ' Procedure : txtDiff_Click
 ' Author    : Adam Waller

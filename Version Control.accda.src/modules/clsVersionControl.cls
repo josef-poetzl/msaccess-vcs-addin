@@ -39,6 +39,9 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Sub ShowOptions()
+
+    Dim ETO As ErrorTrappingObserver: Set ETO = ErrorTrapping(BreakInClassModule)
+
     If HasFormOpen Then Exit Sub
     If DatabaseFileOpen Then
         ' Force reload of options from current project before opening the form.
@@ -152,6 +155,9 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Sub MergeBuild()
+
+    Dim ETO As ErrorTrappingObserver: Set ETO = ErrorTrapping(BreakInClassModule)
+
     If HasFormOpen Then Exit Sub
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
@@ -180,6 +186,8 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Sub BuildAs()
+
+    Dim ETO As ErrorTrappingObserver: Set ETO = ErrorTrapping(BreakInClassModule)
 
     Dim strNewDbPath As String
     Dim strSourceFolder As String
@@ -254,8 +262,10 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Sub MergeAllSource()
-    If HasFormOpen Then Exit Sub
-    modImportExport.MergeAllSource
+    With ErrorTrapping(BreakInClassModule)
+        If HasFormOpen Then Exit Sub
+        modImportExport.MergeAllSource
+    End With
 End Sub
 
 
@@ -267,6 +277,8 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Sub LoadSelected()
+
+    Dim ETO As ErrorTrappingObserver: Set ETO = ErrorTrapping(BreakInClassModule)
 
     Dim objSelected As AccessObject
     Dim cComponentClass As IDbComponent
@@ -525,7 +537,7 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub Class_Initialize()
-    SaveState
+'    SaveState => use ErrorTrappingObserver
     ' When the class is initialized, make sure the ribbon is active (if installed).
     ' This way if the COM add-in is not active, it will be automatically activated
     ' when the add-in is opened from the [Database Tools\Add-ins] menu. (See #451)
@@ -541,8 +553,8 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub Class_Terminate()
-    modObjects.ReleaseObjects
-    RestoreState
+    modObjects.ReleaseObjects ' ... !!! critical if an instance is terminated when an export/... runs
+'    RestoreState => use ErrorTrappingObserver
 End Sub
 
 
@@ -553,25 +565,25 @@ End Sub
 ' Purpose   : Save any user settings before running our code.
 '---------------------------------------------------------------------------------------
 '
-Private Sub SaveState()
-
-    Dim strValue As String
-
-    ' Just in case the user terminated the code before the settings could be restored,
-    ' check for any existing user settings that might need to be restored.
-    If ReadSetting("Save Time") <> vbNullString Then RestoreState
-
-    ' Save a value so we can delete this section later
-    PreserveSetting "Save Time", Now()
-
-    ' Error trapping setting. (We need this to "Break in Class Modules" for this add-in)
-    strValue = Application.GetOption("Error Trapping")
-    If strValue <> "1" Then
-        PreserveSetting "Error Trapping", strValue
-        Application.SetOption "Error Trapping", 1
-    End If
-
-End Sub
+'Private Sub SaveState()
+'
+'    Dim strValue As String
+'
+'    ' Just in case the user terminated the code before the settings could be restored,
+'    ' check for any existing user settings that might need to be restored.
+'    If ReadSetting("Save Time") <> vbNullString Then RestoreState
+'
+'    ' Save a value so we can delete this section later
+'    PreserveSetting "Save Time", Now()
+'
+'    ' Error trapping setting. (We need this to "Break in Class Modules" for this add-in)
+'    strValue = Application.GetOption("Error Trapping")
+'    If strValue <> "1" Then
+'        PreserveSetting "Error Trapping", strValue
+'        Application.SetOption "Error Trapping", 1
+'    End If
+'
+'End Sub
 
 
 '---------------------------------------------------------------------------------------
@@ -581,21 +593,21 @@ End Sub
 ' Purpose   : Restore user settings.
 '---------------------------------------------------------------------------------------
 '
-Private Sub RestoreState()
-
-    Dim strValue As String
-
-    strValue = ReadSetting("Error Trapping")
-    If strValue <> vbNullString Then
-        If Application.GetOption("Error Trapping") <> strValue Then
-            Application.SetOption "Error Trapping", CLng(strValue)
-        End If
-    End If
-
-    ' Remove temporary registry section
-    DeleteSetting PROJECT_NAME, "State"
-
-End Sub
+'Private Sub RestoreState()
+'
+'    Dim strValue As String
+'
+'    strValue = ReadSetting("Error Trapping")
+'    If strValue <> vbNullString Then
+'        If Application.GetOption("Error Trapping") <> strValue Then
+'            Application.SetOption "Error Trapping", CLng(strValue)
+'        End If
+'    End If
+'
+'    ' Remove temporary registry section
+'    DeleteSetting PROJECT_NAME, "State"
+'
+'End Sub
 
 
 '---------------------------------------------------------------------------------------
