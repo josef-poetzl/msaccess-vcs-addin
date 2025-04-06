@@ -17,6 +17,7 @@ Attribute VB_Exposed = True
 Option Compare Database
 Option Explicit
 
+Private m_VCSObjects As clsVCSObjects
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Show
@@ -537,6 +538,8 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub Class_Initialize()
+    Set m_VCSObjects = New clsVCSObjects
+    modObjects.ActivateVCSObject m_VCSObjects
 '    SaveState => use ErrorTrappingObserver
     ' When the class is initialized, make sure the ribbon is active (if installed).
     ' This way if the COM add-in is not active, it will be automatically activated
@@ -553,7 +556,8 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub Class_Terminate()
-    modObjects.ReleaseObjects ' ... !!! critical if an instance is terminated when an export/... runs
+    modObjects.ReleaseObjects ObjPtr(m_VCSObjects)
+    Set m_VCSObjects = Nothing
 '    RestoreState => use ErrorTrappingObserver
 End Sub
 
