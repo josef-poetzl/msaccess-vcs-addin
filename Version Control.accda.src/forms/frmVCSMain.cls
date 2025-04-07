@@ -28,6 +28,7 @@ Public strLastLogFilePath As String
 ' Use this property to set the path to the source files (such as a build triggered from the API)
 Public strSourcePath As String
 
+Public ActiveVersionControl As clsVersionControl
 
 '---------------------------------------------------------------------------------------
 ' Procedure : cmdBuild_Click
@@ -274,6 +275,10 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Sub cmdExport_Click()
+    StartExport ActiveVersionControl
+End Sub
+
+Public Sub StartExport(Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     cmdClose.SetFocus
     HideActionButtons
@@ -293,9 +298,9 @@ Public Sub cmdExport_Click()
     ' See if we are exporting a single object, or everything.
     If Me.objSingleObject Is Nothing Then
         ' Export the source code using the specified filter.
-        modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me
+        modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me, VcsRef
     Else
-        modImportExport.ExportSingleObject Me.objSingleObject, Me
+        modImportExport.ExportSingleObject Me.objSingleObject, Me, VcsRef
     End If
 
     ' Turn on scroll bars in case the user wants to scroll back through the log.

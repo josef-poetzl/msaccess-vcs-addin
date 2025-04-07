@@ -526,9 +526,15 @@ End Function
 '           : current project, not the add-in file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunSubInCurrentProject(strSubName As String)
+Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim strCmd As String
+    Dim UseVcsParam As Boolean
+
+    If Right(strSubName, 5) = "(VCS)" Then
+        UseVcsParam = True
+        strSubName = Left(strSubName, Len(strSubName) - 5)
+    End If
 
     ' Don't need the parentheses after the sub name
     strCmd = Replace(strSubName, "()", vbNullString)
@@ -563,8 +569,11 @@ Public Sub RunSubInCurrentProject(strSubName As String)
         End With
     End If
 
-    Application.Run strCmd
-
+    If UseVcsParam Then
+        Application.Run strCmd, VcsRef
+    Else
+        Application.Run strCmd
+    End If
 End Sub
 
 
