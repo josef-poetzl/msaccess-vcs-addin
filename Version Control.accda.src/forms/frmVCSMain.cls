@@ -275,10 +275,10 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Sub cmdExport_Click()
-    StartExport ActiveVersionControl
+    RunExport ActiveVersionControl
 End Sub
 
-Public Sub StartExport(Optional ByVal VcsRef As clsVersionControl = Nothing)
+Public Sub RunExport(Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     cmdClose.SetFocus
     HideActionButtons
