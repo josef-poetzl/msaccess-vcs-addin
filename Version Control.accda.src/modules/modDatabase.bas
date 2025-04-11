@@ -569,13 +569,76 @@ Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As
         End With
     End If
 
-    If UseVcsParam Then
-        Application.Run strCmd, VcsRef
-    Else
-        Application.Run strCmd
-    End If
+    ExecuteLoggedApplicationRun strCmd, UseVcsParam, VcsRef
+
 End Sub
 
+Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optional ByVal UseVcsParam as Boolean = False, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+   Dim ExternalReturnValue As Variant
+
+' What could a generally usable interface look like?
+'
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Boolean
+' * Public Function ProcedureNameInAddIn(ByRef ReturnMessage As String) as Long ' ... = eErrorLevel .. -1 for all ok?
+' * Public Function ProcedureNameInAddIn() as String ... Returns:
+'                                      "Error: ErrorMessage"   => Error log
+'                                   or "Warning: Warning Message" => displayed Warning log
+'                                   or vbNullstring ... show nothing, all success
+'
+    
+	If UseVcsParam Then
+        ExternalReturnValue = Application.Run(strProcedureName, VcsRef)
+    Else
+        ExternalReturnValue = Application.Run(strProcedureName)
+    End If
+
+    If VarType(ExternalReturnValue) = vbString Then
+        LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(strProcedureName)
+    ElseIf VarType(ExternalReturnValue) = vbBoolean Then
+        If Not ExternalReturnValue Then ' Cancel export
+            Log.Error eelCritical, GetProcedureNameFromPath(strProcedureName) & " failed (return False)", "ExecuteLoggedApplicationRun"
+        End If
+    End If
+
+End Sub
+
+Private Sub LogErrorMessage(ByVal strErrorMessage As String, ByVal strErrorMessageSource As String)
+
+    Dim lngErrorLevel As eErrorLevel
+    Dim lngErrorLevelEndPos As Long
+
+    lngErrorLevelEndPos = InStr(1, strErrorMessage, ":")
+    If lngErrorLevelEndPos > 1 Then
+        Select Case Trim(Left(strErrorMessage, lngErrorLevelEndPos - 1))
+            Case "Error"
+                lngErrorLevel = eelError
+            Case "Warning", "Alert", "Failed"
+                lngErrorLevel = eelAlert
+            Case "Critical", "FATAL"
+                lngErrorLevel = eelCritical
+            Case "Note", "Success", "Info"
+                lngErrorLevel = eelInfo
+            Case "Log"
+                lngErrorLevel = eelWarning
+            Case Else
+                lngErrorLevel = eelAlert
+                lngErrorLevelEndPos = 0 ' don't remove String before ":"
+        End Select
+        If lngErrorLevelEndPos > 0 Then
+            strErrorMessage = Trim(Mid(strErrorMessage, lngErrorLevelEndPos + 1))
+        End If
+    Else
+        lngErrorLevel = eelAlert
+    End If
+
+    Log.Error lngErrorLevel, strErrorMessage, strErrorMessageSource
+
+End Sub
+
+Private Function GetProcedureNameFromPath(ByVal strFullProcedureName As String) As String
+    GetProcedureNameFromPath = Mid(strFullProcedureName, InStrRev(Replace(strFullProcedureName, "!", "\"), "\") + 1)
+End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : DatabaseFileOpen
