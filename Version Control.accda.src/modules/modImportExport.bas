@@ -1840,24 +1840,19 @@ End Sub
 Private Sub ApplicationRunProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     If InStr(1, strProcedureName, ".") Then
-        If TryRunAddInProcedure(strProcedureName) Then
+        If TryRunAddInProcedure(strProcedureName, VcsRef) Then
             Exit Sub
         End If
     End If
-	
-	Dim UseVcsParam as Boolean
-	If Right(strProcedureName, 5) = "(VCS)" Then
-		UseVcsParam = True
-		strProcedureName = left(strProcedureName, len(strProcedureName)-5)
-	End If
 
-    RunSubInCurrentProject strProcedureName, UseVcsParam, VcsRef
+    RunSubInCurrentProject strProcedureName, VcsRef
 
 End Sub
 
-Private Function TryRunAddInProcedure(ByVal strProcedureName As String) As Boolean
+Private Function TryRunAddInProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
 
     Dim strAddInFile As String
+    Dim UseVcsParam As Boolean
 
 If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 
@@ -1870,7 +1865,13 @@ If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
     End If
 
     TryRunAddInProcedure = True
-    ExecuteLoggedApplicationRun strProcedureName, True, VcsRef
+
+    If Right(strProcedureName, 5) = "(VCS)" Then
+        UseVcsParam = True
+        strProcedureName = Left(strProcedureName, Len(strProcedureName) - 5)
+    End If
+
+    ExecuteLoggedApplicationRun strProcedureName, UseVcsParam, VcsRef
 
 ExitHere:
     Exit Function

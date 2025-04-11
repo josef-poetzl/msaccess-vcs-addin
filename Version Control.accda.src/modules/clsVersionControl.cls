@@ -103,22 +103,22 @@ Public Function ExportSelected() As eErrorLevel
             "Select a single object in the Navigation Pane to export (this item must have the keyboard focus).", _
             "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
-		' Export the item
+        ' Export the item
         ExportSelected = ExportObject(objSelected)
     End If
 
 End Function
 
-Friend Sub ExportObject(ByVal objToExport As AccessObject) As eErrorLevel
+Friend Function ExportObject(ByVal objToExport As AccessObject) As eErrorLevel
 
     If objToExport Is Nothing Then
-        Exit Sub
+        Exit Function
     End If
 
-    If HasFormOpen Then Exit Sub
-    ExportObject = RunExport( , objToExport)
+    If HasFormOpen Then Exit Function
+    ExportObject = RunExport(, objToExport)
 
-End Sub
+End Function
 
 Friend Sub ExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
 
@@ -153,14 +153,18 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
         .RunExport Me
         If Log.ErrorLevel < eelError Then .AutoClose
     End With
-End Sub
 
-Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
+End Function
+
+Private Function RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject) As eErrorLevel
+
+    Dim ExportErrorLevel As eErrorLevel
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         .SetObjectArray arrObjectsToExport
         .Visible = True
-        .cmdExport_Click
+        .RunExport Me
         ExportErrorLevel = Log.ErrorLevel
         If ExportErrorLevel <= eelInfo Then
             If InteractionMode = eimSilent Then
@@ -171,7 +175,7 @@ Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
         End If
     End With
 
-    RunExport = ExportErrorLevel
+    RunExportObjects = ExportErrorLevel
 
 End Function
 
