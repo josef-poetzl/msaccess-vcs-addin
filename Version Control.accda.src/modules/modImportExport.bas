@@ -1853,7 +1853,7 @@ End Sub
 Private Function TryRunAddInProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
 
     Dim strAddInFile As String
-	Dim UseVcsParam As Boolean
+    Dim UseVcsParam As Boolean
 
 If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 

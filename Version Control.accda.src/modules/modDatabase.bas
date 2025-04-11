@@ -573,7 +573,7 @@ Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As
 
 End Sub
 
-Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optional ByVal UseVcsParam as Boolean = False, Optional ByVal VcsRef As clsVersionControl = Nothing)
+Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optional ByVal UseVcsParam As Boolean = False, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
    Dim ExternalReturnValue As Variant
 
@@ -586,8 +586,8 @@ Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optiona
 '                                   or "Warning: Warning Message" => displayed Warning log
 '                                   or vbNullstring ... show nothing, all success
 '
-    
-	If UseVcsParam Then
+
+    If UseVcsParam Then
         ExternalReturnValue = Application.Run(strProcedureName, VcsRef)
     Else
         ExternalReturnValue = Application.Run(strProcedureName)

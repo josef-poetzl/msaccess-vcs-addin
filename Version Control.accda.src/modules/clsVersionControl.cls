@@ -150,7 +150,7 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
         End If
         .Visible = True
         .RunExport Me
-		ExportErrorLevel = Log.ErrorLevel
+        ExportErrorLevel = Log.ErrorLevel
         If ExportErrorLevel <= eelInfo Then
             If InteractionMode = eimSilent Then
                 .AutoClose 0
@@ -159,15 +159,15 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
             End If
         End If
     End With
-	
-	RunExport = ExportErrorLevel
-	
-End Sub
+
+    RunExport = ExportErrorLevel
+
+End Function
 
 
-Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
+Private Function RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
 
-	Dim ExportErrorLevel As eErrorLevel
+    Dim ExportErrorLevel As eErrorLevel
 
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
