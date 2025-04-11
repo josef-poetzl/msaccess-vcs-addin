@@ -17,8 +17,6 @@ Attribute VB_Exposed = True
 Option Compare Database
 Option Explicit
 
-Private m_VCSObjects As clsVCSObjects
-
 '---------------------------------------------------------------------------------------
 ' Procedure : Show
 ' Author    : Adam Waller
@@ -151,7 +149,7 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
         End If
         .Visible = True
         .RunExport Me
-        If Log.ErrorLevel < eelError Then .AutoClose
+        If Log.ErrorLevel < eelAlert Then .AutoClose
     End With
 
 End Function
@@ -635,9 +633,9 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub Class_Initialize()
-    Set m_VCSObjects = New clsVCSObjects
-    modObjects.ActivateVCSObject m_VCSObjects
+
 '    SaveState => use ErrorTrappingObserver
+
     ' When the class is initialized, make sure the ribbon is active (if installed).
     ' This way if the COM add-in is not active, it will be automatically activated
     ' when the add-in is opened from the [Database Tools\Add-ins] menu. (See #451)
@@ -657,8 +655,7 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Private Sub Class_Terminate()
-    modObjects.ReleaseObjects ObjPtr(m_VCSObjects)
-    Set m_VCSObjects = Nothing
+    modObjects.ReleaseObjects
 '    RestoreState => use ErrorTrappingObserver
 End Sub
 

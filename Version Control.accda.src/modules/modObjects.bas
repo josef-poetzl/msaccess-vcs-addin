@@ -11,38 +11,22 @@ Option Explicit
 
 Private Const ModuleName = "modObjects"
 
-Private m_Objects As Dictionary
-Private m_this  As clsVCSObjects
+' Use a private type to manage instances of object classes
+Private Type udtObjects
+    Perf As clsPerformance
+    Log As clsLog
+    Options As clsOptions
+    VCSIndex As clsVCSIndex
+    Worker As clsWorker
+    Git As clsGitIntegration
+    Translation As clsTranslation
 
-Private Property Get ObjectDict() As Dictionary
-    If m_Objects Is Nothing Then
-        Set m_Objects = New Dictionary
-    End If
-    Set ObjectDict = m_Objects
-End Property
+    ' Keep a persistent reference to file system object after initializing version control.
+    ' This way we don't have to recreate this object dozens of times while using VCS.
+    FSO As Scripting.FileSystemObject
+End Type
+Private this As udtObjects
 
-Private Property Get this() As clsVCSObjects
-    If m_this Is Nothing Then
-        If ObjectDict.Count = 0 Then
-            Set m_this = New clsVCSObjects
-            m_Objects.Add CStr(ObjPtr(m_this)), m_this
-        Else
-            Set m_this = m_Objects.Items(m_Objects.Count - 1)
-        End If
-    End If
-    Set this = m_this
-End Property
-
-Private Property Set this(ByVal NewRef As clsVCSObjects)
-    Set m_this = NewRef
-    If Not ObjectDict.Exists(CStr(ObjPtr(NewRef))) Then
-        m_Objects.Add CStr(ObjPtr(NewRef)), NewRef
-    End If
-End Property
-
-Public Sub ActivateVCSObject(ByVal VCSObjectsRef As clsVCSObjects)
-    Set this = VCSObjectsRef
-End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : ReleaseObjects
@@ -51,20 +35,20 @@ End Sub
 ' Purpose   : Release references to objects for a clean exit.
 '---------------------------------------------------------------------------------------
 '
-Public Sub ReleaseObjects(Optional ByVal VCSObjectPtr As LongPtr)
+Public Sub ReleaseObjects()
 
-    If VCSObjectPtr > 0 Then
-        m_Objects.Remove CStr(VCSObjectPtr)
-        Set m_this = Nothing
-        Exit Sub
-    End If
+    Set this.Perf = Nothing
+    Set this.Log = Nothing
+    Set this.Options = Nothing
+    Set this.VCSIndex = Nothing
+    Set this.Worker = Nothing
+    Set this.Git = Nothing
+    Set this.FSO = Nothing
+    Set this.Translation = Nothing
 
-    If m_this Is Nothing Then
-        Exit Sub
-    End If
-
-    m_Objects.Remove CStr(ObjPtr(m_this))
-    Set m_this = Nothing
+    Dim udtEmpty As udtObjects
+    ' Reassign "this" to blank, clearing any saved data.
+    LSet this = udtEmpty
 
 End Sub
 
@@ -262,6 +246,7 @@ Public Property Get Git() As clsGitIntegration
     If this.Git Is Nothing Then Set this.Git = New clsGitIntegration
     Set Git = this.Git
 End Property
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : ErrorTrapping
