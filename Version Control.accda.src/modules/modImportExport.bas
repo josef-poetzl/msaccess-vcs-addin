@@ -19,7 +19,8 @@ Private Const ModuleName As String = "modImportExport"
 ' Purpose   : Export source files from the currently open database.
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain)
+Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain, _
+                Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -115,7 +116,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
         Log.Add T("Running {0}...", var0:=Options.RunBeforeExport)
         Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport
+        RunSubInCurrentProject Options.RunBeforeExport, VcsRef
         Perf.OperationEnd
     End If
 
@@ -258,7 +259,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     If Options.RunAfterExport <> vbNullString Then
         Log.Add T("Running {0}...", var0:=Options.RunAfterExport)
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport
+        RunSubInCurrentProject Options.RunAfterExport, VcsRef
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If
@@ -307,7 +308,8 @@ End Sub
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain)
+Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain, _
+                Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     ' Guard clause
     If objItem Is Nothing Then Exit Sub
