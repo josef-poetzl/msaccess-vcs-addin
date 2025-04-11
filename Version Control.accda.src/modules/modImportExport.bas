@@ -308,8 +308,7 @@ End Sub
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain, _
-                Optional ByVal VcsRef As clsVersionControl = Nothing)
+Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain)
 
     ' Guard clause
     If objItem Is Nothing Then Exit Sub
@@ -396,7 +395,7 @@ CleanUp:
 
 End Sub
 
-Private Sub ExportObjectProc(objItem As AccessObject, frmMain As Form_frmVCSMain, ByRef Cancelled As Boolean)
+Private Sub ExportObjectProc(ByRef objItem As AccessObject, ByVal frmMain As Form_frmVCSMain, ByRef Cancelled As Boolean)
 
     Dim dCategories As Dictionary
     Dim dCategory As Dictionary
