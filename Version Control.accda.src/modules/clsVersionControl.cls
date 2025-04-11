@@ -63,10 +63,10 @@ End Sub
 ' Purpose   : Export the source code for the current database
 '---------------------------------------------------------------------------------------
 '
-Public Sub Export()
-    If HasFormOpen Then Exit Sub
-    RunExport ecfAllObjects
-End Sub
+Public Function Export() As eErrorLevel
+    If HasFormOpen Then Exit Function
+    Export = RunExport(ecfAllObjects)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -76,10 +76,10 @@ End Sub
 ' Purpose   : Export just the VBA related components
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportVBA()
-    If HasFormOpen Then Exit Sub
-    RunExport ecfVBAItems
-End Sub
+Public Function ExportVBA() As eErrorLevel
+    If HasFormOpen Then Exit Function
+    ExportVBA = RunExport(ecfVBAItems)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -89,30 +89,34 @@ End Sub
 ' Purpose   : Export the selected object
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSelected()
+Public Function ExportSelected() As eErrorLevel
 
     Dim objSelected As AccessObject
+
+    If HasFormOpen Then Exit Function
 
     Set objSelected = GetSelectedNavPaneObject
 
     If objSelected Is Nothing Then
+        ExportSelected = eelCritical
         MsgBox2 "Please Select an Object First", _
             "Select a single object in the Navigation Pane to export (this item must have the keyboard focus).", _
             "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
-        ExportObject objSelected
+		' Export the item
+        ExportSelected = ExportObject(objSelected)
     End If
 
-End Sub
+End Function
 
-Friend Sub ExportObject(ByVal objToExport As AccessObject)
+Friend Sub ExportObject(ByVal objToExport As AccessObject) As eErrorLevel
 
     If objToExport Is Nothing Then
         Exit Sub
     End If
 
     If HasFormOpen Then Exit Sub
-    RunExport , objToExport
+    ExportObject = RunExport( , objToExport)
 
 End Sub
 
@@ -134,7 +138,10 @@ End Sub
 ' Purpose   : Handle different kinds of exports based on filter
 '---------------------------------------------------------------------------------------
 '
-Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject)
+Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject) As eErrorLevel
+
+    Dim ExportErrorLevel As eErrorLevel
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         If objItem Is Nothing Then
@@ -154,9 +161,19 @@ Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
         .SetObjectArray arrObjectsToExport
         .Visible = True
         .cmdExport_Click
-        If Log.ErrorLevel < eelError Then .AutoClose
+        ExportErrorLevel = Log.ErrorLevel
+        If ExportErrorLevel <= eelInfo Then
+            If InteractionMode = eimSilent Then
+                .AutoClose 0
+            Else
+                .AutoClose
+            End If
+        End If
     End With
-End Sub
+
+    RunExport = ExportErrorLevel
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -764,6 +781,23 @@ Private Function HasFormOpen(Optional blnWarnUser As Boolean = True) As Boolean
 End Function
 
 
+' Property  : SilentMode
+' Purpose   : Activate InteractionMode = eimSilent inside VCS
+'---------------------------------------------------------------------------------------
+'
+Public Property Get SilentMode() As Boolean
+    SilentMode = (InteractionMode = eimSilent)
+End Property
+
+Public Property Let SilentMode(ByVal bolRunInSilentMode As Boolean)
+    If bolRunInSilentMode Then
+        SetInteractionMode eimSilent
+    Else
+        SetInteractionMode eimNormal
+    End If
+End Property
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : Log
 ' Purpose   : Access Log for API (modAPI.VCS)
@@ -773,3 +807,18 @@ End Function
 Public Function Log() As Object
     Set Log = modObjects.Log
 End Function
+
+'---------------------------------------------------------------------------------------
+' Procedure : AddLog
+' Purpose   : Save Log from external (using API)
+'---------------------------------------------------------------------------------------
+'
+Public Sub AddLog(strText As String, Optional blnPrint As Boolean = True, _
+         Optional blnNextOutputOnNewLine As Boolean = True, _
+         Optional strColor As String = vbNullString, _
+         Optional blnBold As Boolean = False, _
+         Optional blnItalic As Boolean = False)
+
+   Log.Add strText, blnPrint, blnNextOutputOnNewLine, strColor, blnBold, blnItalic
+
+End Sub
