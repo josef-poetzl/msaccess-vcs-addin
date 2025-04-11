@@ -28,6 +28,7 @@ Option Explicit
 Public Sub Show()
     If HasFormOpen Then Exit Sub
     DoCmd.OpenForm "frmVCSMain"
+    Set Form_frmVCSMain.ActiveVersionControl = Me
 End Sub
 
 
@@ -119,7 +120,7 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
             Set .objSingleObject = objItem
         End If
         .Visible = True
-        .cmdExport_Click
+        .RunExport Me
         If Log.ErrorLevel < eelError Then .AutoClose
     End With
 End Sub
@@ -665,4 +666,15 @@ Private Function HasFormOpen(Optional blnWarnUser As Boolean = True) As Boolean
         End If
     Next
 
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : Log
+' Purpose   : Access Log for API (modAPI.VCS)
+'
+'---------------------------------------------------------------------------------------
+'
+Public Function Log() As Object
+    Set Log = modObjects.Log
 End Function
