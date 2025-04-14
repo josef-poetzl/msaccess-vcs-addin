@@ -537,7 +537,7 @@ Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As
 
     If Right(strCmd, 5) = "(VCS)" Then
         bolUseVcsParam = True
-        strCmd = Left(strCmd, Len(strSubName) - 5)
+        strCmd = Left(strCmd, Len(strCmd) - 5)
     End If
 
     ' Make sure we are not trying to run a function with arguments
@@ -550,7 +550,7 @@ Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As
     End If
 
     ' Make sure procedure exists in current database
-    If Not GlobalProcExists(strSubName) Then
+    If Not GlobalProcExists(strCmd) Then
         Log.Error eelError, T("The procedure ""{0}"" not found.", var0:=strSubName), ModuleName & ".RunSubInCurrentProject"
         Log.Add T("The procedure must be declared as public in a standard module."), False
         Exit Sub
