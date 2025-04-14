@@ -1840,9 +1840,56 @@ Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String, Op
     arrProcedures = Split(Replace(Replace(strRunProcedureOptionValue, ";", ":"), "|", ":"), ":")
 
     For i = LBound(arrProcedures) To UBound(arrProcedures)
-        Log.Add T("Running {0}...", var0:=arrProcedures(i))
-        Log.Flush
-        RunSubInCurrentProject Trim(arrProcedures(i)), VcsRef
+        ApplicationRunProcedure Trim(arrProcedures(i)), VcsRef
     Next
 
 End Sub
+
+
+Private Sub ApplicationRunProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+    Log.Add T("Running {0}...", var0:=arrProcedures(i))
+    Log.Flush
+
+    If InStr(1, strProcedureName, ".") > 0 Then
+        If TryRunAddInProcedure(strProcedureName, VcsRef) Then
+            Exit Sub
+        End If
+    End If
+
+    RunSubInCurrentProject strProcedureName, VcsRef
+
+End Sub
+
+
+Private Function TryRunAddInProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
+
+    Dim strAddInFile As String
+	Dim bolUseVcsParam As Boolean
+
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    strProcedureName = Replace(strProcedureName, "%addins%", Environ$("appdata") & "\Microsoft\AddIns", , , vbTextCompare)
+    strProcedureName = Replace(strProcedureName, "%appdata%", Environ("appdata"), , , vbTextCompare)
+
+    strAddInFile = Left(strProcedureName, InStrRev(strProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(strAddInFile)) = 0 Then
+        Exit Function ' or raise error?
+    End If
+	
+	If Right(strCmd, 5) = "(VCS)" Then
+        bolUseVcsParam = True
+        strCmd = Left(strCmd, Len(strSubName) - 5)
+    End If
+
+    TryRunAddInProcedure = True
+    ExecuteLoggedApplicationRun strProcedureName, bolUseVcsParam, VcsRef
+
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
