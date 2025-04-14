@@ -113,10 +113,8 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
 
     ' Run any custom sub before export
     If Options.RunBeforeExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunBeforeExport)
-        Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport, VcsRef
+        ExecuteApplicationRun Options.RunBeforeExport, VcsRef
         Perf.OperationEnd
     End If
 
@@ -257,9 +255,8 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
 
     ' Run any custom sub after export
     If Options.RunAfterExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunAfterExport)
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport, VcsRef
+        ExecuteApplicationRun Options.RunAfterExport, VcsRef
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If
@@ -868,9 +865,8 @@ Public Sub Build(strSourceFolder As String _
         ' Run any pre-merge instructions
         strText = dNZ(Options.GitSettings, "RunBeforeMerge")
         If strText <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=strText)
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject strText
+            ExecuteApplicationRun strText
             Perf.OperationEnd
         End If
 
@@ -1130,17 +1126,15 @@ Public Sub Build(strSourceFolder As String _
     ' Run any post-build/merge instructions
     If blnFullBuild Then
         If Options.RunAfterBuild <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=Options.RunAfterBuild)
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            ExecuteApplicationRun Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
         ' Merge build
         If Options.RunAfterMerge <> vbNullString Then
-            Log.Add T("Running {0}...", Options.RunAfterMerge)
             Perf.OperationStart "RunAfterMerge"
-            RunSubInCurrentProject Options.RunAfterMerge
+            ExecuteApplicationRun Options.RunAfterMerge
             Perf.OperationEnd
         End If
     End If
@@ -1752,9 +1746,8 @@ Private Sub PrepareRunBootstrap()
         strName = Split(Options.RunBeforeBuild, ".")(1)
 
         ' Run any pre-build bootstrapping code
-        Log.Add T("Running {0}", var0:=Options.RunBeforeBuild)
         Perf.OperationStart "RunBeforeBuild"
-        RunSubInCurrentProject strName
+        ExecuteApplicationRun strName
         Perf.OperationEnd
     End If
 
@@ -1834,5 +1827,22 @@ Public Sub InitializeForms(cContainers As Dictionary)
 
     ' Check for any unhandled errors
     CatchAny eelError, "Unhandled error while initializing forms", ModuleName & ".InitializeForms"
+
+End Sub
+
+
+Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String)
+
+    Dim arrProcedures() As String
+    Dim i As Long
+
+    ' possible split chars: ":;|"
+    arrProcedures = Split(Replace(Replace(strRunProcedureOptionValue, ";", ":"), "|", ":"), ":")
+
+    For i = LBound(arrProcedures) To UBound(arrProcedures)
+        Log.Add T("Running {0}...", var0:=arrProcedures(i))
+        Log.Flush
+        RunSubInCurrentProject Trim(arrProcedures(i))
+    Next
 
 End Sub
