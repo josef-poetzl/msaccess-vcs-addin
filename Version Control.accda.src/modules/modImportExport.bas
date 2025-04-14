@@ -1831,7 +1831,7 @@ Public Sub InitializeForms(cContainers As Dictionary)
 End Sub
 
 
-Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String)
+Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim arrProcedures() As String
     Dim i As Long
@@ -1842,7 +1842,7 @@ Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String)
     For i = LBound(arrProcedures) To UBound(arrProcedures)
         Log.Add T("Running {0}...", var0:=arrProcedures(i))
         Log.Flush
-        RunSubInCurrentProject Trim(arrProcedures(i))
+        RunSubInCurrentProject Trim(arrProcedures(i)), VcsRef
     Next
 
 End Sub
