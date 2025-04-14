@@ -587,9 +587,9 @@ Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optiona
 '                                   or "Warning: Warning Message" => displayed Warning log
 '                                   or vbNullstring ... show nothing, all success
 '
-    
-	
-	If bolUseVcsParam Then
+
+
+        If bolUseVcsParam Then
         ExternalReturnValue = Application.Run(strProcedureName, VcsRef)
     Else
         ExternalReturnValue = Application.Run(strProcedureName)

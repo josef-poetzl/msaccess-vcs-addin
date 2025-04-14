@@ -110,10 +110,10 @@ End Function
 Friend Function ExportObject(ByVal objToExport As AccessObject) As eErrorLevel
 
     If objToExport Is Nothing Then
-        Exit Sub
+        Exit Function
     End If
 
-    If HasFormOpen Then Exit Sub
+    If HasFormOpen Then Exit Function
     ExportObject = RunExport(, objToExport)
 
 End Function
@@ -149,16 +149,6 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
         End If
         .Visible = True
         .RunExport Me
-        If Log.ErrorLevel < eelError Then .AutoClose
-    End With
-End Sub
-
-Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
-    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
-    With Form_frmVCSMain
-        .SetObjectArray arrObjectsToExport
-        .Visible = True
-        .cmdExport_Click
         ExportErrorLevel = Log.ErrorLevel
         If ExportErrorLevel <= eelInfo Then
             If InteractionMode = eimSilent Then
@@ -170,6 +160,29 @@ Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
     End With
 
     RunExport = ExportErrorLevel
+
+End Function
+
+Private Function RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject) As eErrorLevel
+
+    Dim ExportErrorLevel As eErrorLevel
+
+    DoCmd.OpenForm "frmVCSMain", , , , , acHidden
+    With Form_frmVCSMain
+        .SetObjectArray arrObjectsToExport
+        .Visible = True
+        .RunExport Me
+        ExportErrorLevel = Log.ErrorLevel
+        If ExportErrorLevel <= eelInfo Then
+            If InteractionMode = eimSilent Then
+                .AutoClose 0
+            Else
+                .AutoClose
+            End If
+        End If
+    End With
+
+    RunExportObjects = ExportErrorLevel
 
 End Function
 
@@ -818,4 +831,3 @@ End Sub
 Public Function Log() As Object
     Set Log = modObjects.Log
 End Function
-

@@ -1848,7 +1848,7 @@ End Sub
 
 Private Sub ApplicationRunProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
-    Log.Add T("Running {0}...", var0:=arrProcedures(i))
+    Log.Add T("Running {0}...", var0:=strProcedureName)
     Log.Flush
 
     If InStr(1, strProcedureName, ".") > 0 Then
@@ -1865,7 +1865,7 @@ End Sub
 Private Function TryRunAddInProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
 
     Dim strAddInFile As String
-	Dim bolUseVcsParam As Boolean
+    Dim bolUseVcsParam As Boolean
 
 If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
 
@@ -1876,10 +1876,10 @@ If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
     If Len(VBA.Dir(strAddInFile)) = 0 Then
         Exit Function ' or raise error?
     End If
-	
-	If Right(strCmd, 5) = "(VCS)" Then
+
+    If Right(strProcedureName, 5) = "(VCS)" Then
         bolUseVcsParam = True
-        strCmd = Left(strCmd, Len(strSubName) - 5)
+        strProcedureName = Left(strProcedureName, Len(strProcedureName) - 5)
     End If
 
     TryRunAddInProcedure = True
