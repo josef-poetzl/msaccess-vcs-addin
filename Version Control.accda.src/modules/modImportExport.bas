@@ -20,7 +20,7 @@ Private Const ModuleName As String = "modImportExport"
 '---------------------------------------------------------------------------------------
 '
 Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain, _
-                Optional ByVal VcsRef As clsVersionControl = Nothing)
+                        Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -307,8 +307,7 @@ End Sub
 ' Purpose   : Export a single object (such as a selected item)
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain, _
-                Optional ByVal VcsRef As clsVersionControl = Nothing)
+Public Sub ExportSingleObject(objItem As AccessObject, Optional frmMain As Form_frmVCSMain)
 
     Dim dCategories As Dictionary
     Dim dCategory As Dictionary
