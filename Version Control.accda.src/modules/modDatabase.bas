@@ -529,15 +529,16 @@ End Function
 Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim strCmd As String
-    Dim UseVcsParam As Boolean
-
-    If Right(strSubName, 5) = "(VCS)" Then
-        UseVcsParam = True
-        strSubName = Left(strSubName, Len(strSubName) - 5)
-    End If
+    Dim bolUseVcsParam As Boolean
 
     ' Don't need the parentheses after the sub name
     strCmd = Replace(strSubName, "()", vbNullString)
+    strCmd = Trim(strCmd)
+
+    If Right(strCmd, 5) = "(VCS)" Then
+        bolUseVcsParam = True
+        strCmd = Left(strCmd, Len(strSubName) - 5)
+    End If
 
     ' Make sure we are not trying to run a function with arguments
     If InStr(strCmd, "(") > 0 Then
@@ -569,11 +570,12 @@ Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As
         End With
     End If
 
-    If UseVcsParam Then
+    If bolUseVcsParam Then
         Application.Run strCmd, VcsRef
     Else
         Application.Run strCmd
     End If
+
 End Sub
 
 
