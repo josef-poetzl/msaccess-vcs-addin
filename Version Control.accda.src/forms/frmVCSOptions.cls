@@ -88,7 +88,7 @@ End Sub
 Private Sub cboLanguage_Click()
     With Translation
         .Language = Nz2(cboLanguage, "en_US")
-        .SetLanguage .Language
+        .SetLanguage strLanguage:=.Language, bolReloadRibbonIfLoaded:=True
         MsgBox2 "Language Set", "Changes to language settings will take effect " & _
             "the next time you open this form.", , vbInformation
     End With

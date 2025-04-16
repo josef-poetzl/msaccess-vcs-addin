@@ -512,8 +512,8 @@ End Function
 ' Purpose   : Set the current language
 '---------------------------------------------------------------------------------------
 '
-Public Sub SetLanguage(strLanguage As String)
-    LoadLanguage strLanguage
+Public Sub SetLanguage(strLanguage As String, Optional ByVal bolReloadRibbonIfLoaded As Boolean = False)
+    LoadLanguage strLanguage, bolReloadRibbonIfLoaded
 End Sub
 
 
@@ -541,7 +541,7 @@ End Sub
 ' Purpose   : Loads the language entries into the dictionary objects.
 '---------------------------------------------------------------------------------------
 '
-Private Sub LoadLanguage(strLanguage As String)
+Private Sub LoadLanguage(strLanguage As String, Optional ByVal bolReloadRibbonIfLoaded As Boolean = False)
 
     Dim dbs As Database
     Dim rst As Recordset
@@ -576,8 +576,10 @@ Private Sub LoadLanguage(strLanguage As String)
     If RibbonLoaded Then
         ' Export strings to json file for use in the ribbon.
         strPath = GetInstallSettings.strInstallFolder & PathSep & "Ribbon.json"
-        WriteFile ConvertToJson(GetRibbonStrings, 2), strPath
-        modCOMAddIn.ReloadRibbon
+        WriteFile ConvertToJson(GetRibbonStrings, 2), strPath  '<-- Should the file be recreated each time?
+        If bolReloadRibbonIfLoaded Then
+            modCOMAddIn.ReloadRibbon
+        End If
     End If
 
 End Sub
