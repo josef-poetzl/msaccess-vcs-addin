@@ -26,6 +26,7 @@ Begin Form
     Caption ="Version Control System"
     OnOpen ="[Event Procedure]"
     DatasheetFontName ="Calibri"
+    OnTimer ="[Event Procedure]"
     OnLoad ="[Event Procedure]"
     AllowDatasheetView =0
     FilterOnLoad =0
@@ -86,26 +87,18 @@ Begin Form
             FontSize =11
             FontWeight =400
             FontName ="Calibri"
-            ForeThemeColorIndex =0
             ForeTint =75.0
-            GridlineThemeColorIndex =1
             GridlineShade =65.0
             UseTheme =1
             Shape =1
             Gradient =12
-            BackThemeColorIndex =4
             BackTint =60.0
             BorderLineStyle =0
-            BorderThemeColorIndex =4
             BorderTint =60.0
             ThemeFontIndex =1
-            HoverThemeColorIndex =4
             HoverTint =40.0
-            PressedThemeColorIndex =4
             PressedShade =75.0
-            HoverForeThemeColorIndex =0
             HoverForeTint =75.0
-            PressedForeThemeColorIndex =0
             PressedForeTint =75.0
         End
         Begin CheckBox
@@ -307,18 +300,14 @@ Begin Form
                     LayoutCachedTop =6540
                     LayoutCachedWidth =7380
                     LayoutCachedHeight =6960
-                    BackColor =14262935
-                    BackThemeColorIndex =-1
+                    ForeThemeColorIndex =0
+                    GridlineThemeColorIndex =1
                     BackTint =100.0
-                    BorderColor =15321539
-                    BorderThemeColorIndex =-1
                     BorderTint =100.0
-                    HoverColor =15321539
-                    HoverThemeColorIndex =-1
                     HoverTint =100.0
-                    PressedColor =13072231
-                    PressedThemeColorIndex =-1
                     PressedShade =100.0
+                    HoverForeThemeColorIndex =0
+                    PressedForeThemeColorIndex =0
                     Overlaps =1
                 End
                 Begin CommandButton
@@ -379,35 +368,33 @@ Begin Form
                     LayoutCachedWidth =9540
                     LayoutCachedHeight =6960
                     PictureCaptionArrangement =5
-                    BackColor =14262935
-                    BackThemeColorIndex =-1
+                    ForeThemeColorIndex =0
+                    GridlineThemeColorIndex =1
                     BackTint =100.0
-                    BorderColor =15321539
-                    BorderThemeColorIndex =-1
                     BorderTint =100.0
-                    HoverColor =15321539
-                    HoverThemeColorIndex =-1
                     HoverTint =100.0
-                    PressedColor =13072231
-                    PressedThemeColorIndex =-1
                     PressedShade =100.0
+                    HoverForeThemeColorIndex =0
+                    PressedForeThemeColorIndex =0
                     Overlaps =1
                 End
                 Begin Tab
                     OverlapFlags =85
+                    TextFontFamily =34
                     Left =525
                     Top =1500
                     Width =9015
-                    Height =4845
+                    Height =4846
                     TabIndex =2
                     Name ="tabOptions"
+                    FontName ="Calibri"
                     HorizontalAnchor =2
                     VerticalAnchor =2
 
                     LayoutCachedLeft =525
                     LayoutCachedTop =1500
                     LayoutCachedWidth =9540
-                    LayoutCachedHeight =6345
+                    LayoutCachedHeight =6346
                     ThemeFontIndex =1
                     Shape =1
                     Gradient =12
@@ -427,13 +414,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4295
+                            Height =4291
                             Name ="pgeGeneral"
                             Caption ="General"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6275
+                            LayoutCachedHeight =6271
                             Begin
                                 Begin CheckBox
                                     OverlapFlags =215
@@ -739,13 +726,10 @@ Begin Form
                                     Alignment =3
                                     ForeThemeColorIndex =10
                                     ForeTint =100.0
+                                    GridlineThemeColorIndex =1
                                     Gradient =0
-                                    BackColor =5324600
-                                    BackThemeColorIndex =-1
                                     BackTint =100.0
                                     OldBorderStyle =0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
                                     HoverThemeColorIndex =10
                                     HoverTint =100.0
@@ -879,13 +863,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4290
+                            Height =4291
                             Name ="pgeTranslations"
                             Caption ="Translation"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6270
+                            LayoutCachedHeight =6271
                             Begin
                                 Begin CheckBox
                                     OverlapFlags =247
@@ -999,6 +983,14 @@ Begin Form
                                     LayoutCachedTop =4020
                                     LayoutCachedWidth =8760
                                     LayoutCachedHeight =4320
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
+                                    BackThemeColorIndex =4
+                                    BorderThemeColorIndex =4
+                                    HoverThemeColorIndex =4
+                                    PressedThemeColorIndex =4
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                 End
                                 Begin CommandButton
                                     OverlapFlags =247
@@ -1058,18 +1050,14 @@ Begin Form
                                     LayoutCachedWidth =3420
                                     LayoutCachedHeight =5520
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
@@ -1116,13 +1104,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4290
+                            Height =4296
                             Name ="pgeExport"
                             Caption ="Export"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6270
+                            LayoutCachedHeight =6276
                             Begin
                                 Begin TextBox
                                     OverlapFlags =247
@@ -1157,11 +1145,96 @@ Begin Form
                                         End
                                     End
                                 End
+                                Begin Label
+                                    OverlapFlags =247
+                                    Left =6120
+                                    Top =2400
+                                    Width =3000
+                                    Height =240
+                                    FontSize =10
+                                    Name ="Label46"
+                                    Caption ="(Blank for default)"
+                                    LayoutCachedLeft =6120
+                                    LayoutCachedTop =2400
+                                    LayoutCachedWidth =9120
+                                    LayoutCachedHeight =2640
+                                End
+                                Begin CommandButton
+                                    FontUnderline = NotDefault
+                                    TabStop = NotDefault
+                                    OverlapFlags =247
+                                    Left =8100
+                                    Top =2880
+                                    Width =1140
+                                    Height =240
+                                    FontSize =10
+                                    TabIndex =1
+                                    Name ="cmdPrintSettingsOptions"
+                                    Caption ="Options..."
+                                    OnClick ="[Event Procedure]"
+                                    LeftPadding =135
+                                    TopPadding =135
+                                    RightPadding =150
+                                    BottomPadding =150
+                                    BackStyle =0
+
+                                    CursorOnHover =1
+                                    LayoutCachedLeft =8100
+                                    LayoutCachedTop =2880
+                                    LayoutCachedWidth =9240
+                                    LayoutCachedHeight =3120
+                                    Alignment =1
+                                    ForeThemeColorIndex =10
+                                    ForeTint =100.0
+                                    GridlineThemeColorIndex =1
+                                    Gradient =0
+                                    BackTint =100.0
+                                    OldBorderStyle =0
+                                    BorderTint =100.0
+                                    HoverThemeColorIndex =10
+                                    HoverTint =100.0
+                                    PressedThemeColorIndex =10
+                                    PressedShade =100.0
+                                    HoverForeThemeColorIndex =10
+                                    HoverForeTint =100.0
+                                    PressedForeThemeColorIndex =10
+                                    PressedForeTint =100.0
+                                End
+                                Begin CheckBox
+                                    OverlapFlags =247
+                                    Left =5340
+                                    Top =2935
+                                    TabIndex =2
+                                    Name ="chkSavePrintVars"
+
+                                    LayoutCachedLeft =5340
+                                    LayoutCachedTop =2935
+                                    LayoutCachedWidth =5600
+                                    LayoutCachedHeight =3175
+                                    Begin
+                                        Begin Label
+                                            OverlapFlags =247
+                                            Left =5640
+                                            Top =2880
+                                            Width =2400
+                                            Height =315
+                                            ForeColor =5324600
+                                            Name ="Label27"
+                                            Caption ="Save Printer Settings"
+                                            LayoutCachedLeft =5640
+                                            LayoutCachedTop =2880
+                                            LayoutCachedWidth =8040
+                                            LayoutCachedHeight =3195
+                                            ForeThemeColorIndex =-1
+                                            ForeTint =100.0
+                                        End
+                                    End
+                                End
                                 Begin CheckBox
                                     OverlapFlags =247
                                     Left =1020
                                     Top =2940
-                                    TabIndex =1
+                                    TabIndex =3
                                     Name ="chkUseFastSave"
 
                                     LayoutCachedLeft =1020
@@ -1217,6 +1290,36 @@ Begin Form
                                         End
                                     End
                                 End
+                                Begin CheckBox
+                                    OverlapFlags =247
+                                    Left =5340
+                                    Top =3360
+                                    TabIndex =5
+                                    Name ="chkSaveQuerySQL"
+
+                                    LayoutCachedLeft =5340
+                                    LayoutCachedTop =3360
+                                    LayoutCachedWidth =5600
+                                    LayoutCachedHeight =3600
+                                    Begin
+                                        Begin Label
+                                            OverlapFlags =247
+                                            Left =5640
+                                            Top =3300
+                                            Width =3540
+                                            Height =315
+                                            ForeColor =5324600
+                                            Name ="Label29"
+                                            Caption ="Save Query SQL"
+                                            LayoutCachedLeft =5640
+                                            LayoutCachedTop =3300
+                                            LayoutCachedWidth =9180
+                                            LayoutCachedHeight =3615
+                                            ForeThemeColorIndex =-1
+                                            ForeTint =100.0
+                                        End
+                                    End
+                                End
                                 Begin ComboBox
                                     LimitToList = NotDefault
                                     RowSourceTypeInt =1
@@ -1227,9 +1330,10 @@ Begin Form
                                     Top =3720
                                     Width =1980
                                     Height =315
-                                    TabIndex =2
+                                    TabIndex =6
                                     Name ="cboSanitizeLevel"
                                     RowSourceType ="Value List"
+                                    RowSource ="1;Minimal;2;Standard;3;Extended"
                                     ColumnWidths ="0"
                                     AllowValueListEdits =0
 
@@ -1251,104 +1355,6 @@ Begin Form
                                             LayoutCachedTop =3720
                                             LayoutCachedWidth =2580
                                             LayoutCachedHeight =4025
-                                            ForeThemeColorIndex =-1
-                                            ForeTint =100.0
-                                        End
-                                    End
-                                End
-                                Begin ComboBox
-                                    RowSourceTypeInt =1
-                                    OverlapFlags =247
-                                    IMESentenceMode =3
-                                    ColumnCount =2
-                                    Left =2760
-                                    Top =4140
-                                    Width =1980
-                                    Height =315
-                                    TabIndex =3
-                                    Name ="cboSanitizeColors"
-                                    RowSourceType ="Value List"
-                                    ColumnWidths ="0"
-                                    AllowValueListEdits =0
-
-                                    LayoutCachedLeft =2760
-                                    LayoutCachedTop =4140
-                                    LayoutCachedWidth =4740
-                                    LayoutCachedHeight =4455
-                                    Begin
-                                        Begin Label
-                                            OverlapFlags =247
-                                            Left =1020
-                                            Top =4140
-                                            Width =1560
-                                            Height =305
-                                            ForeColor =5324600
-                                            Name ="Label233"
-                                            Caption ="Sanitize Colors"
-                                            LayoutCachedLeft =1020
-                                            LayoutCachedTop =4140
-                                            LayoutCachedWidth =2580
-                                            LayoutCachedHeight =4445
-                                            ForeThemeColorIndex =-1
-                                            ForeTint =100.0
-                                        End
-                                    End
-                                End
-                                Begin CheckBox
-                                    OverlapFlags =247
-                                    Left =5340
-                                    Top =2935
-                                    TabIndex =5
-                                    Name ="chkSavePrintVars"
-
-                                    LayoutCachedLeft =5340
-                                    LayoutCachedTop =2935
-                                    LayoutCachedWidth =5600
-                                    LayoutCachedHeight =3175
-                                    Begin
-                                        Begin Label
-                                            OverlapFlags =247
-                                            Left =5640
-                                            Top =2880
-                                            Width =2400
-                                            Height =315
-                                            ForeColor =5324600
-                                            Name ="Label27"
-                                            Caption ="Save Printer Settings"
-                                            LayoutCachedLeft =5640
-                                            LayoutCachedTop =2880
-                                            LayoutCachedWidth =8040
-                                            LayoutCachedHeight =3195
-                                            ForeThemeColorIndex =-1
-                                            ForeTint =100.0
-                                        End
-                                    End
-                                End
-                                Begin CheckBox
-                                    OverlapFlags =247
-                                    Left =5340
-                                    Top =3360
-                                    TabIndex =6
-                                    Name ="chkSaveQuerySQL"
-
-                                    LayoutCachedLeft =5340
-                                    LayoutCachedTop =3360
-                                    LayoutCachedWidth =5600
-                                    LayoutCachedHeight =3600
-                                    Begin
-                                        Begin Label
-                                            OverlapFlags =247
-                                            Left =5640
-                                            Top =3300
-                                            Width =3540
-                                            Height =315
-                                            ForeColor =5324600
-                                            Name ="Label29"
-                                            Caption ="Save Query SQL"
-                                            LayoutCachedLeft =5640
-                                            LayoutCachedTop =3300
-                                            LayoutCachedWidth =9180
-                                            LayoutCachedHeight =3615
                                             ForeThemeColorIndex =-1
                                             ForeTint =100.0
                                         End
@@ -1384,11 +1390,50 @@ Begin Form
                                         End
                                     End
                                 End
+                                Begin ComboBox
+                                    RowSourceTypeInt =1
+                                    OverlapFlags =247
+                                    IMESentenceMode =3
+                                    ColumnCount =2
+                                    Left =2760
+                                    Top =4140
+                                    Width =1980
+                                    Height =315
+                                    TabIndex =8
+                                    Name ="cboSanitizeColors"
+                                    RowSourceType ="Value List"
+                                    RowSource ="0;None (Off);1;Minimal;2;Standard;3;Extended"
+                                    ColumnWidths ="0"
+                                    AllowValueListEdits =0
+
+                                    LayoutCachedLeft =2760
+                                    LayoutCachedTop =4140
+                                    LayoutCachedWidth =4740
+                                    LayoutCachedHeight =4455
+                                    Begin
+                                        Begin Label
+                                            OverlapFlags =247
+                                            Left =1020
+                                            Top =4140
+                                            Width =1560
+                                            Height =305
+                                            ForeColor =5324600
+                                            Name ="Label233"
+                                            Caption ="Sanitize Colors"
+                                            LayoutCachedLeft =1020
+                                            LayoutCachedTop =4140
+                                            LayoutCachedWidth =2580
+                                            LayoutCachedHeight =4445
+                                            ForeThemeColorIndex =-1
+                                            ForeTint =100.0
+                                        End
+                                    End
+                                End
                                 Begin CheckBox
                                     OverlapFlags =247
                                     Left =5340
                                     Top =4200
-                                    TabIndex =8
+                                    TabIndex =9
                                     Name ="chkFormatSQL"
 
                                     LayoutCachedLeft =5340
@@ -1418,7 +1463,7 @@ Begin Form
                                     OverlapFlags =247
                                     Left =5340
                                     Top =4620
-                                    TabIndex =9
+                                    TabIndex =10
                                     Name ="chkSplitLayoutFromVBA"
 
                                     LayoutCachedLeft =5340
@@ -1444,23 +1489,48 @@ Begin Form
                                         End
                                     End
                                 End
-                                Begin TextBox
+                                Begin Subform
+                                    Visible = NotDefault
                                     OverlapFlags =247
+                                    Left =8385
+                                    Top =5031
+                                    Width =465
+                                    Height =455
+                                    TabIndex =11
+                                    Name ="sfrExportOptionsValueList"
+                                    SourceObject ="Form.frmVCSOptionsValueList"
+                                    OnExit ="[Event Procedure]"
+
+                                    LayoutCachedLeft =8385
+                                    LayoutCachedTop =5031
+                                    LayoutCachedWidth =8850
+                                    LayoutCachedHeight =5486
+                                End
+                                Begin TextBox
+                                    OverlapFlags =255
+                                    TextAlign =1
                                     IMESentenceMode =3
                                     Left =3540
                                     Top =5100
-                                    Width =2700
+                                    Width =3119
                                     Height =315
-                                    TabIndex =10
+                                    TabIndex =12
                                     Name ="txtRunBeforeExport"
+                                    GroupTable =1
+                                    RightPadding =0
 
                                     LayoutCachedLeft =3540
                                     LayoutCachedTop =5100
-                                    LayoutCachedWidth =6240
+                                    LayoutCachedWidth =6659
                                     LayoutCachedHeight =5415
+                                    ColumnStart =1
+                                    ColumnEnd =1
+                                    LayoutGroup =1
+                                    GroupTable =1
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
+                                            TextAlign =1
                                             Left =1020
                                             Top =5100
                                             Width =2460
@@ -1468,47 +1538,218 @@ Begin Form
                                             ForeColor =5324600
                                             Name ="Label44"
                                             Caption ="Run Sub Before Export:"
+                                            GroupTable =1
                                             LayoutCachedLeft =1020
                                             LayoutCachedTop =5100
                                             LayoutCachedWidth =3480
                                             LayoutCachedHeight =5415
+                                            LayoutGroup =1
                                             ForeThemeColorIndex =-1
                                             ForeTint =100.0
+                                            GroupTable =1
                                         End
                                     End
                                 End
-                                Begin TextBox
+                                Begin CommandButton
                                     OverlapFlags =247
+                                    Left =6660
+                                    Top =5100
+                                    Width =315
+                                    Height =315
+                                    TabIndex =13
+                                    Name ="cmdRunBeforeExportOpenValueList"
+                                    Caption ="Befehl311"
+                                    OnClick ="[Event Procedure]"
+                                    GroupTable =1
+                                    LeftPadding =0
+                                    ImageData = Begin
+                                        0x2800000010000000100000000100200000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000727272ff727272ff727272ff ,
+                                        0x727272ff727272ff727272ff727272ff727272ff727272ff0000000000000000 ,
+                                        0x000000000000000000000000000000000000000072727287727272ff727272ff ,
+                                        0x727272ff727272ff727272ff727272ff727272ff727272870000000000000000 ,
+                                        0x000000000000000000000000000000000000000000000000727272a5727272ff ,
+                                        0x727272ff727272ff727272ff727272ff727272a5000000000000000000000000 ,
+                                        0x00000000000000000000000000000000000000000000000072727206727272bd ,
+                                        0x727272ff727272ff727272ff727272bd72727206000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000072727209 ,
+                                        0x727272c9727272ff727272c97272720900000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x72727215727272b7727272150000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000
+                                    End
+
+                                    LayoutCachedLeft =6660
+                                    LayoutCachedTop =5100
+                                    LayoutCachedWidth =6975
+                                    LayoutCachedHeight =5415
+                                    ColumnStart =2
+                                    ColumnEnd =2
+                                    LayoutGroup =1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
+                                    Gradient =0
+                                    BackThemeColorIndex =1
+                                    BackTint =100.0
+                                    BackShade =95.0
+                                    BorderThemeColorIndex =1
+                                    BorderTint =100.0
+                                    BorderShade =65.0
+                                    HoverThemeColorIndex =1
+                                    HoverTint =100.0
+                                    HoverShade =95.0
+                                    PressedThemeColorIndex =1
+                                    PressedShade =95.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
+                                    GroupTable =1
+                                End
+                                Begin TextBox
+                                    OverlapFlags =255
+                                    TextAlign =1
                                     IMESentenceMode =3
                                     Left =3540
-                                    Top =5520
-                                    Width =2700
+                                    Top =5475
+                                    Width =3119
                                     Height =315
-                                    TabIndex =11
+                                    TabIndex =14
                                     Name ="txtRunAfterExport"
+                                    GroupTable =1
+                                    RightPadding =0
+                                    BottomPadding =150
 
                                     LayoutCachedLeft =3540
-                                    LayoutCachedTop =5520
-                                    LayoutCachedWidth =6240
-                                    LayoutCachedHeight =5835
+                                    LayoutCachedTop =5475
+                                    LayoutCachedWidth =6659
+                                    LayoutCachedHeight =5790
+                                    RowStart =1
+                                    RowEnd =1
+                                    ColumnStart =1
+                                    ColumnEnd =1
+                                    LayoutGroup =1
+                                    GroupTable =1
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
+                                            TextAlign =1
                                             Left =1020
-                                            Top =5520
+                                            Top =5475
                                             Width =2460
                                             Height =315
                                             ForeColor =5324600
                                             Name ="Label48"
                                             Caption ="Run Sub After Export:"
+                                            GroupTable =1
+                                            BottomPadding =150
                                             LayoutCachedLeft =1020
-                                            LayoutCachedTop =5520
+                                            LayoutCachedTop =5475
                                             LayoutCachedWidth =3480
-                                            LayoutCachedHeight =5835
+                                            LayoutCachedHeight =5790
+                                            RowStart =1
+                                            RowEnd =1
+                                            LayoutGroup =1
                                             ForeThemeColorIndex =-1
                                             ForeTint =100.0
+                                            GroupTable =1
                                         End
                                     End
+                                End
+                                Begin CommandButton
+                                    OverlapFlags =247
+                                    Left =6660
+                                    Top =5475
+                                    Width =315
+                                    Height =315
+                                    TabIndex =15
+                                    Name ="cmdRunAfterExportOpenValueList"
+                                    Caption ="Befehl311"
+                                    OnClick ="[Event Procedure]"
+                                    GroupTable =1
+                                    LeftPadding =0
+                                    BottomPadding =150
+                                    ImageData = Begin
+                                        0x2800000010000000100000000100200000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000727272ff727272ff727272ff ,
+                                        0x727272ff727272ff727272ff727272ff727272ff727272ff0000000000000000 ,
+                                        0x000000000000000000000000000000000000000072727287727272ff727272ff ,
+                                        0x727272ff727272ff727272ff727272ff727272ff727272870000000000000000 ,
+                                        0x000000000000000000000000000000000000000000000000727272a5727272ff ,
+                                        0x727272ff727272ff727272ff727272ff727272a5000000000000000000000000 ,
+                                        0x00000000000000000000000000000000000000000000000072727206727272bd ,
+                                        0x727272ff727272ff727272ff727272bd72727206000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000072727209 ,
+                                        0x727272c9727272ff727272c97272720900000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x72727215727272b7727272150000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                                        0x0000000000000000
+                                    End
+
+                                    LayoutCachedLeft =6660
+                                    LayoutCachedTop =5475
+                                    LayoutCachedWidth =6975
+                                    LayoutCachedHeight =5790
+                                    RowStart =1
+                                    RowEnd =1
+                                    ColumnStart =2
+                                    ColumnEnd =2
+                                    LayoutGroup =1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
+                                    Gradient =0
+                                    BackThemeColorIndex =1
+                                    BackTint =100.0
+                                    BackShade =95.0
+                                    BorderThemeColorIndex =1
+                                    BorderTint =100.0
+                                    BorderShade =65.0
+                                    HoverThemeColorIndex =1
+                                    HoverTint =100.0
+                                    HoverShade =95.0
+                                    PressedThemeColorIndex =1
+                                    PressedShade =95.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
+                                    GroupTable =1
                                 End
                                 Begin CommandButton
                                     FontUnderline = NotDefault
@@ -1516,7 +1757,7 @@ Begin Form
                                     Left =7140
                                     Top =5640
                                     Width =2160
-                                    TabIndex =12
+                                    TabIndex =16
                                     Name ="cmdExplainOptions"
                                     Caption ="Explain options..."
                                     HyperlinkAddress ="https://github.com/joyfullservice/msaccess-vcs-addin/wiki/Documentation#options"
@@ -1565,78 +1806,15 @@ Begin Form
                                     PictureCaptionArrangement =4
                                     ForeThemeColorIndex =10
                                     ForeTint =100.0
+                                    GridlineThemeColorIndex =1
                                     Gradient =0
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
                                     BackTint =100.0
                                     OldBorderStyle =0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
-                                End
-                                Begin CommandButton
-                                    FontUnderline = NotDefault
-                                    TabStop = NotDefault
-                                    OverlapFlags =247
-                                    Left =8100
-                                    Top =2880
-                                    Width =1140
-                                    Height =240
-                                    FontSize =10
-                                    TabIndex =13
-                                    Name ="cmdPrintSettingsOptions"
-                                    Caption ="Options..."
-                                    OnClick ="[Event Procedure]"
-                                    LeftPadding =135
-                                    TopPadding =135
-                                    RightPadding =150
-                                    BottomPadding =150
-                                    BackStyle =0
-
-                                    CursorOnHover =1
-                                    LayoutCachedLeft =8100
-                                    LayoutCachedTop =2880
-                                    LayoutCachedWidth =9240
-                                    LayoutCachedHeight =3120
-                                    Alignment =1
-                                    ForeThemeColorIndex =10
-                                    ForeTint =100.0
-                                    Gradient =0
-                                    BackColor =5324600
-                                    BackThemeColorIndex =-1
-                                    BackTint =100.0
-                                    OldBorderStyle =0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
-                                    BorderTint =100.0
-                                    HoverThemeColorIndex =10
-                                    HoverTint =100.0
-                                    PressedThemeColorIndex =10
-                                    PressedShade =100.0
-                                    HoverForeThemeColorIndex =10
-                                    HoverForeTint =100.0
-                                    PressedForeThemeColorIndex =10
-                                    PressedForeTint =100.0
-                                End
-                                Begin Label
-                                    OverlapFlags =247
-                                    Left =6120
-                                    Top =2400
-                                    Width =3000
-                                    Height =240
-                                    FontSize =10
-                                    Name ="Label46"
-                                    Caption ="(Blank for default)"
-                                    LayoutCachedLeft =6120
-                                    LayoutCachedTop =2400
-                                    LayoutCachedWidth =9120
-                                    LayoutCachedHeight =2640
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                 End
                             End
                         End
@@ -1646,13 +1824,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4290
+                            Height =4291
                             Name ="pgePrinterSettings"
                             Caption ="Printer Settings"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6270
+                            LayoutCachedHeight =6271
                             Begin
                                 Begin CheckBox
                                     OverlapFlags =247
@@ -2294,13 +2472,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4290
+                            Height =4291
                             Name ="pgeDatabases"
                             Caption ="Databases"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6270
+                            LayoutCachedHeight =6271
                             Begin
                                 Begin ListBox
                                     ColumnHeads = NotDefault
@@ -2314,6 +2492,7 @@ Begin Form
                                     Height =2880
                                     Name ="lstDatabases"
                                     RowSourceType ="Value List"
+                                    RowSource ="Name;Description"
                                     ColumnWidths ="2520"
                                     OnDblClick ="[Event Procedure]"
                                     HorizontalAnchor =2
@@ -2418,18 +2597,14 @@ Begin Form
                                     LayoutCachedWidth =2340
                                     LayoutCachedHeight =5880
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                 End
                                 Begin CommandButton
                                     OverlapFlags =247
@@ -2488,18 +2663,14 @@ Begin Form
                                     LayoutCachedWidth =5460
                                     LayoutCachedHeight =5880
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                 End
                                 Begin CommandButton
                                     OverlapFlags =247
@@ -2558,18 +2729,14 @@ Begin Form
                                     LayoutCachedWidth =4140
                                     LayoutCachedHeight =5880
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                 End
                             End
                         End
@@ -2578,13 +2745,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4290
+                            Height =4291
                             Name ="pgeTable"
                             Caption ="Table Data"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6270
+                            LayoutCachedHeight =6271
                             Begin
                                 Begin CheckBox
                                     OverlapFlags =247
@@ -2676,7 +2843,7 @@ Begin Form
                                             Height =315
                                             ForeColor =5324600
                                             Name ="lblTableShowOther"
-                                            Caption ="Show Other"
+                                            Caption ="Show Other   (2)"
                                             VerticalAnchor =1
                                             LayoutCachedLeft =5460
                                             LayoutCachedTop =5700
@@ -2779,18 +2946,14 @@ Begin Form
                                     LayoutCachedWidth =9360
                                     LayoutCachedHeight =5220
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                 End
                                 Begin Label
                                     OverlapFlags =247
@@ -2842,6 +3005,7 @@ Begin Form
                                     TabIndex =6
                                     Name ="cboFormatTypeForOther"
                                     RowSourceType ="Value List"
+                                    RowSource ="1;\"Tab Delimited\";2;\"XML Format\""
                                     ColumnWidths ="0"
                                     BottomPadding =150
                                     HorizontalAnchor =1
@@ -2887,13 +3051,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4290
+                            Height =4291
                             Name ="pgeBuild"
                             Caption ="Build"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6270
+                            LayoutCachedHeight =6271
                             Begin
                                 Begin CheckBox
                                     OverlapFlags =247
@@ -3064,13 +3228,13 @@ Begin Form
                             Left =600
                             Top =1980
                             Width =8865
-                            Height =4290
+                            Height =4291
                             Name ="pgeSettings"
                             Caption ="Settings"
                             LayoutCachedLeft =600
                             LayoutCachedTop =1980
                             LayoutCachedWidth =9465
-                            LayoutCachedHeight =6270
+                            LayoutCachedHeight =6271
                             Begin
                                 Begin OptionGroup
                                     OverlapFlags =255
@@ -3163,18 +3327,14 @@ Begin Form
                                     LayoutCachedWidth =3420
                                     LayoutCachedHeight =2940
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
@@ -3250,18 +3410,14 @@ Begin Form
                                     LayoutCachedWidth =3420
                                     LayoutCachedHeight =3480
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
@@ -3337,18 +3493,14 @@ Begin Form
                                     LayoutCachedWidth =3420
                                     LayoutCachedHeight =4020
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
@@ -3424,18 +3576,14 @@ Begin Form
                                     LayoutCachedWidth =3420
                                     LayoutCachedHeight =4560
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
@@ -3547,18 +3695,14 @@ Begin Form
                                     LayoutCachedWidth =3420
                                     LayoutCachedHeight =5760
                                     PictureCaptionArrangement =5
-                                    BackColor =14262935
-                                    BackThemeColorIndex =-1
+                                    ForeThemeColorIndex =0
+                                    GridlineThemeColorIndex =1
                                     BackTint =100.0
-                                    BorderColor =15321539
-                                    BorderThemeColorIndex =-1
                                     BorderTint =100.0
-                                    HoverColor =15321539
-                                    HoverThemeColorIndex =-1
                                     HoverTint =100.0
-                                    PressedColor =13072231
-                                    PressedThemeColorIndex =-1
                                     PressedShade =100.0
+                                    HoverForeThemeColorIndex =0
+                                    PressedForeThemeColorIndex =0
                                     Begin
                                         Begin Label
                                             OverlapFlags =247
@@ -3639,20 +3783,15 @@ Begin Form
                     PictureCaptionArrangement =4
                     ForeThemeColorIndex =10
                     ForeTint =100.0
+                    GridlineThemeColorIndex =1
                     Gradient =0
-                    BackColor =14262935
-                    BackThemeColorIndex =-1
                     BackTint =100.0
                     OldBorderStyle =0
-                    BorderColor =15321539
-                    BorderThemeColorIndex =-1
                     BorderTint =100.0
-                    HoverColor =15321539
-                    HoverThemeColorIndex =-1
                     HoverTint =100.0
-                    PressedColor =13072231
-                    PressedThemeColorIndex =-1
                     PressedShade =100.0
+                    HoverForeThemeColorIndex =0
+                    PressedForeThemeColorIndex =0
                     Overlaps =1
                 End
                 Begin Label
@@ -3709,6 +3848,7 @@ Begin Form
                     Height =240
                     FontSize =10
                     Name ="lblVersion"
+                    Caption ="4.1.2"
                     HorizontalAnchor =1
                     LayoutCachedLeft =7140
                     LayoutCachedTop =540
