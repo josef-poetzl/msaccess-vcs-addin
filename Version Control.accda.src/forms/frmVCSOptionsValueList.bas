@@ -166,6 +166,7 @@ Begin Form
             BackThemeColorIndex =1
             Begin
                 Begin TextBox
+                    TabStop = NotDefault
                     OverlapFlags =93
                     IMESentenceMode =3
                     Height =315

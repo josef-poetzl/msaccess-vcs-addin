@@ -976,6 +976,10 @@ Private Sub UseOptionValueListForTextbox(ByVal tb As TextBox, ByVal cmd As Comma
     Dim OptionValues() As String
     Dim i As Long
 
+    If Not (m_OptionValueList Is Nothing) Then
+        DoEvents
+    End If
+
     OptionValues = Split(Nz(tb.Value, vbNullString), ":")
     If Len(tb.Value) > 0 Then
         For i = LBound(OptionValues) To UBound(OptionValues)
@@ -990,6 +994,7 @@ Private Sub UseOptionValueListForTextbox(ByVal tb As TextBox, ByVal cmd As Comma
         .Height = ListHeight
         .Form.OptionValueListCode = tb.Name
         .Form.SetData OptionValues
+        .Enabled = True
         .Visible = True
         .SetFocus
     End With
@@ -1018,6 +1023,7 @@ End Sub
 Private Sub Form_Timer()
     Me.TimerInterval = 0
     With Me.sfrExportOptionsValueList
+        .Enabled = False
         .Visible = False
         If Me.ActiveControl.Name = .Form.OptionValueListCode Then
             With Me.ActiveControl
