@@ -1697,7 +1697,46 @@ Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String)
     For i = LBound(arrProcedures) To UBound(arrProcedures)
         Log.Add T("Running {0}...", var0:=arrProcedures(i))
         Log.Flush
-        RunSubInCurrentProject Trim(arrProcedures(i))
+        ApplicationRunProcedure Trim(arrProcedures(i))
     Next
 
 End Sub
+
+
+Private Sub ApplicationRunProcedure(ByVal strProcedureName As String)
+
+    If InStr(1, strProcedureName, ".") Then
+        If TryRunAddInProcedure(strProcedureName) Then
+            Exit Sub
+        End If
+    End If
+
+    RunSubInCurrentProject strProcedureName
+
+End Sub
+
+Private Function TryRunAddInProcedure(ByVal strProcedureName As String) As Boolean
+
+    Dim strAddInFile As String
+
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    strProcedureName = Replace(strProcedureName, "%addins%", Environ$("appdata") & "\Microsoft\AddIns", , , vbTextCompare)
+    strProcedureName = Replace(strProcedureName, "%appdata%", Environ("appdata"), , , vbTextCompare)
+
+    strAddInFile = Left(strProcedureName, InStrRev(strProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(strAddInFile)) = 0 Then
+        Exit Function ' or raise error?
+    End If
+
+    TryRunAddInProcedure = True
+    ExecuteLoggedApplicationRun strProcedureName
+
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
