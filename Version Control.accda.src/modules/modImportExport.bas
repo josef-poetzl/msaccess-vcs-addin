@@ -19,7 +19,8 @@ Private Const ModuleName As String = "modImportExport"
 ' Purpose   : Export source files from the currently open database.
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain)
+Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain, _
+                        Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -113,7 +114,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     ' Run any custom sub before export
     If Options.RunBeforeExport <> vbNullString Then
         Perf.OperationStart "RunBeforeExport"
-        ExecuteApplicationRun Options.RunBeforeExport
+        ExecuteApplicationRun Options.RunBeforeExport, VcsRef
         Perf.OperationEnd
     End If
 
@@ -255,7 +256,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     ' Run any custom sub after export
     If Options.RunAfterExport <> vbNullString Then
         Perf.OperationStart "RunAfterExport"
-        ExecuteApplicationRun Options.RunAfterExport
+        ExecuteApplicationRun Options.RunAfterExport, VcsRef
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If

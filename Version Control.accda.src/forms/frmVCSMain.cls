@@ -29,6 +29,8 @@ Public strLastLogFilePath As String
 ' Use this property to set the path to the source files (such as a build triggered from the API)
 Public strSourcePath As String
 
+Public ActiveVersionControl As clsVersionControl
+
 Public Sub SetObjectArray(ByRef arrAccessObject() As Access.AccessObject)
     arrObjects = arrAccessObject
 End Sub
@@ -278,6 +280,10 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Sub cmdExport_Click()
+    RunExport ActiveVersionControl
+End Sub
+
+Public Sub RunExport(Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     cmdClose.SetFocus
     HideActionButtons
@@ -299,7 +305,7 @@ Public Sub cmdExport_Click()
         If Not IsEmptyArray(arrObjects) Then
             modImportExport.ExportObjects arrObjects, Me
         Else ' Export the source code using the specified filter.
-            modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me
+            modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me, VcsRef
         End If
     Else
         modImportExport.ExportSingleObject Me.objSingleObject, Me

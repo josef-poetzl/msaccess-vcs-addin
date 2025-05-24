@@ -28,6 +28,7 @@ Option Explicit
 Public Sub Show()
     If HasFormOpen Then Exit Sub
     DoCmd.OpenForm "frmVCSMain"
+    Set Form_frmVCSMain.ActiveVersionControl = Me
 End Sub
 
 
@@ -145,7 +146,7 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
             Set .objSingleObject = objItem
         End If
         .Visible = True
-        .cmdExport_Click
+        .RunExport Me
         ExportErrorLevel = Log.ErrorLevel
         If ExportErrorLevel <= eelInfo Then
             If InteractionMode = eimSilent Then
@@ -165,8 +166,8 @@ Private Sub RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObject)
     With Form_frmVCSMain
         .SetObjectArray arrObjectsToExport
         .Visible = True
-        .cmdExport_Click
-        If Log.ErrorLevel < eelError Then .AutoClose
+        .RunExport Me
+        If Log.ErrorLevel <= eelInfo Then .AutoClose
     End With
 End Sub
 
@@ -781,6 +782,7 @@ Public Property Let SilentMode(ByVal bolRunInSilentMode As Boolean)
     End If
 End Property
 
+
 '---------------------------------------------------------------------------------------
 ' Procedure : AddLog
 ' Purpose   : Save Log from external (using API)
@@ -795,3 +797,13 @@ Public Sub AddLog(strText As String, Optional blnPrint As Boolean = True, _
    Log.Add strText, blnPrint, blnNextOutputOnNewLine, strColor, blnBold, blnItalic
 
 End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : Log
+' Purpose   : Access Log for API (modAPI.VCS)
+'---------------------------------------------------------------------------------------
+'
+Public Function Log() As Object
+    Set Log = modObjects.Log
+End Function

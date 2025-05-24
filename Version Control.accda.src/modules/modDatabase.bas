@@ -526,12 +526,19 @@ End Function
 '           : current project, not the add-in file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunSubInCurrentProject(strSubName As String)
+Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim strCmd As String
+    Dim bolUseVcsParam As Boolean
 
     ' Don't need the parentheses after the sub name
     strCmd = Replace(strSubName, "()", vbNullString)
+    strCmd = Trim(strCmd)
+
+    If Right(strCmd, 5) = "(VCS)" Then
+        bolUseVcsParam = True
+        strCmd = Left(strCmd, Len(strCmd) - 5)
+    End If
 
     ' Make sure we are not trying to run a function with arguments
     If InStr(strCmd, "(") > 0 Then
@@ -563,13 +570,29 @@ Public Sub RunSubInCurrentProject(strSubName As String)
         End With
     End If
 
-    ExecuteLoggedApplicationRun strCmd
+    If bolUseVcsParam Then
+        Application.Run strCmd, VcsRef
+    Else
+        Application.Run strCmd
+    End If
 
 End Sub
 
-Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String)
+Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
-   Dim ExternalReturnValue As Variant
+    Dim ExternalReturnValue As Variant
+    Dim strCmd As String
+    Dim bolUseVcsParam As Boolean
+
+    ' Don't need the parentheses after the sub name
+    strCmd = Replace(strProcedureName, "()", vbNullString)
+    strCmd = Trim(strCmd)
+
+    If Right(strCmd, 5) = "(VCS)" Then
+        bolUseVcsParam = True
+        strCmd = Left(strCmd, Len(strCmd) - 5)
+    End If
+   
 
 ' What could a generally usable interface look like?
 '
@@ -580,7 +603,13 @@ Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String)
 '                                   or "Warning: Warning Message" => displayed Warning log
 '                                   or vbNullstring ... show nothing, all success
 '
-    ExternalReturnValue = Application.Run(strProcedureName)
+    ExternalReturnValue = Application.Run(strCmd)
+	
+	If bolUseVcsParam Then
+		ExternalReturnValue = Application.Run(strCmd, VcsRef)
+    Else
+        ExternalReturnValue = Application.Run(strCmd)
+    End If
 
     If VarType(ExternalReturnValue) = vbString Then
         LogErrorMessage ExternalReturnValue, GetProcedureNameFromPath(strProcedureName)
