@@ -1831,7 +1831,7 @@ Public Sub InitializeForms(cContainers As Dictionary)
 End Sub
 
 
-Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String)
+Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim arrProcedures() As String
     Dim i As Long
@@ -1842,25 +1842,25 @@ Private Sub ExecuteApplicationRun(ByVal strRunProcedureOptionValue As String)
     For i = LBound(arrProcedures) To UBound(arrProcedures)
         Log.Add T("Running {0}...", var0:=arrProcedures(i))
         Log.Flush
-        ApplicationRunProcedure Trim(arrProcedures(i))
+        ApplicationRunProcedure Trim(arrProcedures(i)), VcsRef
     Next
 
 End Sub
 
 
-Private Sub ApplicationRunProcedure(ByVal strProcedureName As String)
+Private Sub ApplicationRunProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     If InStr(1, strProcedureName, ".") Then
-        If TryRunAddInProcedure(strProcedureName) Then
+        If TryRunAddInProcedure(strProcedureName, VcsRef) Then
             Exit Sub
         End If
     End If
 
-    RunSubInCurrentProject strProcedureName
+    RunSubInCurrentProject strProcedureName, VcsRef
 
 End Sub
 
-Private Function TryRunAddInProcedure(ByVal strProcedureName As String) As Boolean
+Private Function TryRunAddInProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
 
     Dim strAddInFile As String
 
@@ -1875,7 +1875,7 @@ If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
     End If
 
     TryRunAddInProcedure = True
-    ExecuteLoggedApplicationRun strProcedureName
+    ExecuteLoggedApplicationRun strProcedureName, VcsRef
 
 ExitHere:
     Exit Function

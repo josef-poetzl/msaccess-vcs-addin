@@ -592,7 +592,7 @@ Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optiona
         bolUseVcsParam = True
         strCmd = Left(strCmd, Len(strCmd) - 5)
     End If
-   
+
 
 ' What could a generally usable interface look like?
 '
@@ -604,9 +604,9 @@ Public Sub ExecuteLoggedApplicationRun(ByVal strProcedureName As String, Optiona
 '                                   or vbNullstring ... show nothing, all success
 '
     ExternalReturnValue = Application.Run(strCmd)
-	
-	If bolUseVcsParam Then
-		ExternalReturnValue = Application.Run(strCmd, VcsRef)
+
+    If bolUseVcsParam Then
+        ExternalReturnValue = Application.Run(strCmd, VcsRef)
     Else
         ExternalReturnValue = Application.Run(strCmd)
     End If
