@@ -246,3 +246,63 @@ Public Property Get Git() As clsGitIntegration
     If this.Git Is Nothing Then Set this.Git = New clsGitIntegration
     Set Git = this.Git
 End Property
+
+'---------------------------------------------------------------------------------------
+' Procedure : ErrorTrapping
+' Author    : Josef Poetzl
+' Date      : 4/2/2025
+' Purpose   : Set required Error Trapping option inside With block
+'---------------------------------------------------------------------------------------
+'
+Public Function ErrorTrapping(ByVal RequiredErrorTrappingLevel As ErrorTrappingOptions, Optional ByVal Strict As Boolean = False) As ErrorTrappingObserver
+
+    Static blnIsAccdePropReaded As Boolean
+    Static blnIsAccde As Boolean
+
+    Dim SetErrorTrapping As Boolean
+    Dim ETObserver As ErrorTrappingObserver
+
+    If Not blnIsAccdePropReaded Then
+        blnIsAccde = IsMde
+        blnIsAccdePropReaded = True
+    End If
+
+    If blnIsAccde Then
+        ' Error Trapping inside compiled add-in is allway on
+        Exit Function
+    End If
+
+    Set ETObserver = New ErrorTrappingObserver
+
+    If Strict Then
+        If ETObserver.ErrorTrapping <> RequiredErrorTrappingLevel Then
+           SetErrorTrapping = True
+        End If
+    ElseIf ETObserver.ErrorTrapping < RequiredErrorTrappingLevel Then
+        SetErrorTrapping = True
+    End If
+
+    If SetErrorTrapping Then
+        ETObserver.ErrorTrapping = RequiredErrorTrappingLevel
+    Else
+        Set ETObserver = Nothing
+    End If
+
+    Set ErrorTrapping = ETObserver
+
+End Function
+
+Private Function IsMde() As Boolean
+
+    Dim objProp As DAO.Property
+
+    For Each objProp In CodeDb.Properties
+        If objProp.Name = "MDE" Then
+            If objProp.Value = "T" Then
+                IsMde = True
+            End If
+            Exit Function
+        End If
+    Next
+
+End Function
