@@ -24,6 +24,7 @@ jobs:
       uses: AccessCodeLib/msaccess-vcs-build@main
       with:
         source-dir: "./Version Control.accda.src"
+        target-dir: "bin"
         vcs-url: "https://api.github.com/repos/josef-poetzl/msaccess-vcs-addin/releases/tags/v4.1.2-build"
       timeout-minutes: 10
 
@@ -40,8 +41,43 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: "Calculate SHA256 of ZIP"
+      id: hash
+      shell: pwsh
+      run: |
+        $zipName = "${{ env.ZIP_NAME }}"
+        $hash = Get-FileHash -Algorithm SHA256 -Path $zipName
+        $digest = "sha256:$($hash.Hash.ToLower())"
+        echo "ZIP_DIGEST=$digest" | Out-File -FilePath $env:GITHUB_ENV -Append
+        echo "digest=$digest" >> $env:GITHUB_OUTPUT
+
     - name: "Attestation"
       uses: actions/attest-build-provenance@v2
+      id: attestation
       with:
         subject-name: "${{ env.ZIP_NAME }}"
-        subject-digest: sha256:${{ steps.build_access_file.outputs.artifact-digest }}
+        subject-digest: "${{ steps.hash.outputs.digest }}"
+
+    - name: "Update release description with attestation URL"
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        $ErrorActionPreference = "Stop"
+
+        # Alte Release Notes abrufen
+        $oldBody = gh release view $env:TAG --repo $env:REPO --json body --template "{{.body}}"
+
+        # Attestation-URL zusammenbauen
+        $attestationId = "${{ steps.attestation.outputs.attestation-id }}"
+        $attestationUrl = "https://github.com/$($env:REPO)/attestations/$attestationId"
+
+        # Neue Release Notes mit Attestation-Link
+        $newBody = "$oldBody`n`nAttestation: $attestationUrl"
+
+        # Aktualisieren der Release Notes
+        gh release edit $env:TAG --repo $env:REPO --notes "$newBody"
+
+      
