@@ -40,8 +40,19 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: "Calculate SHA256 of ZIP"
+      id: hash
+      shell: pwsh
+      run: |
+        $zipName = "${{ env.ZIP_NAME }}"
+        $hash = Get-FileHash -Algorithm SHA256 -Path $zipName
+        $digest = "sha256:$($hash.Hash.ToLower())"
+        echo "ZIP_DIGEST=$digest" | Out-File -FilePath $env:GITHUB_ENV -Append
+        echo "::set-output name=digest::$digest"
+
     - name: "Attestation"
       uses: actions/attest-build-provenance@v2
       with:
         subject-name: "${{ env.ZIP_NAME }}"
-        subject-digest: sha256:${{ steps.build_access_file.outputs.artifact-digest }}
+        subject-digest: "${{ steps.hash.outputs.digest }}"
+        
