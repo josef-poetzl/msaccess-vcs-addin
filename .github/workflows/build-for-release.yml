@@ -57,46 +57,19 @@ jobs:
         subject-name: "${{ env.ZIP_NAME }}"
         subject-digest: "${{ steps.hash.outputs.digest }}"
 
-    - name: "Get attestation ID from GitHub API"
-      id: get_attestation_id
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REPO: ${{ github.repository }}
-        OWNER: ${{ github.repository_owner }}
-        TAG: ${{ github.event.release.tag_name }}
-      shell: pwsh
-      run: |
-        $headers = @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = "application/vnd.github+json" }
-        $url = "https://api.github.com/repos/$env:REPO/attestations"
-        $response = Invoke-RestMethod -Uri $url -Headers $headers
-
-        # Filtern nach Attestation mit subject.name == ZIP_NAME
-        $zipName = "${{ env.ZIP_NAME }}"
-        $attestation = $response | Where-Object { $_.subject.name -eq $zipName } | Select-Object -First 1
-
-        if (-not $attestation) {
-          Write-Error "No attestation found for $zipName"
-          exit 1
-        }
-
-        $attestationId = $attestation.id
-        Write-Host "Attestation ID: $attestationId"
-        echo "attestation_id=$attestationId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-
     - name: "Update release description with attestation URL"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPO: ${{ github.repository }}
         TAG: ${{ github.event.release.tag_name }}
       run: |
-        # Alte Release Notes holen
+        # get old release notes
         OLD_BODY=$(gh release view $TAG --repo $REPO --json body --template '{{.body}}')
         
-        ATTESTATION_URL="https://github.com/${REPO}/attestations/${{ steps.get_attestation_id.outputs.attestation_id }}"
+        ATTESTATION_URL="https://github.com/${REPO}/attestations/${{ steps.attestation.outputs.attestation-id }}"
 
         NEW_BODY="${OLD_BODY}\n\nAttestation: ${ATTESTATION_URL}"
 
-        # Release Notes updaten
+        # update release notes with attestation URL
         gh release edit $TAG --repo $REPO --notes "$NEW_BODY"
-      # Benötigt GitHub CLI installiert im Runner
+  
