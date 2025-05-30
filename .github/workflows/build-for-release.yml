@@ -48,7 +48,7 @@ jobs:
         $hash = Get-FileHash -Algorithm SHA256 -Path $zipName
         $digest = "sha256:$($hash.Hash.ToLower())"
         echo "ZIP_DIGEST=$digest" | Out-File -FilePath $env:GITHUB_ENV -Append
-        echo "::set-output name=digest::$digest"
+        echo "digest=$digest" >> $env:GITHUB_OUTPUT
 
     - name: "Attestation"
       uses: actions/attest-build-provenance@v2
