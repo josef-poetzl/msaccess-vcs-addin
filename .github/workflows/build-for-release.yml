@@ -64,20 +64,25 @@ jobs:
         REPO: ${{ github.repository }}
         OWNER: ${{ github.repository_owner }}
         TAG: ${{ github.event.release.tag_name }}
+      shell: pwsh
       run: |
-        # Suche die Attestation für das ZIP im Repo (Filter auf subject name = ZIP_NAME)
-        ATTESTATIONS_JSON=$(curl -sSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/attestations")
+        $headers = @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = "application/vnd.github+json" }
+        $url = "https://api.github.com/repos/$env:REPO/attestations"
+        $response = Invoke-RestMethod -Uri $url -Headers $headers
 
-        # jq filter: finde Attestation mit subject.name == ZIP_NAME
-        ATTESTATION_ID=$(echo "$ATTESTATIONS_JSON" | jq -r --arg subject "${{ env.ZIP_NAME }}" '.[] | select(.subject.name==$subject) | .id' | head -n 1)
+        # Filtern nach Attestation mit subject.name == ZIP_NAME
+        $zipName = "${{ env.ZIP_NAME }}"
+        $attestation = $response | Where-Object { $_.subject.name -eq $zipName } | Select-Object -First 1
 
-        if [ -z "$ATTESTATION_ID" ]; then
-          echo "No attestation found for ${{ env.ZIP_NAME }}"
+        if (-not $attestation) {
+          Write-Error "No attestation found for $zipName"
           exit 1
-        fi
+        }
 
-        echo "Attestation ID: $ATTESTATION_ID"
-        echo "attestation_id=$ATTESTATION_ID" >> $GITHUB_OUTPUT
+        $attestationId = $attestation.id
+        Write-Host "Attestation ID: $attestationId"
+        echo "attestation_id=$attestationId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
 
     - name: "Update release description with attestation URL"
       env:
