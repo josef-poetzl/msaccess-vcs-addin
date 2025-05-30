@@ -1,0 +1,46 @@
+name: Build-self-hosted (on release)
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    runs-on: [self-hosted, Windows, Office]
+
+    steps:
+    - name: "Checkout code for release tag"
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.release.tag_name }}
+
+    - name: "Build Access file (accdb/accde)"
+      id: build_access_file
+      uses: AccessCodeLib/msaccess-vcs-build@main
+      with:
+        source-dir: "./Version Control.accda.src"
+      timeout-minutes: 10
+
+    - name: "Create versioned ZIP file"
+      run: |
+        $zipName = "Version_Control_${{ github.event.release.tag_name }}.zip"
+        Compress-Archive -Path .\bin\* -DestinationPath $zipName
+        echo "ZIP_NAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: "Upload ZIP to GitHub Release"
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ env.ZIP_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: "Attestation"
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-name: "${{ env.ZIP_NAME }}"
+        subject-digest: sha256:${{ steps.build_access_file.outputs.artifact-digest }}
