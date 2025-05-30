@@ -17,6 +17,8 @@ jobs:
         uses: AccessCodeLib/msaccess-vcs-build@main
         with:
           source-dir: "./Version Control.accda.src"
+          target-dir: "bin"
+          vcs-url: "https://api.github.com/repos/josef-poetzl/msaccess-vcs-addin/releases/tags/v4.1.2-build"
         timeout-minutes: 10
       - name: "Upload Build Artifact"
         uses: actions/upload-artifact@v4
