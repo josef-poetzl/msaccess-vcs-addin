@@ -24,7 +24,7 @@ jobs:
       uses: AccessCodeLib/msaccess-vcs-build@main
       with:
         source-dir: "./Version Control.accda.src"
-        vcs-url: "https://github.com/josef-poetzl/msaccess-vcs-addin/releases/tag/v4.1.2-build"
+        vcs-url: "https://api.github.com/repos/josef-poetzl/msaccess-vcs-addin/releases/tags/v4.1.2-build"
       timeout-minutes: 10
 
     - name: "Create versioned ZIP file"
