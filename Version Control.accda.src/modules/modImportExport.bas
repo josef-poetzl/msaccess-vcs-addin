@@ -915,7 +915,7 @@ Public Sub Build(strSourceFolder As String _
                     vbNewLine & "Would you like to continue anyway?" _
                 , var0:=Options.GetLoadedVersion, var1:=GetVCSVersion), _
             T("Click YES to continue this operation, or NO to cancel."), _
-            vbExclamation + vbYesNo + vbDefaultButton2) <> vbYes Then
+            vbExclamation + vbYesNo + vbDefaultButton2, , vbYes) <> vbYes Then
             Log.ErrorLevel = eelCritical
             GoTo CleanUp
         End If
