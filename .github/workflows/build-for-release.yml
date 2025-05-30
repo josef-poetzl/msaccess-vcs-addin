@@ -58,18 +58,25 @@ jobs:
         subject-digest: "${{ steps.hash.outputs.digest }}"
 
     - name: "Update release description with attestation URL"
+      shell: pwsh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPO: ${{ github.repository }}
         TAG: ${{ github.event.release.tag_name }}
       run: |
-        # get old release notes
-        OLD_BODY=$(gh release view $TAG --repo $REPO --json body --template '{{.body}}')
-        
-        ATTESTATION_URL="https://github.com/${REPO}/attestations/${{ steps.attestation.outputs.attestation-id }}"
+        $ErrorActionPreference = "Stop"
 
-        NEW_BODY="${OLD_BODY}\n\nAttestation: ${ATTESTATION_URL}"
+        # Alte Release Notes abrufen
+        $oldBody = gh release view $env:TAG --repo $env:REPO --json body --template "{{.body}}"
 
-        # update release notes with attestation URL
-        gh release edit $TAG --repo $REPO --notes "$NEW_BODY"
-  
+        # Attestation-URL zusammenbauen
+        $attestationId = "${{ steps.attestation.outputs.attestation-id }}"
+        $attestationUrl = "https://github.com/$($env:REPO)/attestations/$attestationId"
+
+        # Neue Release Notes mit Attestation-Link
+        $newBody = "$oldBody`n`nAttestation: $attestationUrl"
+
+        # Aktualisieren der Release Notes
+        gh release edit $env:TAG --repo $env:REPO --notes "$newBody"
+
+      
