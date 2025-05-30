@@ -67,17 +67,17 @@ jobs:
       run: |
         $ErrorActionPreference = "Stop"
 
-        # Alte Release Notes abrufen
+        # get current release notes
         $oldBody = gh release view $env:TAG --repo $env:REPO --json body --template "{{.body}}"
 
-        # Attestation-URL zusammenbauen
+        # build Attestation URL
         $attestationId = "${{ steps.attestation.outputs.attestation-id }}"
         $attestationUrl = "https://github.com/$($env:REPO)/attestations/$attestationId"
 
-        # Neue Release Notes mit Attestation-Link
+        # join release notes with Attestation url
         $newBody = "$oldBody`n`nAttestation: $attestationUrl"
 
-        # Aktualisieren der Release Notes
+        # save release notes
         gh release edit $env:TAG --repo $env:REPO --notes "$newBody"
 
       
