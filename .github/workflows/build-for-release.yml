@@ -52,7 +52,46 @@ jobs:
 
     - name: "Attestation"
       uses: actions/attest-build-provenance@v2
+      id: attestation
       with:
         subject-name: "${{ env.ZIP_NAME }}"
         subject-digest: "${{ steps.hash.outputs.digest }}"
+
+    - name: "Get attestation ID from GitHub API"
+      id: get_attestation_id
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
+        OWNER: ${{ github.repository_owner }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        # Suche die Attestation für das ZIP im Repo (Filter auf subject name = ZIP_NAME)
+        ATTESTATIONS_JSON=$(curl -sSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/attestations")
+
+        # jq filter: finde Attestation mit subject.name == ZIP_NAME
+        ATTESTATION_ID=$(echo "$ATTESTATIONS_JSON" | jq -r --arg subject "${{ env.ZIP_NAME }}" '.[] | select(.subject.name==$subject) | .id' | head -n 1)
+
+        if [ -z "$ATTESTATION_ID" ]; then
+          echo "No attestation found for ${{ env.ZIP_NAME }}"
+          exit 1
+        fi
+
+        echo "Attestation ID: $ATTESTATION_ID"
+        echo "attestation_id=$ATTESTATION_ID" >> $GITHUB_OUTPUT
+
+    - name: "Update release description with attestation URL"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        # Alte Release Notes holen
+        OLD_BODY=$(gh release view $TAG --repo $REPO --json body --template '{{.body}}')
         
+        ATTESTATION_URL="https://github.com/${REPO}/attestations/${{ steps.get_attestation_id.outputs.attestation_id }}"
+
+        NEW_BODY="${OLD_BODY}\n\nAttestation: ${ATTESTATION_URL}"
+
+        # Release Notes updaten
+        gh release edit $TAG --repo $REPO --notes "$NEW_BODY"
+      # Benötigt GitHub CLI installiert im Runner
