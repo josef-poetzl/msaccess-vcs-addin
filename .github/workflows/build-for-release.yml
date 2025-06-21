@@ -1,0 +1,83 @@
+name: Build-self-hosted (on release)
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    runs-on: [self-hosted, Windows, Office]
+
+    steps:
+    - name: "Checkout code for release tag"
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.release.tag_name }}
+
+    - name: "Build Access file (accdb/accde)"
+      id: build_access_file
+      uses: AccessCodeLib/msaccess-vcs-build@main
+      with:
+        source-dir: "./Version Control.accda.src"
+        target-dir: "bin"
+        vcs-url: ""
+      timeout-minutes: 10
+
+    - name: "Create versioned ZIP file"
+      run: |
+        $zipName = "Version_Control_${{ github.event.release.tag_name }}.zip"
+        Compress-Archive -Path .\bin\* -DestinationPath $zipName
+        echo "ZIP_NAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: "Upload ZIP to GitHub Release"
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ env.ZIP_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: "Calculate SHA256 of ZIP"
+      id: hash
+      shell: pwsh
+      run: |
+        $zipName = "${{ env.ZIP_NAME }}"
+        $hash = Get-FileHash -Algorithm SHA256 -Path $zipName
+        $digest = "sha256:$($hash.Hash.ToLower())"
+        echo "ZIP_DIGEST=$digest" | Out-File -FilePath $env:GITHUB_ENV -Append
+        echo "digest=$digest" >> $env:GITHUB_OUTPUT
+
+    - name: "Attestation"
+      uses: actions/attest-build-provenance@v2
+      id: attestation
+      with:
+        subject-name: "${{ env.ZIP_NAME }}"
+        subject-digest: "${{ steps.hash.outputs.digest }}"
+
+    - name: "Update release description with attestation URL"
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
+        TAG: ${{ github.event.release.tag_name }}
+      run: |
+        $ErrorActionPreference = "Stop"
+
+        # Alte Release Notes abrufen
+        $oldBody = gh release view $env:TAG --repo $env:REPO --json body --template "{{.body}}"
+
+        # Attestation-URL zusammenbauen
+        $attestationId = "${{ steps.attestation.outputs.attestation-id }}"
+        $attestationUrl = "https://github.com/$($env:REPO)/attestations/$attestationId"
+
+        # Neue Release Notes mit Attestation-Link
+        $newBody = "$oldBody`n`nAttestation: $attestationUrl"
+
+        # Aktualisieren der Release Notes
+        gh release edit $env:TAG --repo $env:REPO --notes "$newBody"
+
+      
