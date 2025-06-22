@@ -112,6 +112,8 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
 
     Dim ExportErrorLevel As eErrorLevel
 
+    Operation.ErrorLevel = eelNoError
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         If objItem Is Nothing Then
@@ -123,7 +125,7 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
         .RunExport Me
         ExportErrorLevel = Operation.ErrorLevel
         If ExportErrorLevel <= eelInfo Then
-            If InteractionMode = eimSilent Then
+            If Me.InteractionMode = eimSilent Then
                 .AutoClose 0
             Else
                 .AutoClose
@@ -556,3 +558,20 @@ Private Sub Class_Initialize()
     ' when the add-in is opened from the [Database Tools\Add-ins] menu. (See #451)
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
 End Sub
+
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : InteractionMode
+' Author    : Josef Poetzl
+' Date      : 6/22/2025
+' Purpose   : Return/set modVCSUtility.InteractionMode (normal, silent)
+'---------------------------------------------------------------------------------------
+'
+Public Property Get InteractionMode() As eInteractionMode
+    InteractionMode = modVCSUtility.InteractionMode
+End Property
+
+Public Property Let InteractionMode(ByVal intMode As eInteractionMode)
+    modAPI.SetInteractionMode intMode
+End Property
