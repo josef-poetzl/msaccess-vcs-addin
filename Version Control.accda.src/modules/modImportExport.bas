@@ -112,10 +112,8 @@ Public Sub ExportSource(ByRef blnFullExport As Boolean, Optional intFilter As eC
 
     ' Run any custom sub before export
     If Options.RunBeforeExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunBeforeExport)
-        Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport, , VcsRef
+        RunExternalProcedureByName Options.RunBeforeExport, VcsRef
         Perf.OperationEnd
     End If
 
@@ -258,9 +256,8 @@ Public Sub ExportSource(ByRef blnFullExport As Boolean, Optional intFilter As eC
 
     ' Run any custom sub after export
     If Options.RunAfterExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunAfterExport)
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport, , VcsRef
+        RunExternalProcedureByName Options.RunAfterExport, VcsRef
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If
@@ -890,9 +887,8 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
         ' Run any pre-merge instructions
         strText = dNZ(Options.GitSettings, "RunBeforeMerge")
         If strText <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=strText)
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject strText
+            RunExternalProcedureByName strText
             Perf.OperationEnd
         End If
 
@@ -1159,9 +1155,8 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
     ' Run any post-build/merge instructions
     If blnFullBuild Then
         If Options.RunAfterBuild <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=Options.RunAfterBuild)
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            RunExternalProcedureByName Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
@@ -1820,5 +1815,22 @@ Public Sub InitializeForms(dContainers As Dictionary)
 
     ' Check for any unhandled errors
     CatchAny eelError, "Unhandled error while initializing forms", ModuleName & ".InitializeForms"
+
+End Sub
+
+
+Private Sub RunExternalProcedureByName(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+    Dim arrProcedures() As String
+    Dim i As Long
+
+    ' possible split chars: ":;|"
+    arrProcedures = Split(Replace(Replace(strRunProcedureOptionValue, ";", ":"), "|", ":"), ":")
+
+    For i = LBound(arrProcedures) To UBound(arrProcedures)
+        Log.Add T("Running {0}...", var0:=arrProcedures(i))
+        Log.Flush
+        RunSubInCurrentProject Trim(arrProcedures(i)), , VcsRef
+    Next
 
 End Sub
