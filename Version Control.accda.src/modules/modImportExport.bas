@@ -1404,7 +1404,7 @@ Private Sub LoadObjectProc(cComponentClass As IDbComponent, strName As String, s
                 ' Cancel export
                 Log.Spacer
                 Log.Add T("Import Canceled"), , , "Red", True
-                Log.ErrorLevel = eelCritical
+                Operation.ErrorLevel = eelCritical
                 Cancelled = True
                 Exit Sub
             End If
@@ -1442,7 +1442,7 @@ Public Sub LoadObjects(cComponentClasses() As IDbComponent)
     Set Options = Nothing
     Options.LoadProjectOptions
     Log.Clear
-    Log.OperationType = eotMerge
+    Operation.OperationType = eotMerge
     Log.SourcePath = Options.GetExportFolder
     Log.Active = True
     Perf.StartTiming

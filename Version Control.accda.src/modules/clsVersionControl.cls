@@ -103,22 +103,22 @@ End Function
 Friend Function ExportObject(ByVal objToExport As AccessObject) As eErrorLevel
 
     If objToExport Is Nothing Then
-        Exit Sub
+        Exit Function
     End If
 
     ExportObject = RunExport(, objToExport)
 
-End Sub
+End Function
 
 Friend Function ExportObjects(ByRef arrObjectsToExport() As Access.AccessObject) As eErrorLevel
 
     If IsEmptyArray(arrObjectsToExport) Then
-        Exit Sub
+        Exit Function
     End If
 
     ExportObjects = RunExportObjects(arrObjectsToExport)
 
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -173,8 +173,8 @@ Private Function RunExportObjects(ByRef arrObjectsToExport() As Access.AccessObj
     End With
 
     RunExportObjects = ExportErrorLevel
-    
-End Sub
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ End Sub
 Public Sub LoadSelected()
 
     Dim objSelected As AccessObject
-    
+
     Set objSelected = GetSelectedNavPaneObject
 
     If objSelected Is Nothing Then
@@ -380,8 +380,6 @@ Friend Sub LoadObjects(ByRef arrObjects() As AccessObject)
     If IsEmptyArray(arrObjects) Then
         Exit Sub
     End If
-
-    If HasFormOpen Then Exit Sub
 
     ReDim cComponentClasses(UBound(arrObjects))
 
