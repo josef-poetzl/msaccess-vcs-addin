@@ -27,6 +27,7 @@ Option Explicit
 '
 Public Sub Show()
     DoCmd.OpenForm "frmVCSMain"
+    Set Form_frmVCSMain.ActiveVersionControl = Me
 End Sub
 
 
@@ -58,9 +59,9 @@ End Sub
 ' Purpose   : Export the source code for the current database
 '---------------------------------------------------------------------------------------
 '
-Public Sub Export()
-    RunExport ecfAllObjects
-End Sub
+Public Function Export() As eErrorLevel
+    Export = RunExport(ecfAllObjects)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -70,9 +71,9 @@ End Sub
 ' Purpose   : Export just the VBA related components
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportVBA()
-    RunExport ecfVBAItems
-End Sub
+Public Function ExportVBA() As eErrorLevel
+    ExportVBA = RunExport(ecfVBAItems)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -82,21 +83,22 @@ End Sub
 ' Purpose   : Export the selected object
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSelected()
+Public Function ExportSelected() As eErrorLevel
 
     Dim objSelected As AccessObject
 
     Set objSelected = GetSelectedNavPaneObject
     If objSelected Is Nothing Then
+        ExportSelected = eelCritical
         MsgBox2 "Please Select an Object First", _
             "Select a single object in the Navigation Pane to export (this item must have the keyboard focus).", _
             "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
         ' Export the item
-        RunExport , objSelected
+        ExportSelected = RunExport(, objSelected)
     End If
 
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -106,7 +108,12 @@ End Sub
 ' Purpose   : Handle different kinds of exports based on filter
 '---------------------------------------------------------------------------------------
 '
-Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject)
+Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject) As eErrorLevel
+
+    Dim ExportErrorLevel As eErrorLevel
+
+    Operation.ErrorLevel = eelNoError
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         If objItem Is Nothing Then
@@ -115,10 +122,20 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
             Set .objSingleObject = objItem
         End If
         .Visible = True
-        .cmdExport_Click
-        If Operation.ErrorLevel < eelError Then .AutoClose
+        .RunExport Me
+        ExportErrorLevel = Operation.ErrorLevel
+        If ExportErrorLevel <= eelInfo Then
+            If Me.InteractionMode = eimSilent Then
+                .AutoClose 0
+            Else
+                .AutoClose
+            End If
+        End If
     End With
-End Sub
+
+    RunExport = ExportErrorLevel
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -541,3 +558,20 @@ Private Sub Class_Initialize()
     ' when the add-in is opened from the [Database Tools\Add-ins] menu. (See #451)
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
 End Sub
+
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : InteractionMode
+' Author    : Josef Poetzl
+' Date      : 6/22/2025
+' Purpose   : Return/set modVCSUtility.InteractionMode (normal, silent)
+'---------------------------------------------------------------------------------------
+'
+Public Property Get InteractionMode() As eInteractionMode
+    InteractionMode = modVCSUtility.InteractionMode
+End Property
+
+Public Property Let InteractionMode(ByVal intMode As eInteractionMode)
+    modAPI.SetInteractionMode intMode
+End Property

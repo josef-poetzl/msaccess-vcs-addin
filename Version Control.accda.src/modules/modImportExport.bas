@@ -19,7 +19,8 @@ Private Const ModuleName As String = "modImportExport"
 ' Purpose   : Export source files from the currently open database.
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain)
+Public Sub ExportSource(ByRef blnFullExport As Boolean, Optional intFilter As eContainerFilter = ecfAllObjects, Optional frmMain As Form_frmVCSMain, _
+               Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     Dim dCategories As Dictionary
     Dim colCategories As Collection
@@ -111,10 +112,8 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
 
     ' Run any custom sub before export
     If Options.RunBeforeExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunBeforeExport)
-        Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport
+        RunExternalProcedureOption Options.RunBeforeExport, VcsRef
         Perf.OperationEnd
     End If
 
@@ -257,9 +256,8 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
 
     ' Run any custom sub after export
     If Options.RunAfterExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunAfterExport)
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport
+        RunExternalProcedureOption Options.RunAfterExport, VcsRef
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If
@@ -889,9 +887,8 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
         ' Run any pre-merge instructions
         strText = dNZ(Options.GitSettings, "RunBeforeMerge")
         If strText <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=strText)
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject strText
+            RunExternalProcedureOption strText
             Perf.OperationEnd
         End If
 
@@ -1158,9 +1155,8 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
     ' Run any post-build/merge instructions
     If blnFullBuild Then
         If Options.RunAfterBuild <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=Options.RunAfterBuild)
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            RunExternalProcedureOption Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
@@ -1821,3 +1817,59 @@ Public Sub InitializeForms(dContainers As Dictionary)
     CatchAny eelError, "Unhandled error while initializing forms", ModuleName & ".InitializeForms"
 
 End Sub
+
+
+Private Sub RunExternalProcedureOption(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+    Dim arrProcedures() As String
+    Dim i As Long
+
+    ' possible split chars: ":;|"
+    arrProcedures = Split(Replace(Replace(strRunProcedureOptionValue, ";", ":"), "|", ":"), ":")
+
+    For i = LBound(arrProcedures) To UBound(arrProcedures)
+        Log.Add T("Running {0}...", var0:=arrProcedures(i))
+        Log.Flush
+        RunExternalProcedure Trim(arrProcedures(i)), VcsRef
+    Next
+
+End Sub
+
+Private Sub RunExternalProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+    If InStr(1, strProcedureName, ".") Then
+        If TryRunAddInProcedure(strProcedureName, VcsRef) Then
+            Exit Sub
+        End If
+    End If
+
+    RunSubInCurrentProject strProcedureName, , VcsRef
+
+End Sub
+
+Private Function TryRunAddInProcedure(ByVal strProcedureName As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
+
+    Dim strAddInFile As String
+
+If DebugMode(True) Then On Error GoTo 0 Else On Error GoTo ErrHandler
+
+    strProcedureName = Replace(strProcedureName, "%addins%", Environ$("appdata") & "\Microsoft\AddIns", , , vbTextCompare)
+    strProcedureName = Replace(strProcedureName, "%appdata%", Environ("appdata"), , , vbTextCompare)
+
+    strAddInFile = Left(strProcedureName, InStrRev(strProcedureName, ".")) & "accda"
+    If Len(VBA.Dir(strAddInFile)) = 0 Then
+        TryRunAddInProcedure = False
+        Exit Function
+    End If
+
+    TryRunAddInProcedure = True
+    ExecuteLoggedApplicationRun strProcedureName, VcsRef
+
+ExitHere:
+    Exit Function
+
+ErrHandler:
+    Log.Error eelError, Err.Description, Err.Source
+    Resume ExitHere
+
+End Function
