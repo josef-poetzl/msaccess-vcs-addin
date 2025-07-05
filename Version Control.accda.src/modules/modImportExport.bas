@@ -112,10 +112,9 @@ Public Sub ExportSource(ByRef blnFullExport As Boolean, Optional intFilter As eC
 
     ' Run any custom sub before export
     If Options.RunBeforeExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunBeforeExport)
         Log.Flush
         Perf.OperationStart "RunBeforeExport"
-        RunSubInCurrentProject Options.RunBeforeExport, VcsRef
+        RunExternalProcedure Options.RunBeforeExport, VcsRef
         Perf.OperationEnd
     End If
 
@@ -258,9 +257,8 @@ Public Sub ExportSource(ByRef blnFullExport As Boolean, Optional intFilter As eC
 
     ' Run any custom sub after export
     If Options.RunAfterExport <> vbNullString Then
-        Log.Add T("Running {0}...", var0:=Options.RunAfterExport)
         Perf.OperationStart "RunAfterExport"
-        RunSubInCurrentProject Options.RunAfterExport, VcsRef
+        RunExternalProcedure Options.RunAfterExport, VcsRef
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If
@@ -890,9 +888,8 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
         ' Run any pre-merge instructions
         strText = dNZ(Options.GitSettings, "RunBeforeMerge")
         If strText <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=strText)
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject strText
+            RunExternalProcedure strText
             Perf.OperationEnd
         End If
 
@@ -1159,19 +1156,17 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
     ' Run any post-build/merge instructions
     If blnFullBuild Then
         If Options.RunAfterBuild <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=Options.RunAfterBuild)
             Log.Flush
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            RunExternalProcedure Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
         ' Merge build
         If Options.RunAfterMerge <> vbNullString Then
-            Log.Add T("Running {0}...", Options.RunAfterMerge)
             Log.Flush
             Perf.OperationStart "RunAfterMerge"
-            RunSubInCurrentProject Options.RunAfterMerge
+            RunExternalProcedure Options.RunAfterBuild
             Perf.OperationEnd
         End If
     End If
@@ -1857,5 +1852,24 @@ Private Sub OpenFormInCurrentDb(FormName, Optional View As AcFormView = acNormal
 
     ' Run in current database, passing in all parameters
     Application.Run strCmd, FormName, View, FilterName, WhereCondition, DataMode, WindowMode, OpenArgs
+
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : RunExternalProcedure
+' Author    : Josef Poetzl
+' Date      : 1/7/2025
+' Purpose   : Runs an external procedure by name, which is specified in the
+'           : RunAfterBuild or RunAfterMerge options.
+'           : The procedure name can be a single procedure or multiple procedures
+'           : separated by a colon, semicolon or pipe character.
+'---------------------------------------------------------------------------------------
+'
+Private Sub RunExternalProcedure(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+    With New clsProcedureRunner
+        .RunExternalProcedure strRunProcedureOptionValue, VcsRef
+    End With
 
 End Sub
