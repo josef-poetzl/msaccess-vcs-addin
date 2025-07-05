@@ -541,10 +541,10 @@ End Function
 '           : current project, not the add-in file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunSubInCurrentProject(strSubName As String)
+Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     With New clsProcedureRunner
-        .RunProcedureInCurrentProject strSubName
+        .RunProcedureInCurrentProject strSubName, VcsRef
     End With
 
 End Sub
