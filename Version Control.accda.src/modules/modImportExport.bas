@@ -1859,11 +1859,11 @@ End Sub
 '---------------------------------------------------------------------------------------
 ' Procedure : RunExternalProcedure
 ' Author    : Josef Poetzl
-' Date      : 1/7/2025
-' Purpose   : Runs an external procedure by name, which is specified in the
-'           : RunAfterBuild or RunAfterMerge options.
+' Date      : 7/6/2025
+' Purpose   : Runs one or more external procedures by name, which is specified in the
+'           : RunAfterBuild, RunAfterMerge etc. options.
 '           : The procedure name can be a single procedure or multiple procedures
-'           : separated by a colon, semicolon or pipe character.
+'           : separated by a colon.
 '---------------------------------------------------------------------------------------
 '
 Private Sub RunExternalProcedure(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
