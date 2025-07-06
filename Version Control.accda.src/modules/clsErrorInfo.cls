@@ -13,10 +13,12 @@ Option Explicit
 ' Error levels used for logging and monitoring the status
 ' of the current operation.
 Public Enum eErrorLevel
-    eelNoError
-    eelWarning      ' Logged to file
-    eelError        ' Displayed and logged
-    eelCritical     ' Cancel operation
+    eelNoError = 0
+    eelWarning = 1   ' Logged to file  ... rename to eelLogOnly?
+    eelInfo = 2      ' Displayed and logged, show Note (not red) - allow AutoClose
+    eelAlert = 3     ' Displayed and logged, show Warning not Error
+    eelError = 4     ' Displayed and logged
+    eelCritical = 5  ' Cancel operation
 End Enum
 
 Private Const ModuleName As String = "clsErrorInfo"
@@ -33,6 +35,7 @@ Private m_IncludeErrorMessage As Boolean
 Private m_Prefix As String
 Private m_MsgBoxBoldText As String
 Private m_MsgBoxStyle As VbMsgBoxStyle
+Private m_LogColor As String
 
 Public Sub Init(eLevel As eErrorLevel, strDescription As String, Optional strSource As String, Optional blnIncludeErrorMessage As Boolean = False)
 
@@ -92,12 +95,18 @@ Public Property Get MsgBoxStyle() As VbMsgBoxStyle
     MsgBoxStyle = m_MsgBoxStyle
 End Property
 
+Public Property Get LogColor() As String
+    LogColor = m_LogColor
+End Property
+
 
 Private Function SetErrorLevelInfoData()
 
+    m_LogColor = "red"
+
     Select Case m_ErrorLevel
 
-        Case eErrorLevel.eelWarning
+        Case eErrorLevel.eelWarning, eErrorLevel.eelAlert
             m_Prefix = "WARNING: "
             m_MsgBoxBoldText = "Warning"
             m_MsgBoxStyle = vbInformation
@@ -111,6 +120,12 @@ Private Function SetErrorLevelInfoData()
             m_Prefix = "CRITICAL: "
             m_MsgBoxBoldText = "Critical"
             m_MsgBoxStyle = vbCritical
+
+        Case eErrorLevel.eelInfo
+            m_Prefix = "INFO: "
+            m_MsgBoxBoldText = "Info"
+            m_MsgBoxStyle = vbInformation
+            m_LogColor = "blue"
 
         Case eErrorLevel.eelNoError:
             m_Prefix = vbNullString
