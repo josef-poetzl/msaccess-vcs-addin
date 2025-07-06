@@ -21,7 +21,7 @@ Private m_TestBridge As TestHelperCallbackBridge
 Public Sub Setup()
 
     Set m_VCS = GetVCS
-    m_VCS.InteractionMode = 1
+    SetInteractionMode 1
     Set m_TestBridge = New TestHelperCallbackBridge
     modTestHelper_RunBeforeTestProc.SetTestBridge m_TestBridge
     
@@ -136,15 +136,23 @@ End Sub
 ' Test helper procedures
 '--------------------------------------------------------------------
 Private Function GetVCS() As Object
-   Set GetVCS = RunOjectAddInProcedure("VCS")
+   Set GetVCS = RunObjectAddInProcedure("VCS")
 End Function
 
 Private Function GetLog() As Object
-   Set GetLog = RunOjectAddInProcedure("Log")
+   Set GetLog = RunObjectAddInProcedure("Log")
 End Function
 
-Private Function RunOjectAddInProcedure(ByVal ProcedureName As String) As Object
-   Set RunOjectAddInProcedure = Application.Run(GetMsAccessVcsPath & "\Version Control." & ProcedureName)
+Private Sub SetInteractionMode(ByVal eInteractionMode As Long)
+'Enum eInteractionMode
+'    eimNormal = 0
+'    eimSilent = 1
+'End Enum
+    Application.Run GetMsAccessVcsPath & "\Version Control.SetInteractionMode", eInteractionMode
+End Sub
+
+Private Function RunObjectAddInProcedure(ByVal ProcedureName As String) As Object
+   Set RunObjectAddInProcedure = Application.Run(GetMsAccessVcsPath & "\Version Control." & ProcedureName)
 End Function
 
 Private Function GetMsAccessVcsPath() As String
