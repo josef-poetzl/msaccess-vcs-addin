@@ -318,7 +318,7 @@ Public Sub RunExport(Optional ByVal VcsRef As clsVersionControl = Nothing)
     ' See if we are exporting a single object, or everything.
     If Me.objSingleObject Is Nothing Then
         If Not IsEmptyArray(arrObjects) Then
-            modImportExport.ExportObjects arrObjects, Me, VcsRef
+            modImportExport.ExportObjects arrObjects, Me
         Else ' Export the source code using the specified filter.
             modImportExport.ExportSource chkFullExport, Me.intContainerFilter, Me, VcsRef
         End If
