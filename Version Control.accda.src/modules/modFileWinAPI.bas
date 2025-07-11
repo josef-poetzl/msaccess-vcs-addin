@@ -141,12 +141,12 @@ End Type
 '           : some operations such as making a backup copy of the file.)
 '---------------------------------------------------------------------------------------
 '
-Public Function IsFileOpenExclusive(filePath As String) As Boolean
+Public Function IsFileOpenExclusive(FilePath As String) As Boolean
 
     Dim hFile As LongPtr
 
     ' Attempt to open the file for shared read/write access
-    hFile = CreateFileW(StrPtr(filePath), GENERIC_READ, _
+    hFile = CreateFileW(StrPtr(FilePath), GENERIC_READ, _
                         FILE_SHARE_READ Or FILE_SHARE_WRITE, _
                         0, OPEN_EXISTING, 0, 0)
 

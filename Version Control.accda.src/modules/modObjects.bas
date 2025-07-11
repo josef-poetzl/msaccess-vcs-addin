@@ -19,6 +19,7 @@ Private m_Operation As clsOperation
 Private Type udtObjects
     Perf As clsPerformance
     Log As clsLog
+    LoggerCollection As Collection
     Options As clsOptions
     VCSIndex As clsVCSIndex
     Worker As clsWorker
@@ -156,10 +157,28 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Function Log(Optional blnCreateInstance As Boolean = True) As clsLog
-    If this.Log Is Nothing Then If blnCreateInstance Then Set this.Log = New clsLog
+    If this.Log Is Nothing Then
+        If blnCreateInstance Then
+            Set this.Log = New clsLog
+            InitLogger
+        End If
+    End If
     Set Log = this.Log
 End Function
 
+Private Sub InitLogger()
+
+    Set this.LoggerCollection = New Collection
+
+    With New clsFileLogger
+        this.LoggerCollection.Add .Init(this.Log)
+    End With
+
+    With New clsFormLogger
+        this.LoggerCollection.Add .Init(this.Log)
+    End With
+
+End Sub
 
 '---------------------------------------------------------------------------------------
 ' Procedure : FSO
