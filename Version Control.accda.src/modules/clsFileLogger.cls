@@ -10,7 +10,6 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 
-
 Private Const cstrSpacer As String = "-------------------------------------"
 
 Private m_Log As clsConcat      ' Log file output

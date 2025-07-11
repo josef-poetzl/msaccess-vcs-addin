@@ -10,13 +10,6 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 
-
-
-' Set this to true when logging an operation such as an export or build
-' then set back to false after writing the log file. This affects
-' how error messages are reported to the user outside of operations.
-Public Active As Boolean
-
 Private Const cstrSpacer As String = "-------------------------------------"
 
 Private m_Log As clsConcat      ' Log file output
@@ -151,7 +144,6 @@ Private Sub Class_Initialize()
     m_blnProgressActive = False
     m_sngLastUpdate = 0
     m_PadLength = 30
-    Me.Active = False
 End Sub
 
 

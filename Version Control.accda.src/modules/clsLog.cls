@@ -15,13 +15,11 @@ Option Explicit
 ' how error messages are reported to the user outside of operations.
 Public Active As Boolean
 
-Private m_blnProgressActive As Boolean
-Private m_sngLastUpdate As Single
-
 Public Event Clear()
 Public Event Spacer(ByVal blnPrint As Boolean)
 Public Event Add(ByVal strText As String, ByVal blnPrint As Boolean, ByVal blnNextOutputOnNewLine As Boolean, _
                  ByVal strColor As String, ByVal blnBold As Boolean, ByVal blnItalic As Boolean)
+Public Event PadRight(ByVal strText As String, ByVal blnPrint As Boolean, ByVal blnNextOutputOnNewLine As Boolean, ByVal intCharacters As Integer)
 Public Event Flush()
 Public Event ErrorInfo(ByVal oErrorInfo As clsErrorInfo)
 Public Event IncrementProgressbar()
@@ -29,7 +27,6 @@ Public Event GetProgressBar(ByRef ProgressBarRef As clsLblProg)
 Public Event ProgMax(ByVal lngMaxValue As Long)
 Public Event SetConsole(ByVal txtRichText As TextBox, ByVal cProg As clsLblProg)
 Public Event ReleaseConsole()
-Public Event PadRight(ByVal strText As String, ByVal blnPrint As Boolean, ByVal blnNextOutputOnNewLine As Boolean, ByVal intCharacters As Integer)
 Public Event SourcePath(ByVal strPath As String)
 Public Event SaveFile(ByVal strAlternatePath As String)
 Public Event GetLogFilePath(ByRef strFilePath As String)
@@ -74,6 +71,10 @@ Public Sub Add(strText As String, Optional blnPrint As Boolean = True, _
 
     RaiseEvent Add(strText, blnPrint, blnNextOutputOnNewLine, strColor, blnBold, blnItalic)
 
+End Sub
+
+Public Sub PadRight(strText As String, Optional blnPrint As Boolean = True, Optional blnNextOutputOnNewLine As Boolean = False, Optional ByVal intCharacters As Integer)
+    RaiseEvent PadRight(strText, blnPrint, blnNextOutputOnNewLine, intCharacters)
 End Sub
 
 
@@ -123,7 +124,6 @@ End Property
 Public Property Let ProgMax(lngMaxValue As Long)
     RaiseEvent ProgMax(lngMaxValue)
 End Property
-
 
 Public Property Let SourcePath(strPath As String)
     RaiseEvent SourcePath(strPath)
@@ -176,11 +176,6 @@ End Sub
 Private Sub Class_Initialize()
     Me.Active = False
 End Sub
-
-Public Sub PadRight(strText As String, Optional blnPrint As Boolean = True, Optional blnNextOutputOnNewLine As Boolean = False, Optional ByVal intCharacters As Integer)
-    RaiseEvent PadRight(strText, blnPrint, blnNextOutputOnNewLine, intCharacters)
-End Sub
-
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Increment

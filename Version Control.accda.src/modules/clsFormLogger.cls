@@ -10,8 +10,6 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 
-Private m_PadLength As Integer
-
 Private Const cstrSpacer As String = "-------------------------------------"
 
 Private m_Console As clsConcat  ' Console output
@@ -19,6 +17,7 @@ Private m_RichText As TextBox   ' Text box to display HTML
 Private m_Prog As clsLblProg    ' Progress bar
 Private m_blnProgressActive As Boolean
 Private m_sngLastUpdate As Single
+Private m_PadLength As Integer
 
 Private WithEvents m_LogEvents As clsLog
 Attribute m_LogEvents.VB_VarHelpID = -1
