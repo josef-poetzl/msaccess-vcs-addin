@@ -223,7 +223,9 @@ Public Sub FinishBuild(blnFullBuild As Boolean _
     Me.strLastLogFilePath = Log.LogFilePath
 
     ' Close form if running in silent mode (such as when running automated builds)
-    If InteractionMode = eimSilent Then DoCmd.Close acForm, Me.Name
+    If InteractionMode = eimSilent Then
+        AutoClose 0
+    End If
 
 End Sub
 
