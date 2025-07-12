@@ -137,9 +137,10 @@ Public Sub ExportSource(ByRef blnFullExport As Boolean, Optional intFilter As eC
 
     ' Set up progress bar to show status on large projects
     Set colCategories = GetContainers(intFilter)
-    Log.ProgressBar.Reset
-    Log.ProgressBar.Max = GetQuickObjectCount(colCategories) + GetQuickFileCount(colCategories)
-
+    If Not Log.ProgressBar Is Nothing Then
+        Log.ProgressBar.Reset
+        Log.ProgressBar.Max = GetQuickObjectCount(colCategories) + GetQuickFileCount(colCategories)
+    End If
     ' Scan database objects for changes
     Set dCategories = New Dictionary
     VCSIndex.Conflicts.Initialize dCategories, eatExport
@@ -171,7 +172,9 @@ Public Sub ExportSource(ByRef blnFullExport As Boolean, Optional intFilter As eC
         End If
     Next cCategory
     Perf.OperationEnd
-    Log.ProgressBar.Reset
+    If Not Log.ProgressBar Is Nothing Then
+        Log.ProgressBar.Reset
+    End If
 
     ' Check for any conflicts
     With VCSIndex.Conflicts

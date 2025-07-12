@@ -19,6 +19,7 @@ Private m_Operation As clsOperation
 Private Type udtObjects
     Perf As clsPerformance
     Log As clsLog
+    LoggerCollection As Collection
     Options As clsOptions
     VCSIndex As clsVCSIndex
     Worker As clsWorker
@@ -42,6 +43,7 @@ Private this As udtObjects
 Public Sub ReleaseObjects()
 
     Set this.Perf = Nothing
+    Set this.LoggerCollection = Nothing
     Set this.Log = Nothing
     Set this.Options = Nothing
     Set this.VCSIndex = Nothing
@@ -155,10 +157,41 @@ End Function
 ' Purpose   : Wrapper for log file class
 '---------------------------------------------------------------------------------------
 '
-Public Function Log(Optional blnCreateInstance As Boolean = True) As clsLog
-    If this.Log Is Nothing Then If blnCreateInstance Then Set this.Log = New clsLog
+Public Function Log(Optional ByRef blnCreateInstance As Boolean = True, Optional ByVal eLoggerToActivate As eLogger = eloDebugPrintLogger + eLogger.eloFormLogger + eLogger.eloFileLogger) As clsLog
+
+' TODO: read logger from options or ...
+
+    If this.Log Is Nothing Then
+        If blnCreateInstance Then
+            Set this.Log = New clsLog
+            InitLoggerCollection eLoggerToActivate
+        End If
+    End If
     Set Log = this.Log
+
 End Function
+
+Private Sub InitLoggerCollection(ByVal eLoggerToActivate As eLogger)
+
+    Set this.LoggerCollection = New Collection
+
+    If (eLoggerToActivate And eLogger.eloDebugPrintLogger) = eLogger.eloDebugPrintLogger Then
+        AddLogger New clsDebugPrintLogger
+    End If
+
+    If (eLoggerToActivate And eLogger.eloFormLogger) = eLogger.eloFormLogger Then
+        AddLogger New clsFormLogger
+    End If
+
+    If (eLoggerToActivate And eLogger.eloFileLogger) = eLogger.eloFileLogger Then
+        AddLogger New clsFileLogger
+    End If
+
+End Sub
+
+Private Sub AddLogger(ByRef oLoggerToAdd As ILogger)
+    this.LoggerCollection.Add oLoggerToAdd.Init(this.Log)
+End Sub
 
 
 '---------------------------------------------------------------------------------------

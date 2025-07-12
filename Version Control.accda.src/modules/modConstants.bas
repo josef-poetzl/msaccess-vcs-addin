@@ -178,3 +178,10 @@ Public Enum eImportCommandBarsResult
     eicImportedVerified = 1
     eicImportedUnableToVerify = 2
 End Enum
+
+Public Enum eLogger
+    eloDebugPrintLogger = 1
+    eloFormLogger = 2
+    eloFileLogger = 4
+    eloTableLogger = 8
+End Enum
