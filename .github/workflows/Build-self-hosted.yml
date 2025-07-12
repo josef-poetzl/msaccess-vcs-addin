@@ -18,6 +18,7 @@ jobs:
         with:
           source-dir: "./Version Control.accda.src"
           target-dir: "bin"
+          vcs-url: ""
         timeout-minutes: 10
       - name: "Upload Build Artifact"
         uses: actions/upload-artifact@v4
