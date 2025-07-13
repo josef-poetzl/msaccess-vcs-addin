@@ -59,8 +59,8 @@ End Sub
 ' Purpose   : Export the source code for the current database
 '---------------------------------------------------------------------------------------
 '
-Public Function Export() As eErrorLevel
-    Export = RunExport(ecfAllObjects)
+Public Function Export(Optional ByVal bolForceExportAll As Boolean = False) As eErrorLevel
+    Export = RunExport(ecfAllObjects, , bolForceExportAll)
 End Function
 
 
@@ -128,7 +128,8 @@ End Function
 ' Purpose   : Handle different kinds of exports based on filter
 '---------------------------------------------------------------------------------------
 '
-Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject) As eErrorLevel
+Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject, _
+                           Optional bolForceExportAll As Boolean = False) As eErrorLevel
 
     Operation.ErrorLevel = eelNoError
 
@@ -138,6 +139,9 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
             .intContainerFilter = intFilter
         Else
             Set .objSingleObject = objItem
+        End If
+        If bolForceExportAll Then
+            .chkFullExport.Value = True
         End If
         .Visible = True
         .RunExport Me
