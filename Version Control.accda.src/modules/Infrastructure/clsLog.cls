@@ -347,7 +347,7 @@ Public Sub ErrorInfo(oErrorInfo As clsErrorInfo)
         Me.Spacer blnPrint
         Me.Flush ' Force a screen update.
         AppendErrorJournal eLevel, strDisplay, strSource, lngErrNum, strErrDesc
-        ' Without a console, route prompts through MsgBox2 so InteractionMode and
+         ' Without a console, route prompts through MsgBox2 so InteractionMode and
         ' Attended suppress blocking dialogs during harness and automation runs.
         If m_RichText Is Nothing Then
             If Operation.InteractionMode <> eimNormal Or Not Operation.Attended Then
