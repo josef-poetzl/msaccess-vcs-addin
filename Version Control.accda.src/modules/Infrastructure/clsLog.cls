@@ -299,72 +299,72 @@ End Sub
 '---------------------------------------------------------------------------------------
 '
 Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSource As String, Optional blnIncludeErrorMessage As Boolean = False)
+   ErrorInfo NewErrorInfo(eLevel, strDescription, strSource, blnIncludeErrorMessage)
+End Sub
 
-    Dim strPrefix As String
-    Dim strDisplay As String
+
+Public Sub ErrorInfo(oErrorInfo As clsErrorInfo)
+
+    Dim blnPrint As Boolean
+
+    blnPrint = (oErrorInfo.ErrorLevel > eelWarning)
+
+'''    Dim strPrefix As String
+'''    Dim strDisplay As String
     Dim lngErrNum As Long
     Dim strErrDesc As String
-
+'''
     lngErrNum = Err.Number
     strErrDesc = Err.Description
-    m_lngErrCount(eLevel) = m_lngErrCount(eLevel) + 1
-    Select Case eLevel
-        Case eelWarning:    strPrefix = "WARNING: "
-        Case eelError:      strPrefix = "ERROR: "
-        Case eelCritical:   strPrefix = "CRITICAL: "
-    End Select
+    m_lngErrCount(oErrorInfo.ErrorLevel) = m_lngErrCount(oErrorInfo.ErrorLevel) + 1
+'''    Select Case oErrorInfo.ErrorLevel
+'''        Case eelWarning:    strPrefix = "WARNING: "
+'''        Case eelError:      strPrefix = "ERROR: "
+'''        Case eelCritical:   strPrefix = "CRITICAL: "
+'''    End Select
 
     ' Build the error message string.
     With New clsConcat
 
         ' Sometimes the error description is sufficient for the description
-        If strDescription = vbNullString And lngErrNum <> 0 Then
-            strDisplay = strPrefix & lngErrNum & " - " & strErrDesc
-        ElseIf blnIncludeErrorMessage Then
-            strDisplay = strPrefix & strDescription & "; Error " & lngErrNum & " - " & strErrDesc
-        Else
-            strDisplay = strPrefix & strDescription
-        End If
+'''        If oErrorInfo.Description = vbNullString And lngErrNum <> 0 Then
+'''            strDisplay = strPrefix & lngErrNum & " - " & strErrDesc
+'''        ElseIf blnIncludeErrorMessage Then
+'''            strDisplay = strPrefix & strDescription & "; Error " & lngErrNum & " - " & strErrDesc
+'''        Else
+'''            strDisplay = strPrefix & strDescription
+'''        End If
 
         ' Log all errors, and display on the output screen anything higher than a warning
-        Me.Add vbNullString, (eLevel > eelWarning)
-        Me.Spacer (eLevel > eelWarning)
-        Me.Add strDisplay, (eLevel > eelWarning), , "red"
+        Me.Add vbNullString, blnPrint
+        Me.Spacer blnPrint
+        Me.Add oErrorInfo.DisplayText, blnPrint, , "red"
 
         ' Log the additional error and source details to the log file
         If lngErrNum <> 0 Then .Add "Error ", CStr(lngErrNum), ": ", strErrDesc, " "
-        If strSource <> vbNullString Then .Add "Source: ", strSource
+        If oErrorInfo.Source <> vbNullString Then .Add "Source: ", oErrorInfo.Source
         Me.Add .GetStr, False
-        Me.Spacer (eLevel > eelWarning)
+        Me.Spacer blnPrint
         Me.Flush ' Force a screen update.
         AppendErrorJournal eLevel, strDisplay, strSource, lngErrNum, strErrDesc
         ' Without a console, route prompts through MsgBox2 so InteractionMode and
         ' Attended suppress blocking dialogs during harness and automation runs.
         If m_RichText Is Nothing Then
             If Operation.InteractionMode <> eimNormal Or Not Operation.Attended Then
-                Select Case eLevel
-                    Case eelWarning:    MsgBox2 "Warning", strDisplay, .GetStr, vbInformation
-                    Case eelError:      MsgBox2 "Error", strDisplay, .GetStr, vbExclamation
-                    Case eelCritical:   MsgBox2 "Critical", strDisplay, .GetStr, vbCritical
-                End Select
+                MsgBox2 oErrorInfo.MsgBoxBoldText, oErrorInfo.DisplayText, .GetStr, oErrorInfo.MsgBoxStyle
             ElseIf Log.Active Then
                 If eLevel = eelCritical Then
                     MsgBox2 "Unable to Continue", .GetStr, _
                         "Please review the log file for additional details.", vbCritical
                 End If
             Else
-                Select Case eLevel
-                    Case eelNoError:    ' Do nothing
-                    Case eelWarning:    MsgBox2 "Warning", strDisplay, .GetStr, vbInformation
-                    Case eelError:      MsgBox2 "Error", strDisplay, .GetStr, vbExclamation
-                    Case eelCritical:   MsgBox2 "Critical", strDisplay, .GetStr, vbCritical
-                End Select
+                MsgBox2 oErrorInfo.MsgBoxBoldText, oErrorInfo.DisplayText, .GetStr, oErrorInfo.MsgBoxStyle
             End If
         End If
     End With
 
     ' Update error level if higher.
-    If Operation.ErrorLevel < eLevel Then Operation.ErrorLevel = eLevel
+    If Operation.ErrorLevel < oErrorInfo.ErrorLevel Then Operation.ErrorLevel = oErrorInfo.ErrorLevel
 
 End Sub
 

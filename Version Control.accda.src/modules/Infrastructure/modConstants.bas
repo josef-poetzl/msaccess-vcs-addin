@@ -121,12 +121,13 @@ End Enum
 
 ' Error levels used for logging and monitoring the status
 ' of the current operation.
-Public Enum eErrorLevel
-    eelNoError
-    eelWarning      ' Logged to file
-    eelError        ' Displayed and logged
-    eelCritical     ' Cancel operation
-End Enum
+'Public Enum eErrorLevel
+'    eelNoError
+'    eelWarning      ' Logged to file
+'    eelError        ' Displayed and logged
+'    eelCritical     ' Cancel operation
+'End Enum
+''' JP: Moved to clsErrorInfo
 
 ' Compare mode for cloning dictionary object
 ' See CloneDictionary function
