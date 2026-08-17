@@ -13,6 +13,31 @@ Option Explicit
 Private Const ModuleName As String = "clsProcedureRunner"
 
 '---------------------------------------------------------------------------------------
+' Procedure : RunExternalProcedure
+' Author    : Josef Poetzl
+' Date      : 7/6/2025
+' Purpose   : Runs one or more external procedures by name, which is specified in the
+'           : RunAfterBuild, RunAfterMerge etc. options.
+'           : The procedure name can be a single procedure or multiple procedures
+'           : separated by a colon.
+'---------------------------------------------------------------------------------------
+'
+Public Sub RunExternalProcedure(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+    Dim arrProcedures() As String
+    Dim i As Long
+
+    arrProcedures = Split(strRunProcedureOptionValue, ":")
+    ' TODO: Split with regexp so that string parameters can contain ":"
+
+    For i = LBound(arrProcedures) To UBound(arrProcedures)
+        Log.Add T("Running {0}...", var0:=arrProcedures(i))
+        RunProcInCurrentProject Trim(arrProcedures(i)), , , VcsRef
+    Next
+
+End Sub
+
+'---------------------------------------------------------------------------------------
 ' Procedure : RunProcInCurrentProject
 ' Author    : Adam Waller
 ' Date      : 8/12/2026
