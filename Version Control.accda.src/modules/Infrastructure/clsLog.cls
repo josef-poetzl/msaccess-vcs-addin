@@ -338,7 +338,7 @@ Public Sub ErrorInfo(oErrorInfo As clsErrorInfo)
         ' Log all errors, and display on the output screen anything higher than a warning
         Me.Add vbNullString, blnPrint
         Me.Spacer blnPrint
-        Me.Add oErrorInfo.DisplayText, blnPrint, , "red"
+        Me.Add oErrorInfo.DisplayText, blnPrint, , oErrorInfo.LogColor
 
         ' Log the additional error and source details to the log file
         If lngErrNum <> 0 Then .Add "Error ", CStr(lngErrNum), ": ", strErrDesc, " "

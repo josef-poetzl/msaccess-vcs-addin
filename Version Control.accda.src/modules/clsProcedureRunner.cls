@@ -26,20 +26,27 @@ Public Sub RunExternalProcedure(ByVal strRunProcedureOptionValue As String, Opti
 
     Dim arrProcedures() As String
     Dim i As Long
+    Dim blnRan As Boolean
+    Dim strProcedureCallExpression As String
 
     arrProcedures = Split(strRunProcedureOptionValue, ":")
     ' TODO: Split with regexp so that string parameters can contain ":"
 
     For i = LBound(arrProcedures) To UBound(arrProcedures)
-        Log.Add T("Running {0}...", var0:=arrProcedures(i))
-        If Not TryRunAddInProcedure(Trim(arrProcedures(i)), VcsRef) Then
-            RunProcInCurrentProject Trim(arrProcedures(i)), , , VcsRef
+        blnRan = False
+        strProcedureCallExpression = Trim(arrProcedures(i))
+        Log.Add T("Running {0}...", var0:=strProcedureCallExpression)
+        If Not TryRunAddInProcedure(strProcedureCallExpression, VcsRef, blnRan) Then
+            RunProcInCurrentProject strProcedureCallExpression, blnRan, False, VcsRef
+        End If
+        If Not blnRan Then
+            Log.Error eelWarning, T("{0} not finished", var0:=strProcedureCallExpression), ModuleName & ".RunExternalProcedure"
         End If
     Next
 
 End Sub
 
-Private Function TryRunAddInProcedure(ByVal strProcedureCallExpression As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
+Private Function TryRunAddInProcedure(ByVal strProcedureCallExpression As String, ByVal VcsRef As clsVersionControl, ByRef blnRan As Boolean) As Boolean
 
     Dim strAddInFile As String
     Dim arrParams() As Variant
@@ -59,9 +66,11 @@ Private Function TryRunAddInProcedure(ByVal strProcedureCallExpression As String
         Exit Function
     End If
 
-    CallApplicationRun strProcedureCallExpression, arrParams
+    CallApplicationRun strProcedureCallExpression, arrParams, blnRan, True, True
+
 
 End Function
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : RunProcInCurrentProject
@@ -132,21 +141,41 @@ Public Function RunProcInCurrentProject(strSubName As String, _
     Set VBE.ActiveVBProject = CurrentVBProject
 
     If blnWantResult Then
-        RunProcInCurrentProject = CallApplicationRun(strCmd, arrParams)
+        RunProcInCurrentProject = CallApplicationRun(strCmd, arrParams, blnRan, blnWantResult)
     Else
-        CallApplicationRun strCmd, arrParams
+        CallApplicationRun strCmd, arrParams, blnRan, blnWantResult
     End If
 
     blnRan = True
     Perf.OperationEnd
-    If Not cPause Is Nothing Then cPause.ResumePause
+     If Not cPause Is Nothing Then cPause.ResumePause
 
     ' Log any other errors
     CatchAny eelError, T("Error running {0}", , , , strSub), ModuleName & ".RunSubInCurrentProject"
 
 End Function
 
-Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams() As Variant) As Variant
+Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams() As Variant, ByRef blnRan As Boolean, ByVal blnWantResult As Boolean, _
+                          Optional ByVal UseExternalLogReturn As Boolean = False) As Variant
+
+' if UseExternalLogReturn = True:
+' What could a generally usable interface look like?
+'
+' * Public Function ProcedureName(ByRef ReturnMessage As String) as Boolean
+' * Public Function ProcedureName(ByRef ReturnMessage As String) as Long ' ... = eErrorLevel .. -1 for all ok?
+' * Public Function ProcedureName() as String ... Returns:
+'                                      "Error: ErrorMessage"   => Error log
+'                                   or "Warning: Warning Message" => displayed Warning log
+'                                   or vbNullstring ... show nothing, all success
+'
+' used interface:
+' * Public Function ProcedureName() as Variant ... Returns:
+'                                      "Error: ErrorMessage"   => Error log
+'                                   or "Warning: Warning Message" => displayed Warning log
+'                                   or ... (see LogErrorMessage)
+'                                   or vbNullstring ... show nothing, all success
+'                                   or True/False .. True = success, false = failed
+
 
     Dim lngParamCnt As Long
     Dim MinIndex As Long
@@ -159,23 +188,65 @@ Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams
         lngParamCnt = UBound(arrParams) - MinIndex + 1
     End If
 
-    Select Case lngParamCnt
-        Case 0
-            ProcReturnValue = Application.Run(strProcedure)
-        Case 1
-            ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex))
-        Case 2
-            ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1))
-        Case 3
-            ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2))
-        Case 4
-            ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2), arrParams(MinIndex + 3))
-        Case 5
-            ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2), arrParams(MinIndex + 3), arrParams(MinIndex + 4))
+    If lngParamCnt > 5 Then
+        Err.Raise vbObjectError, ModuleName & ".CallApplicationRun", "Only up to 5 parameters are supported"
+    End If
 
-        Case Else
-            Err.Raise vbObjectError, ModuleName & ".CallApplicationRun", "Only up to 5 parameters are supported"
-    End Select
+     ' Log any outstanding errors
+    LogUnhandledErrors
+
+    ' Stage the current operation, and run the sub
+    Operation.Stage
+    Perf.OperationStart T("Run {0}", , , , strProcedure)
+
+    If blnWantResult Or UseExternalLogReturn Then
+        Select Case lngParamCnt
+            Case 0
+                ProcReturnValue = Application.Run(strProcedure)
+            Case 1
+                ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex))
+            Case 2
+                ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1))
+            Case 3
+                ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2))
+            Case 4
+                ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2), arrParams(MinIndex + 3))
+            Case 5
+                ProcReturnValue = Application.Run(strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2), arrParams(MinIndex + 3), arrParams(MinIndex + 4))
+        End Select
+    Else
+        Select Case lngParamCnt
+            Case 0
+                Application.Run (strProcedure)
+            Case 1
+                Application.Run strProcedure, arrParams(MinIndex)
+            Case 2
+                Application.Run strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1)
+            Case 3
+                Application.Run strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2)
+            Case 4
+                Application.Run strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2), arrParams(MinIndex + 3)
+            Case 5
+                Application.Run strProcedure, arrParams(MinIndex), arrParams(MinIndex + 1), arrParams(MinIndex + 2), arrParams(MinIndex + 3), arrParams(MinIndex + 4)
+        End Select
+    End If
+
+    Perf.OperationEnd
+    Operation.Restore
+    blnRan = True
+
+    If UseExternalLogReturn Then
+        If VarType(ProcReturnValue) = vbString Then
+            LogErrorMessage ProcReturnValue, GetProcedureNameFromPath(strProcedure)
+        ElseIf VarType(ProcReturnValue) = vbBoolean Then
+            If Not ProcReturnValue Then ' eelCritical => Cancel
+                Log.Error eelCritical, GetProcedureNameFromPath(strProcedure) & " failed (return False)", ModuleName & ".CallApplicationRun"
+            End If
+        End If
+    End If
+
+    ' Log any other errors
+    CatchAny eelError, T("Error running {0}", , , , strProcedure), ModuleName & ".CallApplicationRun"
 
     CallApplicationRun = ProcReturnValue
 
@@ -310,5 +381,51 @@ Friend Function ParseParameterString(ByVal strParams As String) As Variant()
     End If
 
     ParseParameterString = arrResult
+
+End Function
+
+Private Sub LogErrorMessage(ByVal strErrorMessage As String, ByVal strErrorMessageSource As String)
+
+    Dim lngErrorLevel As eErrorLevel
+    Dim lngErrorLevelEndPos As Long
+
+    lngErrorLevelEndPos = InStr(1, strErrorMessage, ":")
+    If lngErrorLevelEndPos > 1 Then
+        Select Case Trim(Left(strErrorMessage, lngErrorLevelEndPos - 1))
+            Case "Error"
+                lngErrorLevel = eelError
+            Case "Warning", "Alert", "Failed"
+                lngErrorLevel = eelAlert
+            Case "Critical", "FATAL"
+                lngErrorLevel = eelCritical
+            Case "Note", "Success", "Info"
+                lngErrorLevel = eelInfo
+            Case "Log"
+                lngErrorLevel = eelWarning
+            Case Else
+                lngErrorLevel = eelAlert
+                lngErrorLevelEndPos = 0 ' don't remove String before ":"
+        End Select
+        If lngErrorLevelEndPos > 0 Then
+            strErrorMessage = Trim(Mid(strErrorMessage, lngErrorLevelEndPos + 1))
+        End If
+    Else
+        lngErrorLevel = eelAlert
+    End If
+
+    Log.ErrorInfo NewErrorInfo(lngErrorLevel, strErrorMessage, strErrorMessageSource, False)
+
+End Sub
+
+Private Function GetProcedureNameFromPath(ByVal strFullProcedureName As String) As String
+
+    Dim lngCutPos As Long
+
+    lngCutPos = InStrRev(Replace(strFullProcedureName, "!", "\"), "\")
+    If lngCutPos > 0 Then
+        GetProcedureNameFromPath = Mid(strFullProcedureName, lngCutPos + 1)
+    Else
+        GetProcedureNameFromPath = strFullProcedureName
+    End If
 
 End Function
