@@ -19,6 +19,7 @@ Begin Form
         0x587d60025082e640
     End
     DatasheetFontName ="Calibri"
+    OnTimer ="[Event Procedure]"
     OnLoad ="[Event Procedure]"
     AllowDatasheetView =0
     FilterOnLoad =0
@@ -119,6 +120,21 @@ Begin Form
             BorderShade =65.0
             ForeThemeColorIndex =2
             ForeShade =50.0
+            GridlineThemeColorIndex =1
+            GridlineShade =65.0
+        End
+        Begin Subform
+            BorderLineStyle =0
+            Width =1701
+            Height =1701
+            BorderThemeColorIndex =1
+            GridlineThemeColorIndex =1
+            GridlineShade =65.0
+            BorderShade =65.0
+            ShowPageHeaderAndPageFooter =1
+        End
+        Begin EmptyCell
+            Height =240
             GridlineThemeColorIndex =1
             GridlineShade =65.0
         End
@@ -372,14 +388,19 @@ Begin Form
                     Height =315
                     TabIndex =4
                     Name ="txtRunBeforeExport"
+                    RightPadding =0
+                    BottomPadding =150
 
                     LayoutCachedLeft =2940
                     LayoutCachedTop =4200
                     LayoutCachedWidth =5640
                     LayoutCachedHeight =4515
+                    ColumnStart =1
+                    ColumnEnd =1
                     Begin
                         Begin Label
                             OverlapFlags =85
+                            TextAlign =1
                             Left =420
                             Top =4200
                             Width =2460
@@ -387,6 +408,7 @@ Begin Form
                             ForeColor =5324600
                             Name ="Label44"
                             Caption ="Run Sub Before Export:"
+                            BottomPadding =150
                             LayoutCachedLeft =420
                             LayoutCachedTop =4200
                             LayoutCachedWidth =2880
@@ -398,13 +420,16 @@ Begin Form
                 End
                 Begin TextBox
                     OverlapFlags =85
+                    TextAlign =1
                     IMESentenceMode =3
                     Left =2940
                     Top =4680
                     Width =2700
                     Height =315
-                    TabIndex =5
+                    TabIndex =6
                     Name ="txtRunAfterExport"
+                    RightPadding =0
+                    BottomPadding =150
 
                     LayoutCachedLeft =2940
                     LayoutCachedTop =4680
@@ -413,6 +438,7 @@ Begin Form
                     Begin
                         Begin Label
                             OverlapFlags =85
+                            TextAlign =1
                             Left =420
                             Top =4680
                             Width =2460
@@ -420,10 +446,13 @@ Begin Form
                             ForeColor =5324600
                             Name ="Label48"
                             Caption ="Run Sub After Export:"
+                            BottomPadding =150
                             LayoutCachedLeft =420
                             LayoutCachedTop =4680
                             LayoutCachedWidth =2880
                             LayoutCachedHeight =4995
+                            RowStart =1
+                            RowEnd =1
                             ForeThemeColorIndex =-1
                             ForeTint =100.0
                         End
@@ -526,7 +555,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =9900
-                    TabIndex =12
+                    TabIndex =15
                     Name ="chkExtractThemeFiles"
 
                     LayoutCachedLeft =420
@@ -556,7 +585,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =10860
-                    TabIndex =14
+                    TabIndex =17
                     Name ="chkDecodeConditionalFormatting"
 
                     LayoutCachedLeft =420
@@ -586,7 +615,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =9415
-                    TabIndex =11
+                    TabIndex =14
                     Name ="chkSavePrintVars"
 
                     LayoutCachedLeft =420
@@ -616,7 +645,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =7980
-                    TabIndex =8
+                    TabIndex =11
                     Name ="chkSaveQuerySQL"
 
                     LayoutCachedLeft =420
@@ -646,7 +675,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =8940
-                    TabIndex =10
+                    TabIndex =13
                     Name ="chkSaveTableSQL"
 
                     LayoutCachedLeft =420
@@ -676,7 +705,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =8460
-                    TabIndex =9
+                    TabIndex =12
                     Name ="chkFormatSQL"
 
                     LayoutCachedLeft =420
@@ -706,7 +735,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =10375
-                    TabIndex =13
+                    TabIndex =16
                     Name ="chkUseDeterministicQueryExport"
 
                     LayoutCachedLeft =420
@@ -741,7 +770,7 @@ Begin Form
                     Left =4200
                     Top =11280
                     Height =315
-                    TabIndex =15
+                    TabIndex =18
                     Name ="cboUseEnvForConnections"
                     RowSourceType ="Value List"
                     ColumnWidths ="0"
@@ -779,7 +808,7 @@ Begin Form
                     Top =6060
                     Width =1980
                     Height =315
-                    TabIndex =6
+                    TabIndex =9
                     Name ="cboSanitizeLevel"
                     RowSourceType ="Value List"
                     ColumnWidths ="0"
@@ -818,7 +847,7 @@ Begin Form
                     Top =6540
                     Width =1980
                     Height =315
-                    TabIndex =7
+                    TabIndex =10
                     Name ="cboSanitizeColors"
                     RowSourceType ="Value List"
                     ColumnWidths ="0"
@@ -851,7 +880,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =13015
-                    TabIndex =16
+                    TabIndex =19
                     Name ="chkOrientation"
 
                     LayoutCachedLeft =420
@@ -881,7 +910,7 @@ Begin Form
                     OverlapFlags =85
                     Left =420
                     Top =13495
-                    TabIndex =17
+                    TabIndex =20
                     Name ="chkPaperSize"
 
                     LayoutCachedLeft =420
@@ -929,7 +958,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =15055
-                    TabIndex =18
+                    TabIndex =21
                     Name ="chkDuplex"
 
                     LayoutCachedLeft =360
@@ -959,7 +988,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =15055
-                    TabIndex =19
+                    TabIndex =22
                     Name ="chkPrintQuality"
 
                     LayoutCachedLeft =2940
@@ -989,7 +1018,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =15535
-                    TabIndex =20
+                    TabIndex =23
                     Name ="chkCollate"
 
                     LayoutCachedLeft =360
@@ -1019,7 +1048,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =15535
-                    TabIndex =21
+                    TabIndex =24
                     Name ="chkResolution"
 
                     LayoutCachedLeft =2940
@@ -1049,7 +1078,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =16015
-                    TabIndex =22
+                    TabIndex =25
                     Name ="chkColor"
 
                     LayoutCachedLeft =360
@@ -1079,7 +1108,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =16015
-                    TabIndex =23
+                    TabIndex =26
                     Name ="chkCopies"
 
                     LayoutCachedLeft =2940
@@ -1109,7 +1138,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =16495
-                    TabIndex =24
+                    TabIndex =27
                     Name ="chkDefaultSource"
 
                     LayoutCachedLeft =360
@@ -1139,7 +1168,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =16975
-                    TabIndex =26
+                    TabIndex =29
                     Name ="chkFormName"
 
                     LayoutCachedLeft =360
@@ -1169,7 +1198,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =17455
-                    TabIndex =28
+                    TabIndex =31
                     Name ="chkMediaType"
 
                     LayoutCachedLeft =360
@@ -1199,7 +1228,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =17935
-                    TabIndex =30
+                    TabIndex =33
                     Name ="chkDisplayFrequency"
 
                     LayoutCachedLeft =360
@@ -1229,7 +1258,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =18415
-                    TabIndex =32
+                    TabIndex =35
                     Name ="chkDisplayFlags"
 
                     LayoutCachedLeft =360
@@ -1259,7 +1288,7 @@ Begin Form
                     OverlapFlags =85
                     Left =360
                     Top =18895
-                    TabIndex =34
+                    TabIndex =37
                     Name ="chkICMMethod"
 
                     LayoutCachedLeft =360
@@ -1289,7 +1318,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =16495
-                    TabIndex =25
+                    TabIndex =28
                     Name ="chkScale"
 
                     LayoutCachedLeft =2940
@@ -1319,7 +1348,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =18895
-                    TabIndex =35
+                    TabIndex =38
                     Name ="chkICMIntent"
 
                     LayoutCachedLeft =2940
@@ -1349,7 +1378,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =16975
-                    TabIndex =27
+                    TabIndex =30
                     Name ="chkPaperLength"
 
                     LayoutCachedLeft =2940
@@ -1379,7 +1408,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =17935
-                    TabIndex =31
+                    TabIndex =34
                     Name ="chkDitherType"
 
                     LayoutCachedLeft =2940
@@ -1409,7 +1438,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =17455
-                    TabIndex =29
+                    TabIndex =32
                     Name ="chkPaperWidth"
 
                     LayoutCachedLeft =2940
@@ -1439,7 +1468,7 @@ Begin Form
                     OverlapFlags =85
                     Left =2940
                     Top =18415
-                    TabIndex =33
+                    TabIndex =36
                     Name ="chkTTOption"
 
                     LayoutCachedLeft =2940
@@ -1482,6 +1511,166 @@ Begin Form
                     LayoutCachedHeight =12060
                     ForeThemeColorIndex =-1
                     ForeTint =100.0
+                End
+                Begin Subform
+                    Visible = NotDefault
+                    Enabled = NotDefault
+                    TabStop = NotDefault
+                    OverlapFlags =215
+                    Left =5858
+                    Top =5078
+                    Width =458
+                    Height =440
+                    TabIndex =8
+                    Name ="sfrExportOptionsValueList"
+                    SourceObject ="Form.frmVCSOptionsValueList"
+                    OnExit ="[Event Procedure]"
+
+                    LayoutCachedLeft =5858
+                    LayoutCachedTop =5078
+                    LayoutCachedWidth =6316
+                    LayoutCachedHeight =5518
+                End
+                Begin CommandButton
+                    TabStop = NotDefault
+                    OverlapFlags =85
+                    Left =5655
+                    Top =4200
+                    Width =375
+                    Height =315
+                    TabIndex =5
+                    Name ="cmdRunBeforeExportOpenValueList"
+                    Caption ="Befehl311"
+                    OnClick ="[Event Procedure]"
+                    LeftPadding =0
+                    BottomPadding =150
+                    ImageData = Begin
+                        0x2800000010000000100000000100200000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000727272ff727272ff727272ff ,
+                        0x727272ff727272ff727272ff727272ff727272ff727272ff0000000000000000 ,
+                        0x000000000000000000000000000000000000000072727287727272ff727272ff ,
+                        0x727272ff727272ff727272ff727272ff727272ff727272870000000000000000 ,
+                        0x000000000000000000000000000000000000000000000000727272a5727272ff ,
+                        0x727272ff727272ff727272ff727272ff727272a5000000000000000000000000 ,
+                        0x00000000000000000000000000000000000000000000000072727206727272bd ,
+                        0x727272ff727272ff727272ff727272bd72727206000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000072727209 ,
+                        0x727272c9727272ff727272c97272720900000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x72727215727272b7727272150000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000
+                    End
+
+                    LayoutCachedLeft =5655
+                    LayoutCachedTop =4200
+                    LayoutCachedWidth =6030
+                    LayoutCachedHeight =4515
+                    ColumnStart =2
+                    ColumnEnd =2
+                    Gradient =0
+                    BackThemeColorIndex =1
+                    BackTint =100.0
+                    BackShade =95.0
+                    BorderThemeColorIndex =1
+                    BorderTint =100.0
+                    BorderShade =65.0
+                    HoverThemeColorIndex =1
+                    HoverTint =100.0
+                    HoverShade =95.0
+                    PressedThemeColorIndex =1
+                    PressedShade =95.0
+                    Overlaps =1
+                End
+                Begin CommandButton
+                    OverlapFlags =85
+                    Left =5655
+                    Top =4703
+                    Width =375
+                    Height =315
+                    TabIndex =7
+                    Name ="cmdRunAfterExportOpenValueList"
+                    Caption ="Befehl311"
+                    OnClick ="[Event Procedure]"
+                    LeftPadding =0
+                    BottomPadding =150
+                    ImageData = Begin
+                        0x2800000010000000100000000100200000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000727272ff727272ff727272ff ,
+                        0x727272ff727272ff727272ff727272ff727272ff727272ff0000000000000000 ,
+                        0x000000000000000000000000000000000000000072727287727272ff727272ff ,
+                        0x727272ff727272ff727272ff727272ff727272ff727272870000000000000000 ,
+                        0x000000000000000000000000000000000000000000000000727272a5727272ff ,
+                        0x727272ff727272ff727272ff727272ff727272a5000000000000000000000000 ,
+                        0x00000000000000000000000000000000000000000000000072727206727272bd ,
+                        0x727272ff727272ff727272ff727272bd72727206000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000072727209 ,
+                        0x727272c9727272ff727272c97272720900000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x72727215727272b7727272150000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000000000000000000000000000000000000000000000000000 ,
+                        0x0000000000000000
+                    End
+
+                    LayoutCachedLeft =5655
+                    LayoutCachedTop =4703
+                    LayoutCachedWidth =6030
+                    LayoutCachedHeight =5018
+                    RowStart =1
+                    RowEnd =1
+                    ColumnStart =2
+                    ColumnEnd =2
+                    Gradient =0
+                    BackThemeColorIndex =1
+                    BackTint =100.0
+                    BackShade =95.0
+                    BorderThemeColorIndex =1
+                    BorderTint =100.0
+                    BorderShade =65.0
+                    HoverThemeColorIndex =1
+                    HoverTint =100.0
+                    HoverShade =95.0
+                    PressedThemeColorIndex =1
+                    PressedShade =95.0
+                    Overlaps =1
                 End
             End
         End
