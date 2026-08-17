@@ -818,8 +818,8 @@ End Function
 '           : current project, not the add-in file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
-    RunProcInCurrentProject strSubName, , False, VcsRef
+Public Sub RunSubInCurrentProject(strSubName As String)
+    RunProcInCurrentProject strSubName, , False
 End Sub
 
 
@@ -842,18 +842,36 @@ End Sub
 '
 Public Function RunProcInCurrentProject(strSubName As String, _
     Optional ByRef blnRan As Boolean, _
-    Optional ByVal blnWantResult As Boolean = True, _
-    Optional ByVal VcsRef As clsVersionControl = Nothing) As Variant
+    Optional ByVal blnWantResult As Boolean = True) As Variant
 
     With New clsProcedureRunner
         If blnWantResult Then
-            RunProcInCurrentProject = .RunProcInCurrentProject(strSubName, blnRan, blnWantResult, VcsRef)
+            RunProcInCurrentProject = .RunProcInCurrentProject(strSubName, blnRan, blnWantResult)
         Else
-            .RunProcInCurrentProject strSubName, blnRan, blnWantResult, VcsRef
+            .RunProcInCurrentProject strSubName, blnRan, blnWantResult
         End If
     End With
 
 End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : RunExternalProcedure
+' Author    : Josef Poetzl
+' Date      : 7/6/2025
+' Purpose   : Runs one or more external procedures by name, which is specified in the
+'           : RunAfterBuild, RunAfterMerge etc. options.
+'           : The procedure name can be a single procedure or multiple procedures
+'           : separated by a colon.
+'---------------------------------------------------------------------------------------
+'
+Public Sub RunExternalProcedure(ByVal strRunProcedureOptionValue As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+
+    With New clsProcedureRunner
+        .RunExternalProcedure strRunProcedureOptionValue, VcsRef
+    End With
+
+End Sub
 
 
 '---------------------------------------------------------------------------------------
