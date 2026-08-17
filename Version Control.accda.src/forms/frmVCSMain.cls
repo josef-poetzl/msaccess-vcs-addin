@@ -34,6 +34,9 @@ Public strLastTestResultsPath As String
 ' Use this property to set the path to the source files (such as a build triggered from the API)
 Public strSourcePath As String
 
+' Use this property to set active reference of clsVersionControl (for VCS param in RunExport, ...)
+Public ActiveVersionControl As clsVersionControl
+
 ' Design-time and test-console client dimensions (twips; match frmVCSMain.form Width).
 Private Const DESIGN_INSIDE_WIDTH As Long = 9360
 Private Const TEST_INSIDE_WIDTH As Long = 12300
@@ -350,6 +353,10 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Sub cmdExport_Click()
+    RunExport ActiveVersionControl
+End Sub
+
+Public Sub RunExport(Optional ByVal VcsRef As clsVersionControl = Nothing)
 
     ' Make sure we are ready to begin an operation...
     If Not Operation.Begin(eotExport) Then Exit Sub
@@ -364,7 +371,7 @@ Public Sub cmdExport_Click()
     ' See if we are exporting a single object, or everything.
     If Me.objSingleObject Is Nothing Then
         ' Export the source code using the specified filter.
-        modExport.ExportSource chkFullExport, Me.intContainerFilter, Me
+        modExport.ExportSource chkFullExport, Me.intContainerFilter, Me, VcsRef
     Else
         modExport.ExportSingleObject Me.objSingleObject, Me
     End If

@@ -31,7 +31,8 @@ Private Const ModuleName As String = "clsProcedureRunner"
 '
 Public Function RunProcInCurrentProject(strSubName As String, _
     Optional ByRef blnRan As Boolean, _
-    Optional ByVal blnWantResult As Boolean = True) As Variant
+    Optional ByVal blnWantResult As Boolean = True, _
+    Optional ByVal VcsRef As clsVersionControl = Nothing) As Variant
 
     Dim strSub As String
     Dim strCmd As String
@@ -45,7 +46,7 @@ Public Function RunProcInCurrentProject(strSubName As String, _
 
     ' Check arguments
     If InStr(strSub, "(") > 0 Then
-        If Not TryGetProcedureNamenAndParams(strSub, arrParams) Then
+        If Not TryGetProcedureNamenAndParams(strSub, arrParams, VcsRef) Then
             MsgBox2 T("Unable to Run Command"), _
                 T("Unable to parse parameters from command."), _
                 T("Please check the parameter syntax. Parameters should be separated by commas and" & vbCrLf & _
@@ -142,7 +143,7 @@ Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams
 End Function
 
 
-Friend Function TryGetProcedureNamenAndParams(ByRef strProcedure As String, ByRef arrParams() As Variant) As Boolean
+Friend Function TryGetProcedureNamenAndParams(ByRef strProcedure As String, ByRef arrParams() As Variant, ByVal VcsRef As clsVersionControl) As Boolean
 
     Dim strProcName As String
     Dim strParams As String
@@ -188,6 +189,8 @@ Friend Function TryGetProcedureNamenAndParams(ByRef strProcedure As String, ByRe
         varParam = Trim(arrParamList(i))
         If varParam = "Nothing" Then
             Set arrParams(i) = Nothing
+        ElseIf varParam = "VCS" Then
+            Set arrParams(i) = VcsRef
         Else
             If varParam = "Null" Then
                 varParam = Null
