@@ -28,6 +28,7 @@ Option Explicit
 '
 Public Sub Show()
     DoCmd.OpenForm "frmVCSMain"
+    Set Form_frmVCSMain.ActiveVersionControl = Me
 End Sub
 
 
@@ -130,7 +131,7 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
         ' Set full export checkbox if requested
         If blnFullExport Then .chkFullExport = True
         .Visible = True
-        .cmdExport_Click
+        .RunExport Me
         If Operation.ErrorLevel < eelError Then .AutoClose
     End With
 End Sub

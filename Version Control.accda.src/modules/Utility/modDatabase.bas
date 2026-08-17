@@ -818,8 +818,8 @@ End Function
 '           : current project, not the add-in file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunSubInCurrentProject(strSubName As String)
-    RunProcInCurrentProject strSubName, , False
+Public Sub RunSubInCurrentProject(strSubName As String, Optional ByVal VcsRef As clsVersionControl = Nothing)
+    RunProcInCurrentProject strSubName, , False, VcsRef
 End Sub
 
 
@@ -842,13 +842,14 @@ End Sub
 '
 Public Function RunProcInCurrentProject(strSubName As String, _
     Optional ByRef blnRan As Boolean, _
-    Optional ByVal blnWantResult As Boolean = True) As Variant
+    Optional ByVal blnWantResult As Boolean = True, _
+    Optional ByVal VcsRef As clsVersionControl = Nothing) As Variant
 
     With New clsProcedureRunner
         If blnWantResult Then
-            RunProcInCurrentProject = .RunProcInCurrentProject(strSubName, blnRan, blnWantResult)
+            RunProcInCurrentProject = .RunProcInCurrentProject(strSubName, blnRan, blnWantResult, VcsRef)
         Else
-            .RunProcInCurrentProject strSubName, blnRan, blnWantResult
+            .RunProcInCurrentProject strSubName, blnRan, blnWantResult, VcsRef
         End If
     End With
 
