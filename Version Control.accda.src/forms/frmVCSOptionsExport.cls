@@ -14,6 +14,8 @@ Option Explicit
 
 Implements IOptionsSection
 
+Private WithEvents m_OptionValueList As Form_frmVCSOptionsValueList
+Attribute m_OptionValueList.VB_VarHelpID = -1
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Form_Load
@@ -212,4 +214,77 @@ Private Sub OnSplitLayoutChange(varNewValue As Variant)
         End If
     End If
 
+End Sub
+
+'---------------------------------------------------------------------------------------
+' Option value list procedures:
+'
+Private Sub cmdRunBeforeExportOpenValueList_Click()
+    UseOptionValueListForTextbox Me.txtRunBeforeExport, Me.cmdRunBeforeExportOpenValueList, Me.sfrExportOptionsValueList
+End Sub
+
+Private Sub cmdRunAfterExportOpenValueList_Click()
+    UseOptionValueListForTextbox Me.txtRunAfterExport, Me.cmdRunAfterExportOpenValueList, Me.sfrExportOptionsValueList
+End Sub
+
+Private Sub UseOptionValueListForTextbox(ByVal OptionTextBox As TextBox, ByVal OpenListCommandButton As CommandButton, OptionsValueListSubForm As SubForm, Optional ByVal ListHeight As Long = 2000)
+
+    Dim OptionValues() As String
+    Dim i As Long
+
+    If Not (m_OptionValueList Is Nothing) Then
+        DoEvents
+    End If
+
+    OptionValues = Split(Nz(OptionTextBox.Value, vbNullString), ":")
+    If Len(OptionTextBox.Value) > 0 Then
+        For i = LBound(OptionValues) To UBound(OptionValues)
+            OptionValues(i) = Trim(OptionValues(i))
+        Next i
+    End If
+
+    With OptionsValueListSubForm
+        .Left = OptionTextBox.Left
+        .Width = OptionTextBox.Width + OpenListCommandButton.Width
+        .Top = OptionTextBox.Top + OptionTextBox.Height - ListHeight
+        .Height = ListHeight
+        .Form.OptionValueListCode = OptionTextBox.Name
+        .Form.SetData OptionValues
+        .Enabled = True
+        .Visible = True
+        .SetFocus
+    End With
+
+    Set m_OptionValueList = Me.sfrExportOptionsValueList.Form
+
+End Sub
+
+Private Sub m_OptionValueList_CloseOptionList()
+    With Me.sfrExportOptionsValueList.Form
+        Me.Controls(.OptionValueListCode).SetFocus ' => sfrExportOptionsValueList_Exit
+    End With
+End Sub
+
+Private Sub sfrExportOptionsValueList_Exit(Cancel As Integer)
+    SaveOptionValues
+    Me.TimerInterval = 1
+End Sub
+
+Private Sub SaveOptionValues()
+    With Me.sfrExportOptionsValueList.Form
+        Me.Controls(.OptionValueListCode).Value = Join(.GetData, " : ")
+    End With
+End Sub
+
+Private Sub Form_Timer()
+    Me.TimerInterval = 0
+    With Me.sfrExportOptionsValueList
+        .Enabled = False
+        .Visible = False
+        If Me.ActiveControl.Name = .Form.OptionValueListCode Then
+            With Me.ActiveControl
+                .SelStart = Len(.Text)
+            End With
+        End If
+    End With
 End Sub
