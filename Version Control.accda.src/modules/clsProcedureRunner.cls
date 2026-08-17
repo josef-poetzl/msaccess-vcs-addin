@@ -37,7 +37,7 @@ Public Sub RunExternalProcedure(ByVal strRunProcedureOptionValue As String, Opti
         strProcedureCallExpression = Trim(arrProcedures(i))
         Log.Add T("Running {0}...", var0:=strProcedureCallExpression)
         If Not TryRunAddInProcedure(strProcedureCallExpression, VcsRef, blnRan) Then
-            RunProcInCurrentProject strProcedureCallExpression, blnRan, False, VcsRef
+            RunProcInCurrentProject strProcedureCallExpression, blnRan, True, VcsRef, True
         End If
         If Not blnRan Then
             Log.Error eelWarning, T("{0} not finished", var0:=strProcedureCallExpression), ModuleName & ".RunExternalProcedure"
@@ -92,7 +92,8 @@ End Function
 Public Function RunProcInCurrentProject(strSubName As String, _
     Optional ByRef blnRan As Boolean, _
     Optional ByVal blnWantResult As Boolean = True, _
-    Optional ByVal VcsRef As clsVersionControl = Nothing) As Variant
+    Optional ByVal VcsRef As clsVersionControl = Nothing, _
+    Optional ByVal UseExternalLogReturn As Boolean = False) As Variant
 
     Dim strSub As String
     Dim strCmd As String
@@ -141,7 +142,7 @@ Public Function RunProcInCurrentProject(strSubName As String, _
     Set VBE.ActiveVBProject = CurrentVBProject
 
     If blnWantResult Then
-        RunProcInCurrentProject = CallApplicationRun(strCmd, arrParams, blnRan, blnWantResult)
+        RunProcInCurrentProject = CallApplicationRun(strCmd, arrParams, blnRan, blnWantResult, UseExternalLogReturn)
     Else
         CallApplicationRun strCmd, arrParams, blnRan, blnWantResult
     End If

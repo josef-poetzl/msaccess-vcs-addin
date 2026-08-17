@@ -59,9 +59,9 @@ End Sub
 ' Purpose   : Export the source code for the current database
 '---------------------------------------------------------------------------------------
 '
-Public Sub Export()
-    RunExport ecfAllObjects
-End Sub
+Public Function Export() As eErrorLevel
+    Export = RunExport(ecfAllObjects)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -71,9 +71,9 @@ End Sub
 ' Purpose   : Force a full export of all objects (ignoring Fast Save)
 '---------------------------------------------------------------------------------------
 '
-Public Sub FullExport()
-    RunExport ecfAllObjects, , True
-End Sub
+Public Function FullExport() As eErrorLevel
+    FullExport = RunExport(ecfAllObjects, , True)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -83,9 +83,9 @@ End Sub
 ' Purpose   : Export just the VBA related components
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportVBA()
-    RunExport ecfVBAItems
-End Sub
+Public Function ExportVBA() As eErrorLevel
+    ExportVBA = RunExport(ecfVBAItems)
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ End Sub
 ' Purpose   : Export the selected object
 '---------------------------------------------------------------------------------------
 '
-Public Sub ExportSelected()
+Public Function ExportSelected() As eErrorLevel
 
     Dim objSelected As AccessObject
 
@@ -106,10 +106,10 @@ Public Sub ExportSelected()
             "If you are using a non-English version of Access and it is still not working, please open an issue on GitHub to add support for your language.", vbInformation
     Else
         ' Export the item
-        RunExport , objSelected
+        ExportSelected = RunExport(, objSelected)
     End If
 
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -119,7 +119,10 @@ End Sub
 ' Purpose   : Handle different kinds of exports based on filter
 '---------------------------------------------------------------------------------------
 '
-Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject, Optional blnFullExport As Boolean = False)
+Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Optional objItem As AccessObject, Optional blnFullExport As Boolean = False) As eErrorLevel
+
+    Dim eelLastExportErrorLevel As eErrorLevel
+
     DoCmd.OpenForm "frmVCSMain", , , , , acHidden
     With Form_frmVCSMain
         If objItem Is Nothing Then
@@ -131,9 +134,18 @@ Private Sub RunExport(Optional intFilter As eContainerFilter = ecfAllObjects, Op
         If blnFullExport Then .chkFullExport = True
         .Visible = True
         .RunExport Me
-        If Operation.ErrorLevel < eelError Then .AutoClose
+        eelLastExportErrorLevel = Operation.ErrorLevel
+        RunExport = eelLastExportErrorLevel
+        If eelLastExportErrorLevel <= eelInfo Then
+            If Operation.InteractionMode = eimSilent Then
+                .AutoClose 0
+            Else
+                .AutoClose
+            End If
+        End If
+
     End With
-End Sub
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -3498,3 +3510,17 @@ Private Sub Class_Initialize()
     ' when the add-in is opened from the [Database Tools\Add-ins] menu. (See #451)
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
 End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : InteractionMode
+' Author    : Josef Pötzl
+' Date      : 8/17/2026
+' Purpose   : API for external use (external add-ins)
+'---------------------------------------------------------------------------------------
+'
+Public Property Get InteractionMode() As eInteractionMode
+    InteractionMode = modObjects.Operation.InteractionMode
+End Property
+Public Property Let InteractionMode(NewValue As eInteractionMode)
+    modObjects.Operation.InteractionMode = NewValue
+End Property

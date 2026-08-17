@@ -6,7 +6,7 @@ Attribute VB_Name = "clsErrorInfo"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Option Compare Text
 Option Explicit
 
