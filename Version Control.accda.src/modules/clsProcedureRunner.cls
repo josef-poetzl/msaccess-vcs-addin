@@ -32,10 +32,36 @@ Public Sub RunExternalProcedure(ByVal strRunProcedureOptionValue As String, Opti
 
     For i = LBound(arrProcedures) To UBound(arrProcedures)
         Log.Add T("Running {0}...", var0:=arrProcedures(i))
-        RunProcInCurrentProject Trim(arrProcedures(i)), , , VcsRef
+        If Not TryRunAddInProcedure(Trim(arrProcedures(i)), VcsRef) Then
+            RunProcInCurrentProject Trim(arrProcedures(i)), , , VcsRef
+        End If
     Next
 
 End Sub
+
+Private Function TryRunAddInProcedure(ByVal strProcedureCallExpression As String, Optional ByVal VcsRef As clsVersionControl = Nothing) As Boolean
+
+    Dim strAddInFile As String
+    Dim arrParams() As Variant
+
+    strProcedureCallExpression = Replace(strProcedureCallExpression, "%addins%", Environ$("appdata") & "\Microsoft\AddIns", , , vbTextCompare)
+    strProcedureCallExpression = Replace(strProcedureCallExpression, "%appdata%", Environ("appdata"), , , vbTextCompare)
+
+    strAddInFile = Left(strProcedureCallExpression, InStrRev(strProcedureCallExpression, ".")) & "accda"
+    If Len(VBA.Dir(strAddInFile)) = 0 Then
+        TryRunAddInProcedure = False
+        Exit Function
+    End If
+
+    TryRunAddInProcedure = True
+
+    If Not PrepareProcedureCallExpressionAndParams(strProcedureCallExpression, arrParams, VcsRef) Then
+        Exit Function
+    End If
+
+    CallApplicationRun strProcedureCallExpression, arrParams
+
+End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : RunProcInCurrentProject
@@ -66,22 +92,10 @@ Public Function RunProcInCurrentProject(strSubName As String, _
 
     blnRan = False
 
-    ' Don't need the parentheses after the sub name
-    strSub = Replace(strSubName, "()", vbNullString)
+    strSub = strSubName
 
-    ' Check arguments
-    If InStr(strSub, "(") > 0 Then
-        If Not TryGetProcedureNamenAndParams(strSub, arrParams, VcsRef) Then
-            MsgBox2 T("Unable to Run Command"), _
-                T("Unable to parse parameters from command."), _
-                T("Please check the parameter syntax. Parameters should be separated by commas and" & vbCrLf & _
-                "quoted strings should use double quotes." & vbCrLf & _
-                "Example: {0}", var0:="TestProc(""param1"", param2, ""param3"")"), vbExclamation
-            Exit Function
-        Else
-            ' Extract the procedure name from the command with parameters
-            strSub = Trim(Left(strSub, InStr(strSub, "(") - 1))
-        End If
+    If Not PrepareProcedureCallExpressionAndParams(strSub, arrParams, VcsRef) Then
+        Exit Function
     End If
 
     ' Make sure procedure exists in current database
@@ -164,6 +178,27 @@ Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams
     End Select
 
     CallApplicationRun = ProcReturnValue
+
+End Function
+
+Friend Function PrepareProcedureCallExpressionAndParams(ByRef strProcedureCallExpression As String, ByRef arrParams() As Variant, ByVal VcsRef As clsVersionControl) As Boolean
+
+    ' Don't need the parentheses after the sub name
+    strProcedureCallExpression = Replace(strProcedureCallExpression, "()", vbNullString)
+
+    If InStr(strProcedureCallExpression, "(") > 0 Then
+        If Not TryGetProcedureNamenAndParams(strProcedureCallExpression, arrParams, VcsRef) Then
+            MsgBox2 T("Unable to Run Command"), _
+                T("Unable to parse parameters from command."), _
+                T("Please check the parameter syntax. Parameters should be separated by commas and" & vbCrLf & _
+                "quoted strings should use double quotes." & vbCrLf & _
+                "Example: {0}", var0:="TestProc(""param1"", param2, ""param3"")"), vbExclamation
+            PrepareProcedureCallExpressionAndParams = False
+            Exit Function
+        End If
+    End If
+
+    PrepareProcedureCallExpressionAndParams = True
 
 End Function
 
