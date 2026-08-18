@@ -3511,6 +3511,11 @@ Private Sub Class_Initialize()
     If GetInstallSettings.blnUseRibbonAddIn Then modCOMAddIn.VerifyRibbon
 End Sub
 
+
+'##############
+' API for external use (add-ins)
+'
+
 '---------------------------------------------------------------------------------------
 ' Procedure : InteractionMode
 ' Author    : Josef Pötzl
@@ -3524,3 +3529,20 @@ End Property
 Public Property Let InteractionMode(NewValue As eInteractionMode)
     modObjects.Operation.InteractionMode = NewValue
 End Property
+
+'---------------------------------------------------------------------------------------
+' Procedure : AddLog
+' Author    : Josef Pötzl
+' Date      : 8/18/2026
+' Purpose   : API for external use (external add-ins)
+'---------------------------------------------------------------------------------------
+'
+Public Sub AddLog(ByVal strText As String, Optional ByVal blnPrint As Boolean = True, _
+         Optional ByVal blnNextOutputOnNewLine As Boolean = True, _
+         Optional ByVal strColor As String = vbNullString, _
+         Optional ByVal blnBold As Boolean = False, _
+         Optional ByVal blnItalic As Boolean = False)
+
+    Log.Add strText, blnPrint, blnNextOutputOnNewLine, strColor, blnBold, blnItalic
+
+End Sub
