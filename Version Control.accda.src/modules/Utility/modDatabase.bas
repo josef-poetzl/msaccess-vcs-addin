@@ -844,9 +844,11 @@ Public Function RunProcInCurrentProject(strSubName As String, _
     Optional ByRef blnRan As Boolean, _
     Optional ByVal blnWantResult As Boolean = True) As Variant
 
-    With New clsProcedureRunner
+    If blnWantResult Then
+        RunProcInCurrentProject = .RunProcInCurrentProject(strSubName, blnRan, blnWantResult)
+    Else
         .RunProcInCurrentProject strSubName, blnRan, blnWantResult
-    End With
+    End If
 
 End Function
 
