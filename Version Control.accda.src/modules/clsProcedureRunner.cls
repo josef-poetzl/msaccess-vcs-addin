@@ -96,9 +96,10 @@ Public Function RunProcInCurrentProject(strSubName As String, _
     Else
         CallApplicationRun strCmd, arrParams
     End If
+
     blnRan = True
     Perf.OperationEnd
-    Operation.Restore
+    If Not cPause Is Nothing Then cPause.ResumePause
 
     ' Log any other errors
     CatchAny eelError, T("Error running {0}", , , , strSub), ModuleName & ".RunSubInCurrentProject"
