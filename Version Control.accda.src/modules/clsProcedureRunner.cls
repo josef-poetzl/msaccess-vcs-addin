@@ -97,7 +97,6 @@ Public Function RunProcInCurrentProject(strSubName As String, _
 
     Dim strSub As String
     Dim strCmd As String
-    Dim cPause As clsOperationPause
     Dim arrParams() As Variant
 
     blnRan = False
@@ -128,16 +127,6 @@ Public Function RunProcInCurrentProject(strSubName As String, _
         strCmd = "[" & CurrentVBProject.Name & "]." & strSub
     End If
 
-    ' Log any outstanding errors
-    LogUnhandledErrors
-
-    ' Pause the current operation while user code runs. The user's procedure is foreign
-    ' code: it may raise, open forms, or take its own time, none of which should look
-    ' like our operation still running. ResumePause ends the pause on the success path;
-    ' Class_Terminate on cPause is the fallback if Application.Run raises.
-    Set cPause = Operation.TryPause()
-    Perf.OperationStart T("Run {0}", , , , strSub)
-
     ' Set active VB project to Current DB (not Add-in)
     Set VBE.ActiveVBProject = CurrentVBProject
 
@@ -146,13 +135,6 @@ Public Function RunProcInCurrentProject(strSubName As String, _
     Else
         CallApplicationRun strCmd, arrParams, blnRan, blnWantResult
     End If
-
-    blnRan = True
-    Perf.OperationEnd
-     If Not cPause Is Nothing Then cPause.ResumePause
-
-    ' Log any other errors
-    CatchAny eelError, T("Error running {0}", , , , strSub), ModuleName & ".RunSubInCurrentProject"
 
 End Function
 
@@ -181,6 +163,7 @@ Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams
     Dim lngParamCnt As Long
     Dim MinIndex As Long
     Dim ProcReturnValue As Variant
+    Dim cPause As clsOperationPause
 
     If Not CBool(Not Not arrParams) Then
         lngParamCnt = 0
@@ -193,11 +176,14 @@ Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams
         Err.Raise vbObjectError, ModuleName & ".CallApplicationRun", "Only up to 5 parameters are supported"
     End If
 
-     ' Log any outstanding errors
+    ' Log any outstanding errors
     LogUnhandledErrors
 
-    ' Stage the current operation, and run the sub
-    Operation.Stage
+    ' Pause the current operation while user code runs. The user's procedure is foreign
+    ' code: it may raise, open forms, or take its own time, none of which should look
+    ' like our operation still running. ResumePause ends the pause on the success path;
+    ' Class_Terminate on cPause is the fallback if Application.Run raises.
+    Set cPause = Operation.TryPause()
     Perf.OperationStart T("Run {0}", , , , strProcedure)
 
     If blnWantResult Or UseExternalLogReturn Then
@@ -232,9 +218,9 @@ Friend Function CallApplicationRun(ByVal strProcedure As String, ByRef arrParams
         End Select
     End If
 
-    Perf.OperationEnd
-    Operation.Restore
     blnRan = True
+    Perf.OperationEnd
+    If Not cPause Is Nothing Then cPause.ResumePause
 
     If UseExternalLogReturn Then
         If VarType(ProcReturnValue) = vbString Then
