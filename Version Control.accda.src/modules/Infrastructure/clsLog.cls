@@ -346,14 +346,14 @@ Public Sub ErrorInfo(oErrorInfo As clsErrorInfo)
         Me.Add .GetStr, False
         Me.Spacer blnPrint
         Me.Flush ' Force a screen update.
-        AppendErrorJournal eLevel, strDisplay, strSource, lngErrNum, strErrDesc
+        AppendErrorJournal oErrorInfo.ErrorLevel, oErrorInfo.DisplayText, oErrorInfo.Source, lngErrNum, strErrDesc
          ' Without a console, route prompts through MsgBox2 so InteractionMode and
         ' Attended suppress blocking dialogs during harness and automation runs.
         If m_RichText Is Nothing Then
             If Operation.InteractionMode <> eimNormal Or Not Operation.Attended Then
                 MsgBox2 oErrorInfo.MsgBoxBoldText, oErrorInfo.DisplayText, .GetStr, oErrorInfo.MsgBoxStyle
             ElseIf Log.Active Then
-                If eLevel = eelCritical Then
+                If oErrorInfo.ErrorLevel = eelCritical Then
                     MsgBox2 "Unable to Continue", .GetStr, _
                         "Please review the log file for additional details.", vbCritical
                 End If
