@@ -602,7 +602,9 @@ End Function
 Private Sub SetErrorTrapping()
     If Not IsSessionSingleton Then Exit Sub
     m_Root.ErrorTrapping = SaveUserErrorTrapping()
-    ApplyUserErrorTrapping eetBreakInClassModule
+    If m_Root.ErrorTrapping < eetBreakInClassModule Then
+        ApplyUserErrorTrapping eetBreakInClassModule
+    End If
 End Sub
 
 
