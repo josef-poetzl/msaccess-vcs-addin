@@ -53,8 +53,8 @@ Note: export options control what is written to source files. Import applies wha
 |**Split Layout from VBA**|**Default: On**|Split forms and reports into layout + code-behind. See [Split Files](Split-Files).
 ||_On_|Layout in `.form` / `.report` (format 5.0) or `.bas` (older format); code in `.cls`.
 ||_Off_|Single combined export file per object.
-|**Run Sub Before Export**|**Default: [Blank]**|Run a VBA subroutine before exporting the source code. This can be used to clean up temporary data, mask sensitive information, or anything else you want to do. This will be called using  `Application.Run`.
-|**Run Sub After Export**|**Default: [Blank]**|Similar to the option above, this allows you to specify a VBA subroutine to run *after* exporting the source code.
+|**Run Sub Before Export**|**Default: [Blank]**|Run a VBA subroutine before exporting the source code. This can be used to clean up temporary data, mask sensitive information, or anything else you want to do. This will be called using  `Application.Run`. Several procedures, parameters and add-in procedures are supported, see [Run Sub syntax](#run-sub-syntax).
+|**Run Sub After Export**|**Default: [Blank]**|Similar to the option above, this allows you to specify a VBA subroutine to run *after* exporting the source code. Same [syntax](#run-sub-syntax).
 
 ## Databases (External)
 
@@ -141,13 +141,29 @@ A unique feature of this add-in is the ability to build a fully functioning data
 |-|:-:|:-
 |**Force import of original SQL for queries**|**Default: Off**|In some cases, such as when a query contains a subquery, _AND_ has been modified in the visual query designer, it may be imported incorrectly and unable to run. For these cases we have added an option to overwrite the .SQL property with the SQL that we saved separately during the export. See [issue #76](https://github.com/joyfullservice/msaccess-vcs-addin/issues/76) for further details.
 |**Run Sub Before Build**|**Default: [Blank]**|Same as below, except before the build.
-|**Run Sub After Build**|**Default: [Blank]**|Run the specified subroutine after building the project from source files. This is a great way to extend the add-in to add any custom post-build functionality that you need after the build finishes. For example, you might use this to trigger an automated testing routine that verifies that the application is fully functional.
+|**Run Sub After Build**|**Default: [Blank]**|Run the specified subroutine after building the project from source files. This is a great way to extend the add-in to add any custom post-build functionality that you need after the build finishes. For example, you might use this to trigger an automated testing routine that verifies that the application is fully functional. Same [syntax](#run-sub-syntax) as **Run Sub Before Export**.
 |**Validate Build With** <p> *(`ValidateAfterBuild`)*|**Default: [Blank]**|Name of a `Public Function` in the built database that returns `True` when the build is good. Runs last, after **Run Sub After Build** or **Run Sub After Merge**, on both builds and merges. Unlike those hooks, this one decides the outcome: anything other than `True` fails the build — `False`, a raised error, a missing procedure, or a `Sub` with no return value. Intended for checks a compile cannot make, such as a configuration table that came across empty. See [Continuous Integration](Continuous-Integration).
 |**Immediately export object after merge**|**Default: Off**|After a [merge build](Merge-Build), re-export merged objects so source and database stay aligned.
 |**Merge changes to exported table data**|**Default: On**|Reconcile the records in tables listed under **Table Data** during a [merge build](Merge-Build): rows are added, updated, and removed to match the source file, keyed on the table's primary key. Turn this off if those records are environment-specific. A table with no primary key is reloaded wholesale instead (unless another table references it); tables with attachment, OLE object, multi-value, or calculated fields are skipped with a warning and require a full build.
 |**Skip closing and reopening the database before merge**|**Default: Off**|A [merge build](Merge-Build) normally closes and shift-reopens the database first, which guarantees that every object is unloaded before objects are deleted and reimported. On a large database this is one of the slowest parts of a merge. With this option on, the add-in reaches the same starting conditions in place instead: it closes all open objects, saves pending VBA changes, releases cached database references, and clears the VBA project's run-state, then continues the merge on a fresh call stack. If any of those steps cannot be completed it falls back to closing and reopening, so a merge is never attempted in an unknown state. It also falls back when the database ends up locked against other programs, since a locked database has to be reopened anyway and doing that first is both faster and safer than doing it afterwards. The fallback also applies whenever a database's own code is running the merge into itself (including the add-in's own development workflow), because clearing the run-state of the project that is executing is not something that can be done safely. Two differences to be aware of: startup code and the startup form are bypassed by the shift-reopen but not by this path, and module-level variables in your own code are cleared by the project reset (a merge build discards them either way). Turn this on if you run frequent merges on a large database; leave it off if you want the most conservative behavior.
-|**Run Sub Before Merge**|**Default: [Blank]**|VBA hook before merge build (`Application.Run`).
-|**Run Sub After Merge**|**Default: [Blank]**|VBA hook after merge build.
+|**Run Sub Before Merge**|**Default: [Blank]**|VBA hook before merge build (`Application.Run`). Same [syntax](#run-sub-syntax) as **Run Sub Before Export**.
+|**Run Sub After Merge**|**Default: [Blank]**|VBA hook after merge build. Same [syntax](#run-sub-syntax).
+
+### Run Sub syntax
+
+**Run Sub Before/After Export**, **Run Sub After Build** and **Run Sub Before/After Merge** accept:
+
+|Form|Example
+|-|-
+|A public procedure in a standard module of the current database|`CleanUpTempData`
+|Parameters (up to 5)|`WriteLog("Export", 2, Null)`
+|Several procedures, separated by `:`, run in order|`CleanUpTempData : WriteLog("done")`
+|A procedure in an add-in (`.accda` or `.accde`), given by its path without extension|`%addins%\MyTools.AfterExport`
+
+- **Parameters** are literals: `"text"` or `'text'` (a doubled quote inside stands for one quote, as in VBA: `"say ""hi"""`), `Null`, `Nothing`, or unquoted values such as `2`, which are passed as text and converted by VBA to the parameter's type. Commas and colons inside quotes do not separate.
+- **Add-in paths** must be absolute: a drive path (`C:\Tools\MyTools.AfterExport`), a UNC path, or one starting with `%addins%` (the Access add-ins folder `%AppData%\Microsoft\AddIns`) or another environment variable such as `%AppData%`. Folder names may contain dots and parentheses. If the add-in file does not exist, or both an `.accda` and an `.accde` with that name exist, an error is logged and the procedure is not run. Names without a path, including `Module.Procedure`, always run in the current database.
+- If one procedure fails or cannot be found, the error is logged and the following procedures still run.
+- **Run Sub Before Build** keeps its `Module.Procedure` bootstrap form (single procedure, no add-ins). **Validate Build With** accepts parameters, but only one procedure in the current database.
 
 ## MCP
 
