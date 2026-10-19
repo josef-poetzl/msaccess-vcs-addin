@@ -83,6 +83,44 @@ contradictory guidance.
 
 ---
 
+## 2026-10-19 — Parameters in Run* procedure options
+
+**Trigger**: The `RunBeforeExport`/`RunAfterExport`/`RunBeforeMerge`/`RunAfterBuild`/
+`RunAfterMerge` options (and `ValidateAfterBuild`) only accepted a parameterless procedure
+name. Users had to write one wrapper procedure per variant. This is the first of several
+steps toward calling procedures in other add-ins from these options.
+
+**Options explored**:
+- *Keep rejecting parameters (wrapper procedures)*: no parser to maintain, but every
+  variation needs code in the user project, and later add-in procedures could not be
+  configured per project. Rejected.
+- *Evaluate the expression with `Eval`*: full expression syntax for free, but it runs
+  arbitrary expressions in the add-in's context, and `Eval` cannot call a procedure in a
+  specific VBA project. Rejected.
+- *Small literal parser plus `Application.Run` with explicit arguments*: predictable,
+  testable without running anything. Chosen.
+
+**Decision**: `clsProcedureRunner.TryGetProcedureNameAndParams` splits
+`Name(arg, ...)` into name and values. Values are `"text"`/`'text'` (quotes removed),
+`Null`, `Nothing`, or unquoted text, which is passed as a String and converted by VBA
+to the parameter type. Commas inside quotes do not separate. As in VBA, a doubled
+quote inside a string stands for one quote (`"ab""c"` → `ab"c`, `'ab''c'` → `ab'c`);
+the other quote character is kept literally. `CallApplicationRun` maps up to 5 arguments onto
+`Application.Run`; a call with more is logged as an error and not run. A syntax error
+is logged with `eelError` and shown via `MsgBox2`. That way it reaches the operation's
+error level, and only shows a dialog when prompting is allowed, so silent or unattended
+builds are not blocked.
+
+**What this rules out**: Parameter values are literals only; no expressions,
+variables or type suffixes. Revisit if users need typed values (dates, booleans as
+Boolean) or more than 5 arguments.
+
+**Relevant files**:
+- `Version Control.accda.src/modules/Utility/clsProcedureRunner.cls`
+- `Version Control.accda.src/modules/Tests/Utility/modTestProcedureRunner.bas`
+
+---
+
 ## 2026-10-09 — Capture driver-completed ODBC connections via Database.Connect
 
 **Trigger**: A project linked to SQL Server through ODBC Driver 18 prompted for the
