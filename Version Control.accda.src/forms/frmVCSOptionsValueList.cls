@@ -15,7 +15,10 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 
+Private Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
+
 Public Event CloseRequested()
+Public Event CancelRequested()
 
 Private Const VALUE_FIELD As String = "OptionValue"
 Private Const VALUE_FIELD_SIZE As Long = 1024
@@ -112,13 +115,52 @@ Private Sub Form_BeforeDelConfirm(Cancel As Integer, Response As Integer)
 End Sub
 
 
+Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+    HandleEscapeKey KeyCode
+End Sub
+
+
 Private Sub txtValueInsert_Change()
     StartNewRowFromInput
 End Sub
 
 
 Private Sub cmdClose_Click()
-    RaiseEvent CloseRequested
+    RequestClose
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : HandleEscapeKey
+' Author    : Josef Pötzl
+' Date      : 10/20/2026
+' Purpose   : Close the list on Escape when the form itself has the focus (e.g. on the
+'           : record selector, where the Cancel button is not triggered). The key is
+'           : swallowed so Access does not process it a second time.
+'---------------------------------------------------------------------------------------
+'
+Private Sub HandleEscapeKey(ByRef intKeyCode As Integer)
+    If intKeyCode = vbKeyEscape Then
+        intKeyCode = 0
+        RequestClose
+    End If
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : RequestClose
+' Author    : Josef Pötzl
+' Date      : 10/20/2026
+' Purpose   : cmdClose is also the Cancel button, so the Escape key clicks it. Escape
+'           : closes the list without applying the values, a mouse click applies them.
+'---------------------------------------------------------------------------------------
+'
+Private Sub RequestClose()
+    If GetAsyncKeyState(vbKeyEscape) < 0 Then
+        RaiseEvent CancelRequested
+    Else
+        RaiseEvent CloseRequested
+    End If
 End Sub
 
 

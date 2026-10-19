@@ -178,6 +178,8 @@ End Sub
 '
 Private Sub SaveOptions()
 
+    m_ValueList.CloseList
+
     Dim varKey As Variant
     Dim dSettings As Dictionary
 

@@ -31,6 +31,7 @@ Private m_sfrList As SubForm
 Private WithEvents m_frmList As Form_frmVCSOptionsValueList
 Attribute m_frmList.VB_VarHelpID = -1
 Private m_txtTarget As TextBox
+Private m_blnCancel As Boolean
 
 
 '---------------------------------------------------------------------------------------
@@ -59,8 +60,15 @@ Public Sub OpenFor(ByVal txtTarget As TextBox, ByVal cmdOpen As CommandButton)
 
     Dim lngTop As Long
 
+    ' Discard a pending hide of the previous list, it would hide this one
+    m_frmHost.TimerInterval = 0
+
     Set m_txtTarget = txtTarget
+    m_blnCancel = False
     m_frmList.SetValues SplitValues(Nz(txtTarget.Value, vbNullString))
+
+    ' Escape must only close the list, not the options dialog
+    Form_frmVCSOptions.SetCancelOnEscape False
 
     lngTop = txtTarget.Top + txtTarget.Height - LIST_HEIGHT
     If lngTop < 0 Then lngTop = 0
@@ -89,7 +97,11 @@ End Sub
 '
 Public Sub ApplyValues()
     If m_txtTarget Is Nothing Then Exit Sub
-    m_txtTarget.Value = JoinValues(m_frmList.GetValues)
+    If m_blnCancel Then
+        m_blnCancel = False
+    Else
+        m_txtTarget.Value = JoinValues(m_frmList.GetValues)
+    End If
     m_frmHost.TimerInterval = 1
 End Sub
 
@@ -114,10 +126,43 @@ Public Sub HideList()
     End If
     Set m_txtTarget = Nothing
 
+    Form_frmVCSOptions.SetCancelOnEscape True
+
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : CloseList
+' Author    : Josef Pötzl
+' Date      : 10/20/2026
+' Purpose   : Close the list if it is open, so its values are written back into the
+'           : text box (call before reading the option controls, e.g. when saving).
+'---------------------------------------------------------------------------------------
+'
+Public Sub CloseList()
+    If m_sfrList.Visible Then MoveFocusToTarget
 End Sub
 
 
 Private Sub m_frmList_CloseRequested()
+    MoveFocusToTarget
+End Sub
+
+
+Private Sub m_frmList_CancelRequested()
+    CancelList
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : CancelList
+' Author    : Josef Pötzl
+' Date      : 10/20/2026
+' Purpose   : Close the list without writing the values back into the text box.
+'---------------------------------------------------------------------------------------
+'
+Private Sub CancelList()
+    m_blnCancel = True
     MoveFocusToTarget
 End Sub
 
