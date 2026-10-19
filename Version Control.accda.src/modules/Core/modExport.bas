@@ -186,7 +186,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     ' Run any custom sub before export
     If Options.RunBeforeExport <> vbNullString Then
         Perf.OperationStart "RunBeforeExport"
-        RunExternalProcedure Options.RunBeforeExport
+        RunExternalProcedure Options.RunBeforeExport, "RunBeforeExport"
         Perf.OperationEnd
         If Not CloseObjectsOrAbort() Then GoTo CleanUp
     End If
@@ -392,7 +392,7 @@ Public Sub ExportSource(blnFullExport As Boolean, Optional intFilter As eContain
     ' Run any custom sub after export
     If Options.RunAfterExport <> vbNullString Then
         Perf.OperationStart "RunAfterExport"
-        RunExternalProcedure Options.RunAfterExport
+        RunExternalProcedure Options.RunAfterExport, "RunAfterExport"
         Perf.OperationEnd
         CatchAny eelError, T("Error running {0}", var0:=Options.RunAfterExport), ModuleName & ".ExportSource", True, True
     End If

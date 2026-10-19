@@ -83,6 +83,50 @@ contradictory guidance.
 
 ---
 
+## 2026-10-19 — Restricted VCS context for Run* procedures
+
+**Trigger**: Procedures called from Run* options (especially add-in procedures) need to
+know which hook called them and to write to the VCS log, including errors that affect
+the operation's outcome.
+
+**Options explored**:
+- *Pass the `clsVersionControl` instance* (as in the `dev-v5-*` branches): gives
+  external code full control (export, build, options) and lets it keep a reference to
+  an internal object, which can block that object from being destroyed. Rejected.
+- *A context class that forwards directly to `Log`/`Operation`*: smaller surface, but
+  the externally held object would still be wired into VCS internals. Rejected.
+- *A context class that only raises events, plus an internal listener*: chosen.
+
+**Decision**: The parameter keyword `VCS` passes a `clsVCSProcedureContext`
+(`VB_Exposed`, not creatable). It holds no reference to `clsVersionControl` or any other
+VCS object: static values (`HookName`, `OperationType`, `ExportFolder`, `DatabasePath`,
+`AddInVersion`) are a snapshot set in `Init`; `AddLog`, `LogError`, `ErrorLevel` and
+`InteractionMode` raise events (live reads via `ByRef` event arguments). The internal
+`clsVCSProcedureContextListener` handles them `WithEvents` and forwards to `Log` and
+`Operation`; it also holds no `clsVersionControl`. `clsProcedureRunner.RunExternalProcedure`
+creates one context and listener per option, attaches, runs the entries and detaches
+(the listener's `Class_Terminate` detaches if an error ends the run early). After
+`Detach` a kept reference raises events nobody handles: writes do nothing, reads return
+defaults. An invalid `LogError` level is logged as `eelAlert`; a missing source is
+replaced by the hook name. Levels and modes are `Long` so late-bound callers need no
+VCS enum.
+
+**What this rules out**: External procedures cannot control VCS through this object.
+New capabilities must be added as event + listener handler, never as a reference to an
+internal object. Outside `RunExternalProcedure` (e.g. `ValidateAfterBuild`) `VCS`
+passes `Nothing`.
+
+**Relevant files**:
+- `Version Control.accda.src/modules/API/clsVCSProcedureContext.cls`
+- `Version Control.accda.src/modules/API/clsVCSProcedureContextListener.cls`
+- `Version Control.accda.src/modules/Utility/clsProcedureRunner.cls`
+- `Version Control.accda.src/modules/Utility/modDatabase.bas`
+- `Version Control.accda.src/modules/Core/modExport.bas`, `modBuild.bas`
+- `Version Control.accda.src/modules/Tests/Utility/modTestProcedureRunner.bas`
+- `Wiki/Options.md`
+
+---
+
 ## 2026-10-19 — Error levels eelInfo and eelAlert
 
 **Trigger**: Procedures called from Run* options (and soon their return values) need to

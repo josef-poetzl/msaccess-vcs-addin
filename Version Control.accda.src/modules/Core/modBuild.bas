@@ -284,7 +284,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
         ' with all objects closed/unloaded.
         If Options.RunBeforeMerge <> vbNullString Then
             Perf.OperationStart "RunBeforeMerge"
-            RunExternalProcedure Options.RunBeforeMerge
+            RunExternalProcedure Options.RunBeforeMerge, "RunBeforeMerge"
             Perf.OperationEnd
             CatchAny eelError, T("Error running {0}", var0:=Options.RunBeforeMerge), FunctionName, True, True
         End If
@@ -628,14 +628,14 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
     If blnFullBuild Then
         If Options.RunAfterBuild <> vbNullString Then
             Perf.OperationStart "RunAfterBuild"
-            RunExternalProcedure Options.RunAfterBuild
+            RunExternalProcedure Options.RunAfterBuild, "RunAfterBuild"
             Perf.OperationEnd
         End If
     Else
         ' Merge build
         If Options.RunAfterMerge <> vbNullString Then
             Perf.OperationStart "RunAfterMerge"
-            RunExternalProcedure Options.RunAfterMerge
+            RunExternalProcedure Options.RunAfterMerge, "RunAfterMerge"
             Perf.OperationEnd
         End If
     End If

@@ -861,11 +861,13 @@ End Function
 ' Date      : 10/19/2026
 ' Purpose   : Run the procedure(s) configured in a Run* option such as RunBeforeExport.
 '           : Several procedures are separated by a colon (see clsProcedureRunner).
+'           : strHookName (the option name) is available to the procedures through
+'           : the VCS parameter keyword.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunExternalProcedure(ByVal strOptionValue As String)
+Public Sub RunExternalProcedure(ByVal strOptionValue As String, ByVal strHookName As String)
     With New clsProcedureRunner
-        .RunExternalProcedure strOptionValue
+        .RunExternalProcedure strOptionValue, strHookName
     End With
 End Sub
 

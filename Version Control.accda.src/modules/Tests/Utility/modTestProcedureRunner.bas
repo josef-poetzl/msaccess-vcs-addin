@@ -184,6 +184,74 @@ Public Sub TestFindAddInCall()
 End Sub
 
 
+Public Sub TestProcedureContextWithoutListener()
+
+    Dim oContext As clsVCSProcedureContext
+    Dim arrParams() As Variant
+
+    With New clsProcedureRunner
+        Set oContext = .NewProcedureContext("TestHook")
+        ' Outside RunExternalProcedure the VCS keyword passes Nothing
+        TestAssert .TryGetProcedureNameAndParams("MyProc(VCS)", arrParams), "VCS keyword accepted"
+        TestAssert arrParams(0) Is Nothing, "VCS is Nothing outside RunExternalProcedure"
+    End With
+
+    TestAssert oContext.HookName = "TestHook", "hook name"
+    TestAssert oContext.DatabasePath = CurrentProject.FullName, "database path"
+    TestAssert Len(oContext.AddInVersion) > 0, "add-in version"
+
+    ' No listener: writes do nothing, live values return defaults
+    oContext.AddLog "not logged"
+    oContext.LogError eelError, "not logged"
+    TestAssert oContext.ErrorLevel = eelNoError, "error level default without listener"
+    TestAssert oContext.InteractionMode = eimNormal, "interaction mode default without listener"
+
+End Sub
+
+
+Public Sub TestProcedureContextListener()
+
+    Dim oContext As clsVCSProcedureContext
+    Dim oListener As clsVCSProcedureContextListener
+    Dim eelSavedLevel As eErrorLevel
+    Dim lngJournalStart As Long
+    Dim colEntries As Collection
+
+    With New clsProcedureRunner
+        Set oContext = .NewProcedureContext("TestHook")
+    End With
+    Set oListener = New clsVCSProcedureContextListener
+    oListener.Attach oContext
+
+    ' Logged levels raise the operation's error level; restore it afterwards so the
+    ' test runner does not count this test as errored.
+    eelSavedLevel = Operation.ErrorLevel
+    lngJournalStart = Log.ErrorJournalCount
+
+    TestAssert oContext.ErrorLevel = Operation.ErrorLevel, "error level from operation"
+    TestAssert oContext.InteractionMode = Operation.InteractionMode, "interaction mode from operation"
+
+    oContext.LogError eelWarning, "context warning", "TestSource"
+    oContext.LogError 99, "unknown level"
+    Set colEntries = Log.GetErrorJournalSince(lngJournalStart)
+    TestAssert colEntries.Count = 2, "two journal entries"
+    TestAssert colEntries(1)("level") = "warning", "level passed through"
+    TestAssert colEntries(1)("source") = "TestSource", "source passed through"
+    TestAssert colEntries(2)("level") = "alert", "unknown level logged as alert"
+    TestAssert colEntries(2)("source") = "TestHook", "missing source replaced by hook name"
+
+    ' After Detach nothing reaches the log any more
+    oListener.Detach
+    lngJournalStart = Log.ErrorJournalCount
+    oContext.LogError eelWarning, "after detach"
+    TestAssert Log.ErrorJournalCount = lngJournalStart, "nothing logged after detach"
+    TestAssert oContext.ErrorLevel = eelNoError, "error level default after detach"
+
+    Operation.ErrorLevel = eelSavedLevel
+
+End Sub
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SplitList
 ' Author    : Josef Pötzl
