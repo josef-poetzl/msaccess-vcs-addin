@@ -26,6 +26,19 @@ Private Const MAX_PARAM_COUNT As Long = 5
 ' Separates several procedures in one Run* option value
 Private Const PROCEDURE_SEPARATOR As String = ":"
 
+' Placeholder for the Access add-ins folder in add-in procedure paths
+Private Const ADDINS_PLACEHOLDER As String = "%addins%"
+Private Const ADDIN_EXTENSION As String = ".accda"
+Private Const ADDIN_COMPILED_EXTENSION As String = ".accde"
+
+' Result of FindAddInCall
+Public Enum eAddInCallResult
+    eacNone         ' Not an add-in call (no rooted path)
+    eacFileMissing  ' Rooted path, but no matching add-in file
+    eacAmbiguous    ' Both .accda and .accde exist (Application.Run gets no extension)
+    eacFound
+End Enum
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : RunExternalProcedure
@@ -34,6 +47,8 @@ Private Const PROCEDURE_SEPARATOR As String = ":"
 ' Purpose   : Run the procedure(s) of a Run* option (RunBeforeExport, RunAfterBuild,
 '           : ...). Several procedures are separated by a colon and run in order;
 '           : a procedure that fails or cannot be run does not stop the others.
+'           : An entry with a rooted path (C:\..., \\Server\..., %addins%\...) runs
+'           : a procedure in that add-in, anything else runs in the current project.
 '---------------------------------------------------------------------------------------
 '
 Public Sub RunExternalProcedure(ByVal strOptionValue As String)
@@ -49,13 +64,146 @@ Public Sub RunExternalProcedure(ByVal strOptionValue As String)
         strProcedure = varProcedure
         Log.Add T("Running {0}...", var0:=strProcedure)
         Log.Flush
-        RunProcInCurrentProject strProcedure, blnRan, False
+        If Not TryRunAddInProcedure(strProcedure, blnRan) Then
+            RunProcInCurrentProject strProcedure, blnRan, False
+        End If
         If Not blnRan Then
             Log.Error eelWarning, T("{0} was not run.", var0:=strProcedure), ModuleName & ".RunExternalProcedure"
         End If
     Next varProcedure
 
 End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : TryRunAddInProcedure
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Run strProcedure in an add-in if it starts with a rooted add-in path.
+'           : Returns False if the entry is not an add-in call (the caller then runs
+'           : it in the current project). A missing add-in file is logged as an error
+'           : and counts as handled; blnRan tells whether the procedure ran.
+'---------------------------------------------------------------------------------------
+'
+Private Function TryRunAddInProcedure(ByVal strProcedure As String, ByRef blnRan As Boolean) As Boolean
+
+    Dim strAddInPath As String
+    Dim strCall As String
+    Dim arrParams() As Variant
+
+    blnRan = False
+
+    Select Case FindAddInCall(strProcedure, strAddInPath, strCall)
+        Case eacNone
+            Exit Function
+        Case eacFileMissing
+            Log.Error eelError, T("Add-in file not found for {0}", var0:=strProcedure), _
+                ModuleName & ".TryRunAddInProcedure"
+        Case eacAmbiguous
+            Log.Error eelError, T("Both {0} and {1} exist for {2}. Remove one of them.", _
+                var0:=ADDIN_EXTENSION, var1:=ADDIN_COMPILED_EXTENSION, var2:=strProcedure), _
+                ModuleName & ".TryRunAddInProcedure"
+        Case eacFound
+            If PrepareProcedureCallExpressionAndParams(strCall, arrParams) Then
+                ' Example: Run "C:\Path\AddIn.SubName" (path without file extension)
+                CallApplicationRun strAddInPath & "." & strCall, arrParams, blnRan, False
+            End If
+    End Select
+
+    TryRunAddInProcedure = True
+
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : FindAddInCall
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Split "<add-in path>.<call>" at the dot that ends an existing add-in
+'           : file. Folder names may contain dots and parentheses, so every dot is
+'           : tried from left to right: the part before it (placeholders expanded)
+'           : must be a rooted path, the part after it a procedure call expression.
+'           : The add-in file may be an .accda or an .accde, but not both, because
+'           : Application.Run is given the path without extension.
+'           : Returns the add-in path without extension and the call expression.
+'---------------------------------------------------------------------------------------
+'
+Friend Function FindAddInCall(ByVal strProcedure As String, _
+    ByRef strAddInPath As String, ByRef strCall As String) As eAddInCallResult
+
+    Dim lngPos As Long
+    Dim strPath As String
+    Dim strRest As String
+    Dim blnAccda As Boolean
+    Dim blnAccde As Boolean
+
+    FindAddInCall = eacNone
+
+    lngPos = InStr(1, strProcedure, ".")
+    Do While lngPos > 0
+        strPath = ExpandAddInPath(Left$(strProcedure, lngPos - 1))
+        strRest = Mid$(strProcedure, lngPos + 1)
+        If IsRootedPath(strPath) And IsProcedureCallExpression(strRest) Then
+            blnAccda = FSO.FileExists(strPath & ADDIN_EXTENSION)
+            blnAccde = FSO.FileExists(strPath & ADDIN_COMPILED_EXTENSION)
+            If blnAccda And blnAccde Then
+                FindAddInCall = eacAmbiguous
+                Exit Function
+            ElseIf blnAccda Or blnAccde Then
+                strAddInPath = strPath
+                strCall = Trim$(strRest)
+                FindAddInCall = eacFound
+                Exit Function
+            End If
+            FindAddInCall = eacFileMissing
+        End If
+        lngPos = InStr(lngPos + 1, strProcedure, ".")
+    Loop
+
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : ExpandAddInPath
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Replace %addins% with the Access add-ins folder and expand environment
+'           : variables such as %appdata%.
+'---------------------------------------------------------------------------------------
+'
+Friend Function ExpandAddInPath(ByVal strPath As String) As String
+    strPath = Replace(strPath, ADDINS_PLACEHOLDER, _
+        BuildPath2(Environ$("AppData"), "Microsoft", "AddIns"), , , vbTextCompare)
+    ExpandAddInPath = Trim$(ExpandEnvironmentVariables(strPath))
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : IsRootedPath
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : True for a drive path (C:\..., C:/...) or a UNC path (\\Server\...).
+'---------------------------------------------------------------------------------------
+'
+Private Function IsRootedPath(ByVal strPath As String) As Boolean
+    IsRootedPath = (strPath Like "[A-Za-z]:[\/]*") Or (Left$(strPath, 2) = "\\")
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : IsProcedureCallExpression
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : True if strText is a procedure name, optionally followed by a
+'           : parameter list in parentheses.
+'---------------------------------------------------------------------------------------
+'
+Private Function IsProcedureCallExpression(ByVal strText As String) As Boolean
+    With New VBScript_RegExp_55.RegExp
+        .Pattern = "^\s*[A-Za-z][A-Za-z0-9_]*\s*(\(.*\))?\s*$"
+        IsProcedureCallExpression = .Test(strText)
+    End With
+End Function
 
 
 '---------------------------------------------------------------------------------------
