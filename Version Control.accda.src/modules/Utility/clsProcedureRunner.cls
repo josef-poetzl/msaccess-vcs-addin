@@ -39,6 +39,9 @@ Public Enum eAddInCallResult
     eacFound
 End Enum
 
+' Context passed with the parameter keyword VCS while RunExternalProcedure runs
+Private m_Context As clsVCSProcedureContext
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : RunExternalProcedure
@@ -49,30 +52,75 @@ End Enum
 '           : a procedure that fails or cannot be run does not stop the others.
 '           : An entry with a rooted path (C:\..., \\Server\..., %addins%\...) runs
 '           : a procedure in that add-in, anything else runs in the current project.
+'           : The parameter keyword VCS passes a clsVCSProcedureContext for
+'           : strHookName. Its listener is detached afterwards; if an error ends this
+'           : procedure early, the listener's Class_Terminate detaches it instead.
 '---------------------------------------------------------------------------------------
 '
-Public Sub RunExternalProcedure(ByVal strOptionValue As String)
+Public Sub RunExternalProcedure(ByVal strOptionValue As String, Optional ByVal strHookName As String)
 
     Dim colProcedures As Collection
     Dim varProcedure As Variant
-    Dim strProcedure As String
-    Dim blnRan As Boolean
+    Dim oListener As clsVCSProcedureContextListener
 
     Set colProcedures = SplitProcedureList(strOptionValue)
+    If colProcedures.Count = 0 Then Exit Sub
+
+    Set m_Context = NewProcedureContext(strHookName)
+    Set oListener = New clsVCSProcedureContextListener
+    oListener.Attach m_Context
 
     For Each varProcedure In colProcedures
-        strProcedure = varProcedure
-        Log.Add T("Running {0}...", var0:=strProcedure)
-        Log.Flush
-        If Not TryRunAddInProcedure(strProcedure, blnRan) Then
-            RunProcInCurrentProject strProcedure, blnRan, False
-        End If
-        If Not blnRan Then
-            Log.Error eelWarning, T("{0} was not run.", var0:=strProcedure), ModuleName & ".RunExternalProcedure"
-        End If
+        RunProcedureEntry CStr(varProcedure)
     Next varProcedure
 
+    oListener.Detach
+    Set oListener = Nothing
+    Set m_Context = Nothing
+
 End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : RunProcedureEntry
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Run one entry of a Run* option, in an add-in or the current project.
+'---------------------------------------------------------------------------------------
+'
+Private Sub RunProcedureEntry(ByVal strProcedure As String)
+
+    Dim blnRan As Boolean
+
+    Log.Add T("Running {0}...", var0:=strProcedure)
+    Log.Flush
+    If Not TryRunAddInProcedure(strProcedure, blnRan) Then
+        RunProcInCurrentProject strProcedure, blnRan, False
+    End If
+    If Not blnRan Then
+        Log.Error eelWarning, T("{0} was not run.", var0:=strProcedure), ModuleName & ".RunProcedureEntry"
+    End If
+
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : NewProcedureContext
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Create the context passed to external procedures with the VCS keyword.
+'---------------------------------------------------------------------------------------
+'
+Friend Function NewProcedureContext(ByVal strHookName As String) As clsVCSProcedureContext
+
+    Dim oContext As clsVCSProcedureContext
+
+    Set oContext = New clsVCSProcedureContext
+    oContext.Init strHookName, Operation.OperationType, Options.GetExportFolder, _
+        CurrentProject.FullName, GetVCSVersion
+    Set NewProcedureContext = oContext
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -478,7 +526,8 @@ End Function
 ' Purpose   : Split "ProcName(param1, param2, ...)" into the procedure name (returned
 '           : in strProcedure) and the parameter values.
 '           : Supported values: "text" or 'text' (passed without quotes, a doubled
-'           : quote inside stands for one quote), Null, Nothing, and unquoted values
+'           : quote inside stands for one quote), Null, Nothing, VCS (the
+'           : clsVCSProcedureContext of RunExternalProcedure), and unquoted values
 '           : (passed as string, converted by VBA).
 '---------------------------------------------------------------------------------------
 '
@@ -610,6 +659,9 @@ Private Sub SetParameterValue(ByRef arrParams() As Variant, ByVal lngIndex As Lo
         arrParams(lngIndex) = Replace(Mid$(strToken, 2, Len(strToken) - 2), strQuote & strQuote, strQuote)
     ElseIf StrComp(strToken, "Nothing", vbTextCompare) = 0 Then
         Set arrParams(lngIndex) = Nothing
+    ElseIf StrComp(strToken, "VCS", vbTextCompare) = 0 Then
+        ' Nothing outside RunExternalProcedure (e.g. ValidateAfterBuild)
+        Set arrParams(lngIndex) = m_Context
     ElseIf StrComp(strToken, "Null", vbTextCompare) = 0 Then
         arrParams(lngIndex) = Null
     Else
