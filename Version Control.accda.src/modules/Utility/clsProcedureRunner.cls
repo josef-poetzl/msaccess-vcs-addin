@@ -23,6 +23,130 @@ Private Const ModuleName As String = "clsProcedureRunner"
 ' Application.Run accepts up to 30 arguments; CallApplicationRun maps this many.
 Private Const MAX_PARAM_COUNT As Long = 5
 
+' Separates several procedures in one Run* option value
+Private Const PROCEDURE_SEPARATOR As String = ":"
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : RunExternalProcedure
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Run the procedure(s) of a Run* option (RunBeforeExport, RunAfterBuild,
+'           : ...). Several procedures are separated by a colon and run in order;
+'           : a procedure that fails or cannot be run does not stop the others.
+'---------------------------------------------------------------------------------------
+'
+Public Sub RunExternalProcedure(ByVal strOptionValue As String)
+
+    Dim colProcedures As Collection
+    Dim varProcedure As Variant
+    Dim strProcedure As String
+    Dim blnRan As Boolean
+
+    Set colProcedures = SplitProcedureList(strOptionValue)
+
+    For Each varProcedure In colProcedures
+        strProcedure = varProcedure
+        Log.Add T("Running {0}...", var0:=strProcedure)
+        Log.Flush
+        RunProcInCurrentProject strProcedure, blnRan, False
+        If Not blnRan Then
+            Log.Error eelWarning, T("{0} was not run.", var0:=strProcedure), ModuleName & ".RunExternalProcedure"
+        End If
+    Next varProcedure
+
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : SplitProcedureList
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Split a Run* option value into trimmed procedure call expressions.
+'           : A colon does not separate inside quotes or parentheses, or as the
+'           : drive colon of a path at the start of an entry (C:\Path\AddIn.Proc).
+'           : Empty entries are skipped.
+'---------------------------------------------------------------------------------------
+'
+Friend Function SplitProcedureList(ByVal strOptionValue As String) As Collection
+
+    Dim colProcedures As Collection
+    Dim lngPos As Long
+    Dim lngStart As Long
+    Dim lngDepth As Long
+    Dim strChar As String
+    Dim strQuote As String
+
+    Set colProcedures = New Collection
+    lngStart = 1
+
+    For lngPos = 1 To Len(strOptionValue)
+        strChar = Mid$(strOptionValue, lngPos, 1)
+        If Len(strQuote) Then
+            ' A doubled quote closes and reopens the string, so it needs no special case
+            If strChar = strQuote Then strQuote = vbNullString
+        Else
+            Select Case strChar
+                Case """", "'"
+                    strQuote = strChar
+                Case "("
+                    lngDepth = lngDepth + 1
+                Case ")"
+                    If lngDepth > 0 Then lngDepth = lngDepth - 1
+                Case PROCEDURE_SEPARATOR
+                    If lngDepth = 0 Then
+                        If Not IsDriveColon(strOptionValue, lngPos, lngStart) Then
+                            AddProcedureEntry colProcedures, Mid$(strOptionValue, lngStart, lngPos - lngStart)
+                            lngStart = lngPos + 1
+                        End If
+                    End If
+            End Select
+        End If
+    Next lngPos
+
+    AddProcedureEntry colProcedures, Mid$(strOptionValue, lngStart)
+
+    Set SplitProcedureList = colProcedures
+
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : IsDriveColon
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : True if the colon at lngPos follows a single drive letter at the start
+'           : of the entry beginning at lngStart and is followed by a path separator.
+'---------------------------------------------------------------------------------------
+'
+Private Function IsDriveColon(ByRef strText As String, ByVal lngPos As Long, ByVal lngStart As Long) As Boolean
+
+    Dim strNext As String
+
+    ' Need at least the drive letter between entry start and colon
+    If lngPos - 1 < lngStart Then Exit Function
+    If Len(Trim$(Mid$(strText, lngStart, lngPos - 1 - lngStart))) > 0 Then Exit Function
+    If Not (Mid$(strText, lngPos - 1, 1) Like "[A-Za-z]") Then Exit Function
+
+    strNext = Mid$(strText, lngPos + 1, 1)
+    IsDriveColon = (strNext = "\" Or strNext = "/")
+
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : AddProcedureEntry
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Add a trimmed, non-empty entry to the procedure list.
+'---------------------------------------------------------------------------------------
+'
+Private Sub AddProcedureEntry(ByRef colProcedures As Collection, ByVal strEntry As String)
+    strEntry = Trim$(strEntry)
+    If Len(strEntry) Then colProcedures.Add strEntry
+End Sub
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : RunProcInCurrentProject
 ' Author    : Adam Waller
