@@ -83,6 +83,43 @@ contradictory guidance.
 
 ---
 
+## 2026-10-19 — Error levels eelInfo and eelAlert
+
+**Trigger**: Procedures called from Run* options (and soon their return values) need to
+report a note or a visible warning without failing the operation. The existing levels
+only offered `eelWarning` (file only, invisible in the console) or `eelError`
+(operation counts as failed).
+
+**Options explored**:
+- *Append new members after `eelCritical`*: keeps existing numbers, but every
+  `< eelError` / `>= eelError` comparison would then treat them as failures. Rejected.
+- *Insert between `eelWarning` and `eelError` with explicit values*: chosen. All
+  comparisons in the code use the names; no level is persisted or emitted as a number
+  (the error journal uses strings), so renumbering `eelError`/`eelCritical` is safe.
+- *Rename `eelWarning` to `eelLogOnly`*: clearer, but touches ~150 lines for no
+  behavior change. Rejected; the enum comments explain the difference.
+
+**Decision**: `eelNoError=0, eelWarning=1, eelInfo=2, eelAlert=3, eelError=4,
+eelCritical=5`. Info and alert are printed to the console (`> eelWarning`) but still
+count as success (`< eelError`). `clsErrorInfo.LogColor` gives the console color
+(info blue, alert orange `#CC7700` like the build summary's warning color, others red);
+alert uses the `WARNING:` prefix. `Log.WarningCount` (build summary, `warningCount` in
+MCP results) now counts `eelWarning` and `eelAlert`. `clsVersionControl.RunExport`
+auto-closes the window only up to `eelInfo`, so an alert stays visible. The error
+journal reports the new levels as `"info"` and `"alert"`.
+
+**What this rules out**: Code must keep comparing error levels by name. Consumers of
+the error journal must accept the two new level strings.
+
+**Relevant files**:
+- `Version Control.accda.src/modules/Infrastructure/clsErrorInfo.cls`
+- `Version Control.accda.src/modules/Infrastructure/clsLog.cls`
+- `Version Control.accda.src/modules/API/clsVersionControl.cls`
+- `Version Control.accda.src/modules/Tests/Infrastructure/modTestErrorInfo.bas`
+- `docs/architecture.md`, `docs/error-handling.md`
+
+---
+
 ## 2026-10-19 — Add-in procedures in Run* options
 
 **Trigger**: Hooks that are shared across projects (e.g. a company add-in that
