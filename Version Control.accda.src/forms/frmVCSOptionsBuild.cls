@@ -113,6 +113,8 @@ End Sub
 '
 Private Sub SaveOptions()
 
+    m_ValueList.CloseList
+
     With Form_frmVCSOptions.OptionsInstance
         .ExportAfterMerge = Nz(Me.chkExportAfterMerge)
         .ForceImportOriginalQuerySQL = Nz(Me.chkForceImportOriginalQuerySQL)
