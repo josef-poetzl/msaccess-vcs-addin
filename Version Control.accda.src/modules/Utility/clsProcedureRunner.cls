@@ -85,23 +85,99 @@ End Sub
 ' Procedure : RunProcedureEntry
 ' Author    : Josef Pötzl
 ' Date      : 10/19/2026
-' Purpose   : Run one entry of a Run* option, in an add-in or the current project.
+' Purpose   : Run one entry of a Run* option, in an add-in or the current project,
+'           : and log its return value (see LogReturnValue).
 '---------------------------------------------------------------------------------------
 '
 Private Sub RunProcedureEntry(ByVal strProcedure As String)
 
     Dim blnRan As Boolean
+    Dim varResult As Variant
 
     Log.Add T("Running {0}...", var0:=strProcedure)
     Log.Flush
-    If Not TryRunAddInProcedure(strProcedure, blnRan) Then
-        RunProcInCurrentProject strProcedure, blnRan, False
+    If Not TryRunAddInProcedure(strProcedure, blnRan, varResult) Then
+        varResult = RunProcInCurrentProject(strProcedure, blnRan, True)
     End If
-    If Not blnRan Then
+    If blnRan Then
+        LogReturnValue varResult, strProcedure
+    Else
         Log.Error eelWarning, T("{0} was not run.", var0:=strProcedure), ModuleName & ".RunProcedureEntry"
     End If
 
 End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : LogReturnValue
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Log what an external procedure returned:
+'           :   False         -> error (the operation counts as failed)
+'           :   "Prefix: text" -> text with the level of the prefix (ParseReturnMessage)
+'           :   other text    -> info
+'           :   True, Empty, "" or anything else -> nothing
+'---------------------------------------------------------------------------------------
+'
+Private Sub LogReturnValue(ByVal varResult As Variant, ByVal strProcedure As String)
+
+    Dim eLevel As eErrorLevel
+    Dim strMessage As String
+
+    Select Case VarType(varResult)
+        Case vbBoolean
+            If Not varResult Then
+                Log.Error eelError, T("{0} returned False.", var0:=strProcedure), strProcedure
+            End If
+        Case vbString
+            eLevel = ParseReturnMessage(varResult, strMessage)
+            If eLevel <> eelNoError Then Log.Error eLevel, strMessage, strProcedure
+    End Select
+
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : ParseReturnMessage
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Map a returned text to an error level and the message to log.
+'           : Known prefixes (case-insensitive, followed by a colon) are removed:
+'           :   Error -> error; Warning, Alert, Failed -> alert; Critical, Fatal ->
+'           :   critical; Info, Note, Success -> info; Log -> warning (log file only).
+'           : Text without a known prefix is info with the full text; an empty text
+'           : returns eelNoError.
+'---------------------------------------------------------------------------------------
+'
+Friend Function ParseReturnMessage(ByVal strValue As String, ByRef strMessage As String) As eErrorLevel
+
+    Dim lngColon As Long
+    Dim eLevel As eErrorLevel
+
+    strValue = Trim$(strValue)
+    strMessage = strValue
+    If Len(strValue) = 0 Then
+        ParseReturnMessage = eelNoError
+        Exit Function
+    End If
+
+    eLevel = eelInfo
+    lngColon = InStr(1, strValue, ":")
+    If lngColon > 1 Then
+        Select Case LCase$(Trim$(Left$(strValue, lngColon - 1)))
+            Case "error":                       eLevel = eelError
+            Case "warning", "alert", "failed":  eLevel = eelAlert
+            Case "critical", "fatal":           eLevel = eelCritical
+            Case "info", "note", "success":     eLevel = eelInfo
+            Case "log":                         eLevel = eelWarning
+            Case Else:                          lngColon = 0    ' Keep the full text
+        End Select
+        If lngColon > 0 Then strMessage = Trim$(Mid$(strValue, lngColon + 1))
+    End If
+
+    ParseReturnMessage = eLevel
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -130,10 +206,12 @@ End Function
 ' Purpose   : Run strProcedure in an add-in if it starts with a rooted add-in path.
 '           : Returns False if the entry is not an add-in call (the caller then runs
 '           : it in the current project). A missing add-in file is logged as an error
-'           : and counts as handled; blnRan tells whether the procedure ran.
+'           : and counts as handled; blnRan tells whether the procedure ran and
+'           : varResult returns its return value.
 '---------------------------------------------------------------------------------------
 '
-Private Function TryRunAddInProcedure(ByVal strProcedure As String, ByRef blnRan As Boolean) As Boolean
+Private Function TryRunAddInProcedure(ByVal strProcedure As String, ByRef blnRan As Boolean, _
+    ByRef varResult As Variant) As Boolean
 
     Dim strAddInPath As String
     Dim strCall As String
@@ -154,7 +232,7 @@ Private Function TryRunAddInProcedure(ByVal strProcedure As String, ByRef blnRan
         Case eacFound
             If PrepareProcedureCallExpressionAndParams(strCall, arrParams) Then
                 ' Example: Run "C:\Path\AddIn.SubName" (path without file extension)
-                CallApplicationRun strAddInPath & "." & strCall, arrParams, blnRan, False
+                varResult = CallApplicationRun(strAddInPath & "." & strCall, arrParams, blnRan, True)
             End If
     End Select
 
@@ -412,7 +490,8 @@ End Function
 ' Date      : 10/19/2026
 ' Purpose   : Run the procedure via Application.Run with up to MAX_PARAM_COUNT
 '           : parameters. With blnWantResult = False Application.Run is called as a
-'           : statement (see RunProcInCurrentProject for the reason).
+'           : statement (see RunProcInCurrentProject for the reason). With a result,
+'           : an object return value comes back as Empty instead of raising an error.
 '---------------------------------------------------------------------------------------
 '
 Friend Function CallApplicationRun(ByVal strCmd As String, ByRef arrParams() As Variant, _
@@ -448,16 +527,17 @@ Friend Function CallApplicationRun(ByVal strCmd As String, ByRef arrParams() As 
     Perf.OperationStart T("Run {0}", , , , strProcName)
 
     If blnWantResult Then
+        ' ScalarOrEmpty takes the result without evaluating an object's default member
         Select Case lngParamCount
-            Case 0: CallApplicationRun = Application.Run(strCmd)
-            Case 1: CallApplicationRun = Application.Run(strCmd, arrParams(lngMin))
-            Case 2: CallApplicationRun = Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1))
-            Case 3: CallApplicationRun = Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1), _
-                        arrParams(lngMin + 2))
-            Case 4: CallApplicationRun = Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1), _
-                        arrParams(lngMin + 2), arrParams(lngMin + 3))
-            Case 5: CallApplicationRun = Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1), _
-                        arrParams(lngMin + 2), arrParams(lngMin + 3), arrParams(lngMin + 4))
+            Case 0: CallApplicationRun = ScalarOrEmpty(Application.Run(strCmd))
+            Case 1: CallApplicationRun = ScalarOrEmpty(Application.Run(strCmd, arrParams(lngMin)))
+            Case 2: CallApplicationRun = ScalarOrEmpty(Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1)))
+            Case 3: CallApplicationRun = ScalarOrEmpty(Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1), _
+                        arrParams(lngMin + 2)))
+            Case 4: CallApplicationRun = ScalarOrEmpty(Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1), _
+                        arrParams(lngMin + 2), arrParams(lngMin + 3)))
+            Case 5: CallApplicationRun = ScalarOrEmpty(Application.Run(strCmd, arrParams(lngMin), arrParams(lngMin + 1), _
+                        arrParams(lngMin + 2), arrParams(lngMin + 3), arrParams(lngMin + 4)))
         End Select
     Else
         Select Case lngParamCount
@@ -478,6 +558,21 @@ Friend Function CallApplicationRun(ByVal strCmd As String, ByRef arrParams() As 
     ' Log any other errors
     CatchAny eelError, T("Error running {0}", , , , strProcName), ModuleName & ".CallApplicationRun"
 
+End Function
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : ScalarOrEmpty
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Return varValue unless it holds an object, which returns Empty.
+'           : Passing Application.Run's result as a Variant argument keeps an object
+'           : as reference; assigning it directly would evaluate its default member
+'           : and raise error 91/438 for hooks that return an object.
+'---------------------------------------------------------------------------------------
+'
+Friend Function ScalarOrEmpty(ByVal varValue As Variant) As Variant
+    If Not IsObject(varValue) Then ScalarOrEmpty = varValue
 End Function
 
 

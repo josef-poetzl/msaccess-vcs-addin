@@ -83,6 +83,44 @@ contradictory guidance.
 
 ---
 
+## 2026-10-19 — Log the return value of Run* procedures
+
+**Trigger**: A procedure called from a Run* option had no simple way to report its
+outcome. The `VCS` context (`LogError`) needs the parameter; a return value works for
+any function, including existing ones in add-ins.
+
+**Options explored**:
+- *Mapping from the `dev-v5-*` branches*: `False` → `eelCritical`, text without a known
+  prefix → `eelAlert`. Rejected: a `Function … As Boolean` that never sets its result
+  returns `False`, so existing hooks would suddenly cancel builds and exports, and hooks
+  that happen to return text would show warnings and keep the export window open.
+- *Ignore everything except prefixed text*: safest, but `False` as the most natural
+  "it failed" answer would be lost. Rejected.
+- *`False` → `eelError`, unprefixed text → `eelInfo`*: chosen. A failing hook is
+  visible and marks the operation failed without cancelling it; plain text is shown but
+  is not a warning.
+
+**Decision**: `RunProcedureEntry` now calls with result and `LogReturnValue` logs it:
+`False` → `eelError`; text via `ParseReturnMessage` (`Error:` → error, `Warning:`/
+`Alert:`/`Failed:` → alert, `Critical:`/`Fatal:` → critical, `Info:`/`Note:`/`Success:` →
+info, `Log:` → warning, prefix removed; other non-empty text → info with the full text);
+`True`, `Empty`, empty text and other types → nothing. `CallApplicationRun` passes the
+result through `ScalarOrEmpty` (a `ByVal Variant` argument keeps an object as a
+reference), so a hook that returns an object yields `Empty` instead of raising error
+91/438 on assignment. This also applies to `ValidateAfterBuild`, where an object now
+reads as "did not return a value".
+
+**What this rules out**: A Run* function's return value is no longer ignored. Hooks that
+return `False` or text for unrelated reasons now produce log entries (an error for
+`False`).
+
+**Relevant files**:
+- `Version Control.accda.src/modules/Utility/clsProcedureRunner.cls`
+- `Version Control.accda.src/modules/Tests/Utility/modTestProcedureRunner.bas`
+- `Wiki/Options.md`
+
+---
+
 ## 2026-10-19 — Restricted VCS context for Run* procedures
 
 **Trigger**: Procedures called from Run* options (especially add-in procedures) need to
