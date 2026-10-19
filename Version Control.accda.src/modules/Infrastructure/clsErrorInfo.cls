@@ -19,12 +19,15 @@ Option Explicit
 '@Folder("Infrastructure")
 
 ' Error levels used for logging and monitoring the status
-' of the current operation.
+' of the current operation. The order matters: everything below
+' eelError still counts as a successful operation.
 Public Enum eErrorLevel
-    eelNoError
-    eelWarning      ' Logged to file
-    eelError        ' Displayed and logged
-    eelCritical     ' Cancel operation
+    eelNoError = 0
+    eelWarning = 1  ' Logged to file only
+    eelInfo = 2     ' Displayed (blue) and logged, allows auto close
+    eelAlert = 3    ' Displayed as warning (orange) and logged
+    eelError = 4    ' Displayed and logged
+    eelCritical = 5 ' Cancel operation
 End Enum
 
 Private Const ModuleName As String = "clsErrorInfo"
@@ -45,6 +48,7 @@ Private m_ErrDesc As String
 Private m_Prefix As String
 Private m_ErrorLevelText As String
 Private m_MsgBoxStyle As VbMsgBoxStyle
+Private m_LogColor As String
 
 Public Sub Init(eLevel As eErrorLevel, strDescription As String, Optional strSource As String, Optional blnIncludeErrorMessage As Boolean = False)
 
@@ -115,15 +119,24 @@ Public Property Get MsgBoxStyle() As VbMsgBoxStyle
     MsgBoxStyle = m_MsgBoxStyle
 End Property
 
+Public Property Get LogColor() As String
+    If Not m_ErrorDataInitialized Then
+        Err.Raise vbObjectError, ModuleName & ".LogColor", "ErrorLevel was not set."
+    End If
+    LogColor = m_LogColor
+End Property
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SetErrorLevelInfoData
 ' Author    : Josef Pötzl
 ' Date      : 08/25/2026
-' Purpose   : Sets the prefix, error level text, and message box style
+' Purpose   : Sets the prefix, error level text, message box style and log color
 '           : based on the specified error level.
 '---------------------------------------------------------------------------------------
 '
 Private Function SetErrorLevelInfoData()
+
+    m_LogColor = "red"
 
     Select Case m_ErrorLevel
 
@@ -131,6 +144,18 @@ Private Function SetErrorLevelInfoData()
             m_Prefix = "WARNING: "
             m_ErrorLevelText = "Warning"
             m_MsgBoxStyle = vbInformation
+
+        Case eErrorLevel.eelInfo
+            m_Prefix = "INFO: "
+            m_ErrorLevelText = "Info"
+            m_MsgBoxStyle = vbInformation
+            m_LogColor = "blue"
+
+        Case eErrorLevel.eelAlert
+            m_Prefix = "WARNING: "
+            m_ErrorLevelText = "Warning"
+            m_MsgBoxStyle = vbInformation
+            m_LogColor = "#CC7700"
 
         Case eErrorLevel.eelError
             m_Prefix = "ERROR: "
