@@ -218,12 +218,20 @@ edbVbeReference           ' VBA references (custom)
 
 ### `eErrorLevel`
 
+Defined in `clsErrorInfo`.
+
 ```vba
 eelNoError   ' No error
 eelWarning   ' Logged to file
+eelInfo      ' Displayed (blue) and logged; still a success, allows auto close
+eelAlert     ' Displayed as warning (orange) and logged; still a success
 eelError     ' Displayed and logged
 eelCritical  ' Cancels current operation
 ```
+
+The values are ordered: comparisons such as `Operation.ErrorLevel < eelError`
+treat `eelInfo` and `eelAlert` as success. `Log.WarningCount` counts
+`eelWarning` and `eelAlert`.
 
 ### `eOperationType`
 

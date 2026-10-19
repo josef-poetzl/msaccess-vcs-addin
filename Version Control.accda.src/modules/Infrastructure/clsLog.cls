@@ -89,11 +89,12 @@ End Property
 ' Procedure : WarningCount
 ' Author    : Adam Waller
 ' Date      : 04/09/2026
-' Purpose   : Return the number of warnings logged during this operation.
+' Purpose   : Return the number of warnings (eelWarning + eelAlert) logged during
+'           : this operation.
 '---------------------------------------------------------------------------------------
 '
 Public Property Get WarningCount() As Long
-    WarningCount = m_lngErrCount(eelWarning)
+    WarningCount = m_lngErrCount(eelWarning) + m_lngErrCount(eelAlert)
 End Property
 
 
@@ -378,7 +379,7 @@ Private Sub LogErrorInfo(oErrorInfo As clsErrorInfo)
         ' Log all errors, and display on the output screen anything higher than a warning
         Me.Add vbNullString, blnPrint
         Me.Spacer blnPrint
-        Me.Add oErrorInfo.DisplayText, blnPrint, , "red"
+        Me.Add oErrorInfo.DisplayText, blnPrint, , oErrorInfo.LogColor
 
         ' Log the additional error and source details to the log file
         If oErrorInfo.ErrorNumber <> 0 Then .Add "Error ", CStr(oErrorInfo.ErrorNumber), ": ", oErrorInfo.ErrorDescription, " "
@@ -985,6 +986,8 @@ End Sub
 Private Function ErrorLevelToJournalString(eLevel As eErrorLevel) As String
     Select Case eLevel
         Case eelWarning:  ErrorLevelToJournalString = "warning"
+        Case eelInfo:     ErrorLevelToJournalString = "info"
+        Case eelAlert:    ErrorLevelToJournalString = "alert"
         Case eelError:    ErrorLevelToJournalString = "error"
         Case eelCritical: ErrorLevelToJournalString = "critical"
         Case Else:        ErrorLevelToJournalString = "unknown"
