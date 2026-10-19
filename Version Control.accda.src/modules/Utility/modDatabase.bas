@@ -856,6 +856,21 @@ End Function
 
 
 '---------------------------------------------------------------------------------------
+' Procedure : RunExternalProcedure
+' Author    : Josef Pötzl
+' Date      : 10/19/2026
+' Purpose   : Run the procedure(s) configured in a Run* option such as RunBeforeExport.
+'           : Several procedures are separated by a colon (see clsProcedureRunner).
+'---------------------------------------------------------------------------------------
+'
+Public Sub RunExternalProcedure(ByVal strOptionValue As String)
+    With New clsProcedureRunner
+        .RunExternalProcedure strOptionValue
+    End With
+End Sub
+
+
+'---------------------------------------------------------------------------------------
 ' Procedure : DatabaseFileOpen
 ' Author    : Adam Waller
 ' Date      : 7/14/2020

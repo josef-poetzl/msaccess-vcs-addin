@@ -83,6 +83,45 @@ contradictory guidance.
 
 ---
 
+## 2026-10-19 — Several procedures per Run* option
+
+**Trigger**: One Run* option (`RunBeforeExport`, `RunAfterExport`, `RunBeforeMerge`,
+`RunAfterBuild`, `RunAfterMerge`) could only name one procedure. Combining project
+procedures with procedures from add-ins (next step) needs a list.
+
+**Options explored**:
+- *New list-valued options or a JSON array in `vcs-options.json`*: unambiguous, but
+  changes the options file format and the options UI. Rejected.
+- *Separator `;`*: no conflict with drive letters, but differs from the earlier
+  implementation in the `dev-v5-*` branches that users already tried. Rejected.
+- *Separator `:` with a small tokenizer*: same syntax as before. A plain `Split` would
+  break on drive letters and on `:` inside string parameters, so
+  `clsProcedureRunner.SplitProcedureList` ignores a colon inside quotes or parentheses
+  and the drive colon at the start of an entry (`C:\…`, `D:/…`). Chosen.
+
+**Decision**: `RunExternalProcedure` (in `clsProcedureRunner`, wrapped in `modDatabase`)
+splits the option value, logs `Running …` per entry and runs each entry in order through
+`RunProcInCurrentProject`. Empty entries are skipped. An entry that fails or cannot be
+run is logged and does not stop the following ones, so one hook's failure is reported
+with its own message. The call sites no longer log `Running …` themselves.
+`RunBeforeBuild` (bootstrap `Module.Sub`, runs before the modules are imported) and
+`ValidateAfterBuild` (single function whose return value gates the build) keep their
+single-procedure handling.
+
+**What this rules out**: A drive letter can only appear at the start of an entry or
+inside quotes/parentheses; a `:` directly before `\` after more than one character
+still separates (so `ProcA:\\Server\…` gives a UNC path entry). Revisit if entries need
+other unquoted colons.
+
+**Relevant files**:
+- `Version Control.accda.src/modules/Utility/clsProcedureRunner.cls`
+- `Version Control.accda.src/modules/Utility/modDatabase.bas`
+- `Version Control.accda.src/modules/Core/modExport.bas`
+- `Version Control.accda.src/modules/Core/modBuild.bas`
+- `Version Control.accda.src/modules/Tests/Utility/modTestProcedureRunner.bas`
+
+---
+
 ## 2026-10-19 — Parameters in Run* procedure options
 
 **Trigger**: The `RunBeforeExport`/`RunAfterExport`/`RunBeforeMerge`/`RunAfterBuild`/

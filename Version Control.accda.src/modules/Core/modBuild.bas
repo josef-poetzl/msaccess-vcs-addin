@@ -283,10 +283,8 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
         ' Run any pre-merge instructions after the database has been prepared
         ' with all objects closed/unloaded.
         If Options.RunBeforeMerge <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=Options.RunBeforeMerge)
-            Log.Flush
             Perf.OperationStart "RunBeforeMerge"
-            RunSubInCurrentProject Options.RunBeforeMerge
+            RunExternalProcedure Options.RunBeforeMerge
             Perf.OperationEnd
             CatchAny eelError, T("Error running {0}", var0:=Options.RunBeforeMerge), FunctionName, True, True
         End If
@@ -629,19 +627,15 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean _
     ' Run any post-build/merge instructions
     If blnFullBuild Then
         If Options.RunAfterBuild <> vbNullString Then
-            Log.Add T("Running {0}...", var0:=Options.RunAfterBuild)
-            Log.Flush
             Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
+            RunExternalProcedure Options.RunAfterBuild
             Perf.OperationEnd
         End If
     Else
         ' Merge build
         If Options.RunAfterMerge <> vbNullString Then
-            Log.Add T("Running {0}...", Options.RunAfterMerge)
-            Log.Flush
             Perf.OperationStart "RunAfterMerge"
-            RunSubInCurrentProject Options.RunAfterMerge
+            RunExternalProcedure Options.RunAfterMerge
             Perf.OperationEnd
         End If
     End If
