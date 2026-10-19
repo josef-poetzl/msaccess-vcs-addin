@@ -136,7 +136,8 @@ Private Function RunExport(Optional intFilter As eContainerFilter = ecfAllObject
         .Visible = True
         .cmdExport_Click
         RunExport = .blnLastExportSucceeded
-        If Operation.ErrorLevel < eelError Then .AutoClose
+        ' Keep the window open for anything the user should read (eelAlert and above)
+        If Operation.ErrorLevel <= eelInfo Then .AutoClose
     End With
 End Function
 

@@ -35,9 +35,10 @@ End Sub
 | `CatchAny()` | Log an error if one exists, optionally clearing it |
 | `Catch()` | Check for specific error numbers |
 
-Error levels come from `eErrorLevel` in `modConstants`: `eelNoError`,
-`eelWarning` (logged to file), `eelError` (displayed and logged), and
-`eelCritical` (cancels the current operation).
+Error levels come from `eErrorLevel` in `clsErrorInfo`: `eelNoError`,
+`eelWarning` (logged to file), `eelInfo` (displayed in blue, still a success),
+`eelAlert` (displayed as an orange warning, still a success), `eelError`
+(displayed and logged), and `eelCritical` (cancels the current operation).
 
 Under an MCP or external API call, `DebugMode` returns `False` and
 `LogUnhandledErrors` never breaks into the debugger. See
