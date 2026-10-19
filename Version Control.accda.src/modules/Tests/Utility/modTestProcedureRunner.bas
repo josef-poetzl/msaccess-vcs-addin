@@ -133,6 +133,57 @@ Public Sub TestSplitProcedureList()
 End Sub
 
 
+Public Sub TestFindAddInCall()
+
+    Dim strRoot As String
+    Dim strFolder As String
+    Dim strAddInPath As String
+    Dim strCall As String
+
+    ' Folder names with a dot and parentheses must not end the add-in path
+    strRoot = GetTempFolder("VCS")
+    strFolder = BuildPath2(strRoot, "Folder (x86)")
+    FSO.CreateFolder strFolder
+    strFolder = BuildPath2(strFolder, "My.AddIns")
+    FSO.CreateFolder strFolder
+    ' Only the file's existence is checked (WriteFile would not create an empty file)
+    WriteFile "dummy", BuildPath2(strFolder, "TestAddIn.accda")
+
+    With New clsProcedureRunner
+        TestAssert .FindAddInCall("ProcA", strAddInPath, strCall) = eacNone, "plain name is no add-in call"
+        TestAssert .FindAddInCall("Module1.ProcA", strAddInPath, strCall) = eacNone, "module prefix is no add-in call"
+
+        TestAssert .FindAddInCall(BuildPath2(strFolder, "TestAddIn.HookProc(""a.b"", 1)"), strAddInPath, strCall) = eacFound, _
+            "add-in found"
+        TestAssert strAddInPath = BuildPath2(strFolder, "TestAddIn"), "add-in path without extension"
+        TestAssert strCall = "HookProc(""a.b"", 1)", "call expression with parameters"
+
+        TestAssert .FindAddInCall(BuildPath2(strFolder, "TestAddIn.HookProc"), strAddInPath, strCall) = eacFound, _
+            "add-in found without parameters"
+        TestAssert strCall = "HookProc", "call expression without parameters"
+
+        TestAssert .FindAddInCall(BuildPath2(strFolder, "Missing.HookProc"), strAddInPath, strCall) = eacFileMissing, _
+            "missing add-in file"
+
+        WriteFile "dummy", BuildPath2(strFolder, "Compiled.accde")
+        TestAssert .FindAddInCall(BuildPath2(strFolder, "Compiled.HookProc"), strAddInPath, strCall) = eacFound, _
+            "compiled add-in (.accde) found"
+        TestAssert strAddInPath = BuildPath2(strFolder, "Compiled"), "compiled add-in path without extension"
+
+        WriteFile "dummy", BuildPath2(strFolder, "TestAddIn.accde")
+        TestAssert .FindAddInCall(BuildPath2(strFolder, "TestAddIn.HookProc"), strAddInPath, strCall) = eacAmbiguous, _
+            ".accda and .accde with the same name"
+
+        TestAssert .ExpandAddInPath("%addins%\X") = BuildPath2(Environ$("AppData"), "Microsoft", "AddIns", "X"), _
+            "%addins% placeholder"
+        TestAssert .ExpandAddInPath("%APPDATA%\X") = Environ$("AppData") & "\X", "environment variable"
+    End With
+
+    FSO.DeleteFolder strRoot, True
+
+End Sub
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SplitList
 ' Author    : Josef Pötzl

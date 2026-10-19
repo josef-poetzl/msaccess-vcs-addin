@@ -83,6 +83,43 @@ contradictory guidance.
 
 ---
 
+## 2026-10-19 — Add-in procedures in Run* options
+
+**Trigger**: Hooks that are shared across projects (e.g. a company add-in that
+post-processes every export) had to be wrapped in a procedure inside each project.
+The Run* options should call such add-in procedures directly.
+
+**Options explored**:
+- *Fallback rule from the `dev-v5-*` branches*: treat everything before the last dot as
+  the add-in path, check it with `Dir`, otherwise run in the current project. Rejected:
+  `Dir` is banned (Unicode paths), a path like `C:\Program Files (x86)\…` breaks the
+  parameter parser, a dot in a parameter (`Proc("a.b")`) breaks the split, and a missing
+  add-in silently fell back to a confusing "procedure not found" in the current project.
+- *Separate options for add-in hooks*: unambiguous, but doubles the options and UI.
+  Rejected.
+- *Detect the add-in by a rooted path*: chosen (see below).
+
+**Decision**: An entry is an add-in call only if it starts with a rooted path after
+expanding `%addins%` (Access add-ins folder) and environment variables (`%AppData%`
+etc., via `ExpandEnvironmentVariables`). `clsProcedureRunner.FindAddInCall` tries every
+dot from left to right: the part before it must be a rooted path, the part after it a
+procedure call expression (`Name` or `Name(…)`), and `<path>.accda` or `<path>.accde`
+must exist (`FSO.FileExists`). It is then run as `Application.Run "<path>.<Name>", args…`,
+the same form `modAPI` uses for the VCS add-in itself. Because that form carries no
+extension, an `.accda` and an `.accde` with the same name are rejected as ambiguous. A rooted entry without a matching file is
+logged as an error and is not run; there is no fallback to the current project. Entries
+without a rooted path (including `Module.Proc`) keep running in the current project.
+
+**What this rules out**: Relative add-in paths and extensions other than `.accda` and
+`.accde` (e.g. `.mda`, `.accdb`).
+
+**Relevant files**:
+- `Version Control.accda.src/modules/Utility/clsProcedureRunner.cls`
+- `Version Control.accda.src/modules/Tests/Utility/modTestProcedureRunner.bas`
+- `Wiki/Options.md`
+
+---
+
 ## 2026-10-19 — Several procedures per Run* option
 
 **Trigger**: One Run* option (`RunBeforeExport`, `RunAfterExport`, `RunBeforeMerge`,
