@@ -192,6 +192,19 @@ End Sub
 
 
 '---------------------------------------------------------------------------------------
+' Procedure : SetCancelOnEscape
+' Author    : Josef Pötzl
+' Date      : 10/20/2026
+' Purpose   : Let the Escape key click Cancel (or not). Subforms turn it off while an
+'           : overlay is open, so Escape only closes the overlay.
+'---------------------------------------------------------------------------------------
+'
+Public Sub SetCancelOnEscape(ByVal blnEnabled As Boolean)
+    Me.cmdCancel.Cancel = blnEnabled
+End Sub
+
+
+'---------------------------------------------------------------------------------------
 ' Procedure : RefreshDatabaseSchemaList
 ' Author    : Adam Waller
 ' Date      : 7/9/2026

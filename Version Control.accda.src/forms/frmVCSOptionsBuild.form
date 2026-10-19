@@ -123,6 +123,9 @@ Begin Form
             GridlineThemeColorIndex =1
             GridlineShade =65.0
         End
+        Begin Subform
+            BorderLineStyle =0
+        End
         Begin Section
             Height =13683
             BackColor =15130848
@@ -339,7 +342,7 @@ Begin Form
                     ForeTint =50.0
                 End
                 Begin Label
-                    OverlapFlags =85
+                    OverlapFlags =93
                     Left =2700
                     Top =6120
                     Width =2760
@@ -570,7 +573,7 @@ Begin Form
                 End
                 Begin CommandButton
                     TabStop = NotDefault
-                    OverlapFlags =85
+                    OverlapFlags =93
                     Left =5355
                     Top =5700
                     Width =375
@@ -578,8 +581,8 @@ Begin Form
                     TabIndex =10
                     Name ="cmdRunAfterBuildList"
                     Caption ="..."
-                    ControlTipText ="Edit list"
                     OnClick ="[Event Procedure]"
+                    ControlTipText ="Edit list"
                     LeftPadding =0
                     ImageData = Begin
                         0x2800000010000000100000000100200000000000000000000000000000000000 ,
@@ -642,8 +645,8 @@ Begin Form
                     TabIndex =11
                     Name ="cmdRunBeforeMergeList"
                     Caption ="..."
-                    ControlTipText ="Edit list"
                     OnClick ="[Event Procedure]"
+                    ControlTipText ="Edit list"
                     LeftPadding =0
                     ImageData = Begin
                         0x2800000010000000100000000100200000000000000000000000000000000000 ,
@@ -706,8 +709,8 @@ Begin Form
                     TabIndex =12
                     Name ="cmdRunAfterMergeList"
                     Caption ="..."
-                    ControlTipText ="Edit list"
                     OnClick ="[Event Procedure]"
+                    ControlTipText ="Edit list"
                     LeftPadding =0
                     ImageData = Begin
                         0x2800000010000000100000000100200000000000000000000000000000000000 ,

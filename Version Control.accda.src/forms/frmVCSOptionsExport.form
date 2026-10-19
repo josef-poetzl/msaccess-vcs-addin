@@ -123,6 +123,9 @@ Begin Form
             GridlineThemeColorIndex =1
             GridlineShade =65.0
         End
+        Begin Subform
+            BorderLineStyle =0
+        End
         Begin Section
             Height =19155
             BackColor =15130848
@@ -1150,7 +1153,7 @@ Begin Form
                 End
                 Begin CommandButton
                     TabStop = NotDefault
-                    OverlapFlags =85
+                    OverlapFlags =93
                     Left =5655
                     Top =4200
                     Width =375
@@ -1158,8 +1161,8 @@ Begin Form
                     TabIndex =36
                     Name ="cmdRunBeforeExportList"
                     Caption ="..."
-                    ControlTipText ="Edit list"
                     OnClick ="[Event Procedure]"
+                    ControlTipText ="Edit list"
                     LeftPadding =0
                     ImageData = Begin
                         0x2800000010000000100000000100200000000000000000000000000000000000 ,
@@ -1222,8 +1225,8 @@ Begin Form
                     TabIndex =37
                     Name ="cmdRunAfterExportList"
                     Caption ="..."
-                    ControlTipText ="Edit list"
                     OnClick ="[Event Procedure]"
+                    ControlTipText ="Edit list"
                     LeftPadding =0
                     ImageData = Begin
                         0x2800000010000000100000000100200000000000000000000000000000000000 ,

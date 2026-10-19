@@ -19,6 +19,7 @@ Begin Form
     End
     OnCurrent ="[Event Procedure]"
     BeforeDelConfirm ="[Event Procedure]"
+    OnKeyDown ="[Event Procedure]"
     DatasheetFontName ="Calibri"
     AllowDatasheetView =0
     FilterOnLoad =0
@@ -105,6 +106,7 @@ Begin Form
             BackShade =95.0
             Begin
                 Begin CommandButton
+                    Cancel = NotDefault
                     OverlapFlags =85
                     Left =1474
                     Width =227
