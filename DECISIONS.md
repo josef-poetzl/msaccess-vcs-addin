@@ -83,6 +83,40 @@ contradictory guidance.
 
 ---
 
+## 2026-10-20 — Overlay list for editing Run* procedure lists
+
+**Trigger**: Run* options can now hold several procedures, parameters and add-in paths,
+which hardly fit into the single-line option text boxes.
+
+**Options explored**:
+- *Modal dialog* (list, text box, add/remove/move buttons): simple focus handling and
+  reordering, but a separate window away from the option. Rejected by the maintainer in
+  favor of in-place editing.
+- *Overlay subform as in the `dev-v5-*` branches*: chosen. A continuous subform appears
+  above the text box and edits one entry per row.
+
+**Decision**: `frmVCSOptionsValueList` (continuous form on a disconnected ADODB
+recordset) is placed as a hidden subform `sfrValueList` on `frmVCSOptionsExport` and
+`frmVCSOptionsBuild`. A "..." button next to `RunBeforeExport`, `RunAfterExport`,
+`RunAfterBuild`, `RunBeforeMerge` and `RunAfterMerge` opens it; `RunBeforeBuild` and
+`ValidateAfterBuild` accept only one procedure and get no button. The shared logic
+lives in `clsOptionValueListOverlay` (position, split/join, write back, hide), so the
+forms only forward events. Splitting uses `clsProcedureRunner.SplitProcedureList`, the
+same rules as at run time, and rows are joined with `" : "`; empty rows are dropped.
+The list is hidden via the host form's timer because a control cannot be hidden while
+it has the focus. The text boxes stay editable.
+
+**What this rules out**: Reordering entries in the list (edit the text box instead).
+Revisit if a dialog with move buttons becomes necessary.
+
+**Relevant files**:
+- `Version Control.accda.src/forms/frmVCSOptionsValueList.*`
+- `Version Control.accda.src/forms/frmVCSOptionsExport.*`, `frmVCSOptionsBuild.*`
+- `Version Control.accda.src/modules/Utility/clsOptionValueListOverlay.cls`
+- `Wiki/Options.md`
+
+---
+
 ## 2026-10-19 — Log the return value of Run* procedures
 
 **Trigger**: A procedure called from a Run* option had no simple way to report its
