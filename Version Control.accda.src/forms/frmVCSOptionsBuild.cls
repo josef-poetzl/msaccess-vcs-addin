@@ -13,6 +13,9 @@ Option Explicit
 
 Implements IOptionsSection
 
+' Overlay list for editing the procedures of the Run* options
+Private m_ValueList As clsOptionValueListOverlay
+
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Form_Load
@@ -23,6 +26,41 @@ Implements IOptionsSection
 '
 Private Sub Form_Load()
     LoadOptions
+    InitValueList
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : InitValueList
+' Author    : Josef Pötzl
+' Date      : 10/20/2026
+' Purpose   : Prepare the overlay list used by the "..." buttons of the Run* options.
+'---------------------------------------------------------------------------------------
+'
+Private Sub InitValueList()
+    Set m_ValueList = New clsOptionValueListOverlay
+    m_ValueList.Init Me, Me.sfrValueList
+End Sub
+
+
+Private Sub cmdRunAfterBuildList_Click()
+    m_ValueList.OpenFor Me.txtRunAfterBuild, Me.cmdRunAfterBuildList
+End Sub
+
+Private Sub cmdRunBeforeMergeList_Click()
+    m_ValueList.OpenFor Me.txtRunBeforeMerge, Me.cmdRunBeforeMergeList
+End Sub
+
+Private Sub cmdRunAfterMergeList_Click()
+    m_ValueList.OpenFor Me.txtRunAfterMerge, Me.cmdRunAfterMergeList
+End Sub
+
+Private Sub sfrValueList_Exit(Cancel As Integer)
+    m_ValueList.ApplyValues
+End Sub
+
+Private Sub Form_Timer()
+    m_ValueList.HideList
 End Sub
 
 

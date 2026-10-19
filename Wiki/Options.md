@@ -157,7 +157,7 @@ A unique feature of this add-in is the ability to build a fully functioning data
 |-|-
 |A public procedure in a standard module of the current database|`CleanUpTempData`
 |Parameters (up to 5)|`WriteLog("Export", 2, Null)`
-|Several procedures, separated by `:`, run in order|`CleanUpTempData : WriteLog("done")`
+|Several procedures, separated by `:`, run in order (the **...** button next to the option edits them one per row)|`CleanUpTempData : WriteLog("done")`
 |A procedure in an add-in (`.accda` or `.accde`), given by its path without extension|`%addins%\MyTools.AfterExport`
 
 - **Parameters** are literals: `"text"` or `'text'` (a doubled quote inside stands for one quote, as in VBA: `"say ""hi"""`), `Null`, `Nothing`, or unquoted values such as `2`, which are passed as text and converted by VBA to the parameter's type. Commas and colons inside quotes do not separate.
