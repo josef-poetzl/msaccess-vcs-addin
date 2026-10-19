@@ -252,6 +252,46 @@ Public Sub TestProcedureContextListener()
 End Sub
 
 
+Public Sub TestParseReturnMessage()
+
+    Dim strMessage As String
+
+    With New clsProcedureRunner
+        TestAssert .ParseReturnMessage("Error: failed to copy", strMessage) = eelError, "Error prefix"
+        TestAssert strMessage = "failed to copy", "prefix removed"
+        TestAssert .ParseReturnMessage("warning: x", strMessage) = eelAlert, "Warning prefix (case-insensitive)"
+        TestAssert .ParseReturnMessage("Alert: x", strMessage) = eelAlert, "Alert prefix"
+        TestAssert .ParseReturnMessage("Failed: x", strMessage) = eelAlert, "Failed prefix"
+        TestAssert .ParseReturnMessage("Critical: x", strMessage) = eelCritical, "Critical prefix"
+        TestAssert .ParseReturnMessage("FATAL: x", strMessage) = eelCritical, "Fatal prefix"
+        TestAssert .ParseReturnMessage("Info: x", strMessage) = eelInfo, "Info prefix"
+        TestAssert .ParseReturnMessage("Note: x", strMessage) = eelInfo, "Note prefix"
+        TestAssert .ParseReturnMessage("Success: x", strMessage) = eelInfo, "Success prefix"
+        TestAssert .ParseReturnMessage("Log: x", strMessage) = eelWarning, "Log prefix (log file only)"
+        TestAssert strMessage = "x", "message after prefix"
+
+        TestAssert .ParseReturnMessage("Copied 3 files", strMessage) = eelInfo, "text without prefix is info"
+        TestAssert strMessage = "Copied 3 files", "full text kept"
+        TestAssert .ParseReturnMessage("Path: C:\Temp", strMessage) = eelInfo, "unknown prefix is info"
+        TestAssert strMessage = "Path: C:\Temp", "unknown prefix kept"
+        TestAssert .ParseReturnMessage(":x", strMessage) = eelInfo, "leading colon is no prefix"
+        TestAssert .ParseReturnMessage("   ", strMessage) = eelNoError, "empty text logs nothing"
+    End With
+
+End Sub
+
+
+Public Sub TestScalarOrEmpty()
+    With New clsProcedureRunner
+        TestAssert .ScalarOrEmpty(5) = 5, "number passed through"
+        TestAssert .ScalarOrEmpty("x") = "x", "text passed through"
+        TestAssert .ScalarOrEmpty(False) = False, "boolean passed through"
+        TestAssert IsEmpty(.ScalarOrEmpty(New Collection)), "object returns Empty"
+        TestAssert IsEmpty(.ScalarOrEmpty(Nothing)), "Nothing returns Empty"
+    End With
+End Sub
+
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SplitList
 ' Author    : Josef Pötzl
