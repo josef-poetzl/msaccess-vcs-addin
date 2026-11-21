@@ -30,7 +30,8 @@ jobs:
     - name: "Create versioned ZIP file"
       run: |
         $zipName = "Version_Control_${{ github.event.release.tag_name }}.zip"
-        Compress-Archive -Path .\bin\* -DestinationPath $zipName
+        # The build action also copies its build log to bin; keep it out of the ZIP
+        Get-ChildItem .\bin\* -File -Exclude *.log | Compress-Archive -DestinationPath $zipName
         echo "ZIP_NAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append
 
     - name: "Upload ZIP to GitHub Release"
